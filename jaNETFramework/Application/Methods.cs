@@ -363,7 +363,7 @@ namespace jaNETFramework
                                 "         + judo sms add [Api Id] [Username] [Password]\r\n" +
                                 "         + judo sms setup [Api Id] [Username] [Password]\r\n" +
                                 "         + judo sms set [Api Id] [Username] [Password]\r\n" +
-                                "         + judo sms setings\r\n" +
+                                "         + judo sms settings\r\n" +
                                 "     3.2 Send\r\n" +
                                 "         + judo sms send [Phone Number] [Message]";
             const
