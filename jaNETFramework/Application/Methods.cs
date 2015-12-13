@@ -373,10 +373,10 @@ namespace jaNETFramework
                                 "         + judo schedule new [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
                                 "         + judo schedule set [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
                                 "         + judo schedule setup [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
-                                "         + judo schedule add [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} {Verbal Notification}]\r\n" +
-                                "         + judo schedule new [Name] [{repeat} {timer} {interval}] [Interval in ms] [Instruction Set} {Verbal Notification}]\r\n" +
-                                "         + judo schedule set [Name] [{repeat} {timer} {interval}] [Interval in ms] [Instruction Set} {Verbal Notification}]\r\n" +
-                                "         + judo schedule setup [Name] [{repeat} {timer} {interval}] [Interval in ms] [Instruction Set} {Verbal Notification}]\r\n" +
+                                "         + judo schedule add [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]\r\n" +
+                                "         + judo schedule new [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]\r\n" +
+                                "         + judo schedule set [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]\r\n" +
+                                "         + judo schedule setup [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]\r\n" +
                                 "     4.2 Remove Schedule\r\n" +
                                 "         + judo schedule remove [Name]\r\n" +
                                 "         + judo schedule delete [Name]\r\n" +
