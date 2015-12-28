@@ -35,6 +35,7 @@ namespace jaNETFramework
             {
                 string input;
                 var args = new List<String>();
+                
                 using (var tr = new StreamReader(fullPath))
                 {
                     while ((input = tr.ReadLine()) != null)
