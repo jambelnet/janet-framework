@@ -35,15 +35,14 @@ namespace jaNETFramework
             {
                 string input;
                 var args = new List<String>();
-                TextReader tr = new StreamReader(fullPath);
-
-                while ((input = tr.ReadLine()) != null)
+                using (var tr = new StreamReader(fullPath))
                 {
-                    if (input != null)
-                        args.Add(RijndaelSimple.Decrypt(input));
+                    while ((input = tr.ReadLine()) != null)
+                    {
+                        if (input != null)
+                            args.Add(RijndaelSimple.Decrypt(input));
+                    }
                 }
-                tr.Close();
-
                 return args;
             }
             return null;
@@ -60,13 +59,11 @@ namespace jaNETFramework
                 if (File.Exists(fullPath))
                     File.Delete(fullPath);
 
-                TextWriter tw = new StreamWriter(fullPath);
-
-                for (int i = 0; i < args.Length; i++)
-                    tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
-
-                tw.Close();
-
+                using (var tw = new StreamWriter(fullPath))
+                {
+                    for (int i = 0; i < args.Length; i++)
+                        tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
+                }
                 return "Settings saved";
             }
             catch
