@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2015
+ * (c) J@mBeL.net 2010-2016
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -37,7 +37,7 @@ namespace jaNETFramework
         /// A <see cref="System.String"/>
         /// </returns>
         public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.5]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        { return "jaNET Framework [Version 0.2.9.10]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
 
         public string GetWinPath()
         { return Directory.GetCurrentDirectory(); }

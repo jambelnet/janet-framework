@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2015
+ * (c) J@mBeL.net 2010-2016
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -23,7 +23,6 @@ using System;
 using System.IO;
 using System.Xml;
 using System.Threading;
-using System.Text.RegularExpressions;
 using System.Linq;
 
 namespace jaNETFramework
