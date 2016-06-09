@@ -25,20 +25,25 @@ using System.Xml;
 
 namespace jaNETFramework
 {
-    class YahooWeather
+    public class YahooWeather : IWeather
     {
-        internal string TodayConditions { get; private set; }
-        internal string TodayLow { get; private set; }
-        internal string TodayHigh { get; private set; }
-        internal string TodayDay { get; private set; }
-        internal string TomorrowConditions { get; private set; }
-        internal string TomorrowLow { get; private set; }
-        internal string TomorrowHigh { get; private set; }
-        internal string TomorrowDay { get; private set; }
+        public string TodayConditions { get; set; }
+        public string TodayLow { get; set; }
+        public string TodayHigh { get; set; }
+        public string TodayDay { get; set; }
+        public string TomorrowConditions { get; set; }
+        public string TomorrowLow { get; set; }
+        public string TomorrowHigh { get; set; }
+        public string TomorrowDay { get; set; }
+        public string CurrentTemp { get; set; }
+        public string CurrentPresure { get; set; }
+        public string CurrentHumidity { get; set; }
+        public string CurrentCity { get; set; }
 
-        internal YahooWeather()
+        public YahooWeather()
         {
-            Action getWeather = () => {
+            Action getWeather = () =>
+            {
                 try
                 {
                     string endpoint = Helpers.Xml.AppConfigQuery("jaNET/System/Others/YahooForecastFeed").Item(0).InnerText;
@@ -67,7 +72,8 @@ namespace jaNETFramework
                     TomorrowLow = le[6];
                     TomorrowHigh = le[7];
                 }
-                catch {
+                catch
+                {
                     // Suppress
                 }
             };

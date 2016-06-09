@@ -101,6 +101,7 @@ namespace jaNETFramework
         internal static string ToValues(this string context)
         {
             var method = Methods.Instance;
+            IWeather weather = new OpenWeather();
 
             if (context.Contains("%exit%") || context.Contains("%quit%"))
             {
@@ -181,21 +182,29 @@ namespace jaNETFramework
                 context = context.Replace("%daypart%", daypart).Replace("%partofday%", daypart);
             }
             if (context.Contains("%todayday%"))
-                context = context.Replace("%todayday%", new YahooWeather().TodayDay);
+                context = context.Replace("%todayday%", weather.TodayDay);
             if (context.Contains("%todayconditions%"))
-                context = context.Replace("%todayconditions%", new YahooWeather().TodayConditions);
+                context = context.Replace("%todayconditions%", weather.TodayConditions);
             if (context.Contains("%todaylow%"))
-                context = context.Replace("%todaylow%", new YahooWeather().TodayLow);
+                context = context.Replace("%todaylow%", weather.TodayLow);
             if (context.Contains("%todayhigh%"))
-                context = context.Replace("%todayhigh%", new YahooWeather().TodayHigh);
+                context = context.Replace("%todayhigh%", weather.TodayHigh);
+            if (context.Contains("%currenttemp%"))
+                context = context.Replace("%todaytemp%", weather.CurrentTemp);
+            if (context.Contains("%currenthumidity%"))
+                context = context.Replace("%currenthumidity%", weather.CurrentHumidity);
+            if (context.Contains("%currentpresure%"))
+                context = context.Replace("%currentpresure%", weather.CurrentPresure);
+            if (context.Contains("%currentcity%"))
+                context = context.Replace("%currentcity%", weather.CurrentCity);
             if (context.Contains("%tomorrowday%"))
-                context = context.Replace("%tomorrowday%", new YahooWeather().TomorrowDay);
+                context = context.Replace("%tomorrowday%", weather.TomorrowDay);
             if (context.Contains("%tomorrowconditions%"))
-                context = context.Replace("%tomorrowconditions%", new YahooWeather().TomorrowConditions);
+                context = context.Replace("%tomorrowconditions%", weather.TomorrowConditions);
             if (context.Contains("%tomorrowlow%"))
-                context = context.Replace("%tomorrowlow%", new YahooWeather().TomorrowLow);
+                context = context.Replace("%tomorrowlow%", weather.TomorrowLow);
             if (context.Contains("%tomorrowhigh%"))
-                context = context.Replace("%tomorrowhigh%", new YahooWeather().TomorrowHigh);
+                context = context.Replace("%tomorrowhigh%", weather.TomorrowHigh);
             if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%"))
                 if (User.Status)
                     context = context.Replace("%whereami%", "present").Replace("%userstat%", "present").Replace("%userstatus%", "present");

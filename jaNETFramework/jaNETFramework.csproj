@@ -58,6 +58,8 @@
     <Compile Include="Core\Parser.cs" />
     <Compile Include="Extensions\Process.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\IWeather.cs" />
+    <Compile Include="Providers\OpenWeather.cs" />
     <Compile Include="Security\RijndaelSimple.cs" />
     <Compile Include="Providers\Scheduler.cs" />
     <Compile Include="Comm\SerialComm.cs" />
