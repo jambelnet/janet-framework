@@ -107,12 +107,14 @@ namespace jaNETFramework
             {
                 SerialComm.DeactivateSerialPort();
                 Parser.ParserState = false;
-                context = context.Replace("%exit%", string.Empty).Replace("%quit%", string.Empty);
+                context = context.Replace("%exit%", string.Empty)
+                                 .Replace("%quit%", string.Empty);
             }
             if (context.Contains("%clear%") || context.Contains("%cls%"))
             {
                 Console.Clear();
-                context = context.Replace("%clear%", string.Empty).Replace("%cls%", string.Empty);
+                context = context.Replace("%clear%", string.Empty)
+                                 .Replace("%cls%", string.Empty);
             }
             if (context.Contains("%mute%"))
             {
@@ -127,7 +129,8 @@ namespace jaNETFramework
             if (context.Contains("%inet%") || context.Contains("%inetcon%"))
             {
                 String con = method.HasInternetConnection().ToString();
-                context = context.Replace("%inet%", con).Replace("%inetcon%", con);
+                context = context.Replace("%inet%", con)
+                                 .Replace("%inetcon%", con);
             }
             if (context.Contains("%gmailcount%") || context.Contains("%gcount%"))
                 context = context.Replace("%gmailcount%", new Net.Mail().GmailCheck(true))
@@ -142,17 +145,20 @@ namespace jaNETFramework
             if (context.Contains("%user%") || context.Contains("%whoami%"))
             {
                 String whoami = method.WhoAmI();
-                context = context.Replace("%user%", whoami).Replace("%whoami%", whoami);
+                context = context.Replace("%user%", whoami)
+                                 .Replace("%whoami%", whoami);
             }
             if (context.Contains("%checkin%") || context.Contains("%usercheckin%"))
             {
                 User.Status = true;
-                context = context.Replace("%usercheckin%", string.Empty).Replace("%checkin%", string.Empty);
+                context = context.Replace("%usercheckin%", string.Empty)
+                                 .Replace("%checkin%", string.Empty);
             }
             if (context.Contains("%checkout%") || context.Contains("%usercheckout%"))
             {
                 User.Status = false;
-                context = context.Replace("%usercheckout%", string.Empty).Replace("%checkout%", string.Empty);
+                context = context.Replace("%usercheckout%", string.Empty)
+                                 .Replace("%checkout%", string.Empty);
             }
             if (context.Contains("%time%"))
                 context = context.Replace("%time%", method.GetTime());
@@ -179,7 +185,8 @@ namespace jaNETFramework
             if (context.Contains("%daypart%") || context.Contains("%partofday%"))
             {
                 String daypart = method.GetPartOfDay(false);
-                context = context.Replace("%daypart%", daypart).Replace("%partofday%", daypart);
+                context = context.Replace("%daypart%", daypart)
+                                 .Replace("%partofday%", daypart);
             }
             if (context.Contains("%todayday%"))
                 context = context.Replace("%todayday%", weather.TodayDay);
@@ -189,8 +196,10 @@ namespace jaNETFramework
                 context = context.Replace("%todaylow%", weather.TodayLow);
             if (context.Contains("%todayhigh%"))
                 context = context.Replace("%todayhigh%", weather.TodayHigh);
-            if (context.Contains("%currenttemp%"))
-                context = context.Replace("%todaytemp%", weather.CurrentTemp);
+            if (context.Contains("%currenttemperature%") || context.Contains("%todaytemp%") || context.Contains("%todaytemperature%"))
+                context = context.Replace("%currenttemperature%", weather.CurrentTemp)
+                                 .Replace("%todaytemp%", weather.CurrentTemp)
+                                 .Replace("%todaytemperature%", weather.CurrentTemp);
             if (context.Contains("%currenthumidity%"))
                 context = context.Replace("%currenthumidity%", weather.CurrentHumidity);
             if (context.Contains("%currentpresure%"))
@@ -207,9 +216,13 @@ namespace jaNETFramework
                 context = context.Replace("%tomorrowhigh%", weather.TomorrowHigh);
             if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%"))
                 if (User.Status)
-                    context = context.Replace("%whereami%", "present").Replace("%userstat%", "present").Replace("%userstatus%", "present");
+                    context = context.Replace("%whereami%", "present")
+                                     .Replace("%userstat%", "present")
+                                     .Replace("%userstatus%", "present");
                 else
-                    context = context.Replace("%whereami%", "absent").Replace("%userstat%", "absent").Replace("%userstatus%", "absent");
+                    context = context.Replace("%whereami%", "absent")
+                                     .Replace("%userstat%", "absent")
+                                     .Replace("%userstatus%", "absent");
             if (context.Contains("%uptime%"))
                 context = context.Replace("%uptime%", Application.Uptime.getAll);
             if (context.Contains("%updays%"))
@@ -221,12 +234,14 @@ namespace jaNETFramework
             if (context.Contains("%upseconds%"))
                 context = context.Replace("%upseconds%", Application.Uptime.getSeconds.ToString());
             if (context.Contains("%about%") || context.Contains("%copyright%"))
-                context = context.Replace("%about%", method.GetCopyright()).Replace("%copyright%", method.GetCopyright());
+                context = context.Replace("%about%", method.GetCopyright())
+                                 .Replace("%copyright%", method.GetCopyright());
 
             // If Event
             if (context.Contains("%~>"))
             {
-                method.GetEvent(context.Replace("%~>", string.Empty).Replace("%", string.Empty)).Item(0).InnerText.Parse();
+                method.GetEvent(context.Replace("%~>", string.Empty)
+                                       .Replace("%", string.Empty)).Item(0).InnerText.Parse();
                 context = context.Replace(context, string.Empty);
             }
 
