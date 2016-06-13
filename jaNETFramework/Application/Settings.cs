@@ -93,7 +93,7 @@ namespace jaNETFramework
             internal const string HttpPortElement = "httpPort";
             internal const string HttpAuthenticationElement = "Authentication";
 
-            internal const string YahooWeatherFeed = "YahooForecastFeed";
+            internal const string Weather = "Weather";
 
             internal const string ComPortPath = SystemCommRoot +
                                                 "/" + ComPortElement;
@@ -112,7 +112,7 @@ namespace jaNETFramework
             internal const string HttpAuthenticationPath = SystemCommRoot +
                                                 "/" + HttpAuthenticationElement;
             internal const string YahooWeatherFeedPath = SystemOthersRoot +
-                                                "/" + YahooWeatherFeed;
+                                                "/" + Weather;
         }
 
         internal string ComPort { get; private set; }
@@ -122,7 +122,7 @@ namespace jaNETFramework
         internal string HostName { get; private set; }
         internal string HttpPort { get; private set; }
         internal string Authentication { get; private set; }
-        internal string YahooWeather { get; private set; }
+        internal string Weather { get; private set; }
 
         internal ApplicationSettings()
         {
@@ -160,7 +160,7 @@ namespace jaNETFramework
                     ApplicationStructure.HttpAuthenticationPath)
                     .Item(0).InnerText;
             if (Helpers.Xml.AppConfigQuery(ApplicationStructure.YahooWeatherFeedPath).Count > 0)
-                YahooWeather = Helpers.Xml.AppConfigQuery(
+                Weather = Helpers.Xml.AppConfigQuery(
                     ApplicationStructure.YahooWeatherFeedPath)
                     .Item(0).InnerText;
         }

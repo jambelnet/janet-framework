@@ -25,6 +25,7 @@ using System.Xml;
 
 namespace jaNETFramework
 {
+    [Obsolete]
     public class YahooWeather : IWeather
     {
         public string TodayConditions { get; set; }

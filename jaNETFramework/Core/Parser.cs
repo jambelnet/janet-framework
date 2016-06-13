@@ -765,10 +765,10 @@ namespace jaNETFramework
                         case "setup":
                             output = method.AddToXML(new InstructionSet(args[3]),
                                                      ApplicationSettings.ApplicationStructure.SystemOthersRoot,
-                                                     ApplicationSettings.ApplicationStructure.YahooWeatherFeed);
+                                                     ApplicationSettings.ApplicationStructure.Weather);
                             break;
                         case "settings":
-                            output = appset.YahooWeather;
+                            output = appset.Weather;
                             break;
                     }
                     break;
