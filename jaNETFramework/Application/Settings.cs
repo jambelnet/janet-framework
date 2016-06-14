@@ -111,7 +111,7 @@ namespace jaNETFramework
                                                 "/" + HttpPortElement;
             internal const string HttpAuthenticationPath = SystemCommRoot +
                                                 "/" + HttpAuthenticationElement;
-            internal const string YahooWeatherFeedPath = SystemOthersRoot +
+            internal const string WeatherPath = SystemOthersRoot +
                                                 "/" + Weather;
         }
 
@@ -126,43 +126,50 @@ namespace jaNETFramework
 
         internal ApplicationSettings()
         {
-            if (!File.Exists(Methods.Instance.GetApplicationPath() + "AppConfig.xml"))
+            try
             {
-                Logger.Instance.Append("obj [ ApplicationSettings Constructor ]: arg [ AppConfig.xml, not found. ]");
-                return;
+                if (!File.Exists(Methods.Instance.GetApplicationPath() + "AppConfig.xml"))
+                {
+                    Logger.Instance.Append("obj [ ApplicationSettings Constructor ]: arg [ AppConfig.xml, not found. ]");
+                    return;
+                }
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.ComPortPath).Count > 0)
+                    ComPort = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.ComPortPath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.ComBaudRatePath).Count > 0)
+                    Baud = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.ComBaudRatePath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.LocalHostPath).Count > 0)
+                    LocalHost = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.LocalHostPath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.LocalPortPath).Count > 0)
+                    LocalPort = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.LocalPortPath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpHostNamePath).Count > 0)
+                    HostName = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.HttpHostNamePath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpPortPath).Count > 0)
+                    HttpPort = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.HttpPortPath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpAuthenticationPath).Count > 0)
+                    Authentication = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.HttpAuthenticationPath)
+                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(ApplicationStructure.WeatherPath).Count > 0)
+                    Weather = Helpers.Xml.AppConfigQuery(
+                        ApplicationStructure.WeatherPath)
+                        .Item(0).InnerText;
             }
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.ComPortPath).Count > 0)
-                ComPort = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.ComPortPath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.ComBaudRatePath).Count > 0)
-                Baud = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.ComBaudRatePath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.LocalHostPath).Count > 0)
-                LocalHost = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.LocalHostPath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.LocalPortPath).Count > 0)
-                LocalPort = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.LocalPortPath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpHostNamePath).Count > 0)
-                HostName = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.HttpHostNamePath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpPortPath).Count > 0)
-                HttpPort = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.HttpPortPath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.HttpAuthenticationPath).Count > 0)
-                Authentication = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.HttpAuthenticationPath)
-                    .Item(0).InnerText;
-            if (Helpers.Xml.AppConfigQuery(ApplicationStructure.YahooWeatherFeedPath).Count > 0)
-                Weather = Helpers.Xml.AppConfigQuery(
-                    ApplicationStructure.YahooWeatherFeedPath)
-                    .Item(0).InnerText;
+            catch (ArgumentNullException e)
+            {
+                Application.Dispose();
+            }
         }
     }
 }

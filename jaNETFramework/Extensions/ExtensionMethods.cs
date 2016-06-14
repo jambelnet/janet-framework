@@ -202,8 +202,8 @@ namespace jaNETFramework
                                  .Replace("%todaytemperature%", weather.CurrentTemp);
             if (context.Contains("%currenthumidity%"))
                 context = context.Replace("%currenthumidity%", weather.CurrentHumidity);
-            if (context.Contains("%currentpresure%"))
-                context = context.Replace("%currentpresure%", weather.CurrentPresure);
+            if (context.Contains("%currentpressure%"))
+                context = context.Replace("%currentpressure%", weather.CurrentPressure);
             if (context.Contains("%currentcity%"))
                 context = context.Replace("%currentcity%", weather.CurrentCity);
             if (context.Contains("%tomorrowday%"))

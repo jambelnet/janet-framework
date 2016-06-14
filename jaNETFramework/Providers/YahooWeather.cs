@@ -37,7 +37,7 @@ namespace jaNETFramework
         public string TomorrowHigh { get; set; }
         public string TomorrowDay { get; set; }
         public string CurrentTemp { get; set; }
-        public string CurrentPresure { get; set; }
+        public string CurrentPressure { get; set; }
         public string CurrentHumidity { get; set; }
         public string CurrentCity { get; set; }
 

@@ -37,7 +37,7 @@ namespace jaNETFramework
         /// A <see cref="System.String"/>
         /// </returns>
         public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.13]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        { return "jaNET Framework [Version 0.2.9.14]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
 
         public string GetWinPath()
         { return Directory.GetCurrentDirectory(); }
