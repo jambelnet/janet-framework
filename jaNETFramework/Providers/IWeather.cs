@@ -35,5 +35,6 @@ namespace jaNETFramework
         string CurrentPressure { get; set; }
         string CurrentHumidity { get; set; }
         string CurrentCity { get; set; }
+        string WeatherIconPath { get; set; }
     }
 }

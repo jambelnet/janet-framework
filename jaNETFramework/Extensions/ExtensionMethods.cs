@@ -196,8 +196,9 @@ namespace jaNETFramework
                 context = context.Replace("%todaylow%", weather.TodayLow);
             if (context.Contains("%todayhigh%"))
                 context = context.Replace("%todayhigh%", weather.TodayHigh);
-            if (context.Contains("%currenttemperature%") || context.Contains("%todaytemp%") || context.Contains("%todaytemperature%"))
+            if (context.Contains("%currenttemperature%") || context.Contains("%currenttemp%") || context.Contains("%todaytemp%") || context.Contains("%todaytemperature%"))
                 context = context.Replace("%currenttemperature%", weather.CurrentTemp)
+                                 .Replace("%currenttemp%", weather.CurrentTemp)
                                  .Replace("%todaytemp%", weather.CurrentTemp)
                                  .Replace("%todaytemperature%", weather.CurrentTemp);
             if (context.Contains("%currenthumidity%"))
@@ -206,6 +207,8 @@ namespace jaNETFramework
                 context = context.Replace("%currentpressure%", weather.CurrentPressure);
             if (context.Contains("%currentcity%"))
                 context = context.Replace("%currentcity%", weather.CurrentCity);
+            if (context.Contains("%weathericon%"))
+                context = context.Replace("%weathericon%", weather.WeatherIconPath);
             if (context.Contains("%tomorrowday%"))
                 context = context.Replace("%tomorrowday%", weather.TomorrowDay);
             if (context.Contains("%tomorrowconditions%"))

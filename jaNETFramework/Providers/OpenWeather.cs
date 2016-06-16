@@ -39,6 +39,7 @@ namespace jaNETFramework
         public string CurrentPressure { get; set; }
         public string CurrentHumidity { get; set; }
         public string CurrentCity { get; set; }
+        public string WeatherIconPath { get; set; }
 
         public class Coord
         {
@@ -111,12 +112,13 @@ namespace jaNETFramework
                     var oRootObject = new RootObject();
                     oRootObject = oJS.Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                     TodayConditions = oRootObject.weather[0].main;
-                    TodayHigh = oRootObject.main.temp_max.ToString();
-                    TodayLow = oRootObject.main.temp_min.ToString();
+                    TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
+                    TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");
                     CurrentCity = oRootObject.name;
-                    CurrentTemp = oRootObject.main.temp.ToString();
+                    CurrentTemp = Math.Round(oRootObject.main.temp, 1).ToString().Replace(",", ".");
                     CurrentHumidity = oRootObject.main.humidity.ToString();
                     CurrentPressure = oRootObject.main.pressure.ToString();
+                    WeatherIconPath = "<img src='http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png' />";
                 }
                 catch { }
             };

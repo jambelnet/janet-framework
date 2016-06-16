@@ -40,6 +40,7 @@ namespace jaNETFramework
         public string CurrentPressure { get; set; }
         public string CurrentHumidity { get; set; }
         public string CurrentCity { get; set; }
+        public string WeatherIconPath { get; set; }
 
         public YahooWeather()
         {
