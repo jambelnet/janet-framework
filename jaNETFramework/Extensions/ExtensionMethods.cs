@@ -208,7 +208,7 @@ namespace jaNETFramework
             if (context.Contains("%currentcity%"))
                 context = context.Replace("%currentcity%", weather.CurrentCity);
             if (context.Contains("%weathericon%"))
-                context = context.Replace("%weathericon%", weather.WeatherIconPath);
+                context = context.Replace("%weathericon%", weather.WeatherIcon);
             if (context.Contains("%tomorrowday%"))
                 context = context.Replace("%tomorrowday%", weather.TomorrowDay);
             if (context.Contains("%tomorrowconditions%"))

@@ -39,7 +39,7 @@ namespace jaNETFramework
         public string CurrentPressure { get; set; }
         public string CurrentHumidity { get; set; }
         public string CurrentCity { get; set; }
-        public string WeatherIconPath { get; set; }
+        public string WeatherIcon { get; set; }
 
         public class Coord
         {
@@ -118,7 +118,7 @@ namespace jaNETFramework
                     CurrentTemp = Math.Round(oRootObject.main.temp, 1).ToString().Replace(",", ".");
                     CurrentHumidity = oRootObject.main.humidity.ToString();
                     CurrentPressure = oRootObject.main.pressure.ToString();
-                    WeatherIconPath = "<img src='http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png' />";
+                    WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
                 }
                 catch { }
             };
