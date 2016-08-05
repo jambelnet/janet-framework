@@ -23,10 +23,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Threading;
-using System.Threading.Tasks;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
@@ -106,9 +106,6 @@ namespace jaNETFramework
             SaveList();
         }
 
-        /// <summary>
-        /// initialize scheduler.
-        /// </summary>
         internal static void Init()
         {
             new Thread(() =>
@@ -124,7 +121,6 @@ namespace jaNETFramework
                     foreach (string schedule in Schedules)
                         if (schedule != string.Empty)
                             Add(schedule.ToSchedule());
-                            //Judoers.JudoParser("judo schedule add " + schedule);
                 }
             }).Start();
         }

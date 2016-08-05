@@ -30,14 +30,8 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        /// <summary>
-        /// returns library's copyright.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String"/>
-        /// </returns>
         public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.16]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        { return "jaNET Framework [Version 0.2.9.17]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
 
         public string GetWinPath()
         { return Directory.GetCurrentDirectory(); }
@@ -45,12 +39,6 @@ namespace jaNETFramework
         public string GetLinuxPath()
         { return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/")); }
 
-        /// <summary>
-        /// determine OS and returns Linux/Windows formatted path of the application.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String"/>
-        /// </returns>
         public string GetApplicationPath()
         {
             string Path = string.Empty;

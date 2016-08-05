@@ -24,14 +24,15 @@
                http://www.albahari.com/nutshell/cs5ch16.aspx */
 
 using System;
-using System.Text;
-using System.Threading;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.IO;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using static jaNETFramework.Server.Web.Request;
 
 namespace jaNETFramework
 {
@@ -173,6 +174,16 @@ namespace jaNETFramework
 
         internal static class Web
         {
+            public class Request
+            {
+                public enum DataType
+                {
+                    html,
+                    json,
+                    text
+                }
+            }
+
             class Login
             {
                 string Username { get; set; }
@@ -286,8 +297,21 @@ namespace jaNETFramework
                         //else if (Array.Find(MIME_Text, s => s.Contains(mapPath.Substring(mapPath.LastIndexOf('.')))) != null || mapPath.Contains("?cmd="))
                         //buf = Encoding.UTF8.GetBytes(SendResponse(mapPath));
                         if (mapPath.Contains("?cmd="))
+                        {
+                            var t = DataType.html;
+
+                            if (mapPath.Contains("&mode=json"))
+                                t = DataType.json;
+                            if (mapPath.Contains("&mode=text"))
+                                t = DataType.text;
+
                             buf = Encoding.UTF8.GetBytes(Parser.Instance.Parse(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal))
-                                                               .Replace("?cmd=", string.Empty), true, false));
+                                                               .Replace("?cmd=", string.Empty)
+                                                               .Replace("&mode=text", string.Empty)
+                                                               .Replace("&mode=json", string.Empty)
+                                                               .Replace("&mode=html", string.Empty)
+                                                               , t, false));
+                        }
                         else
                             buf = File.ReadAllBytes(mapPath);
                     }

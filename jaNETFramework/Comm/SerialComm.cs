@@ -59,13 +59,14 @@ namespace jaNETFramework
                 t.IsBackground = true;
                 t.Start();
             }
-            catch {
-                try {
-                    throw new InvalidOperationException("Serial port state: " + port.IsOpen);
-                }
-                catch {
-                    // Suppress
-                }
+            catch (Exception e) {
+                Logger.Instance.Append(string.Join("Serial Exception <ActivateSerialPort>: {0}", e.Message));
+                //try {
+                //    throw new InvalidOperationException("Serial port state: " + port.IsOpen);
+                //}
+                //catch {
+                // Suppress
+                //}
             }
         }
 
@@ -75,8 +76,9 @@ namespace jaNETFramework
                 if (port.IsOpen)
                     port.Close();
             }
-            catch {
-                throw new InvalidOperationException("Serial port state: " + port.IsOpen);
+            catch (Exception e) {
+                //throw new InvalidOperationException("Serial port state: " + port.IsOpen);
+                Logger.Instance.Append(string.Join("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
             }
         }
 
@@ -114,11 +116,11 @@ namespace jaNETFramework
                     {
                         if (e is TimeoutException)
                         {
-                            //
+                            Logger.Instance.Append(string.Join("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
                         }
                         else
                         {
-                            //Console.WriteLine("Serial Exception: {0}", ex.Message);
+                            Logger.Instance.Append(string.Join("Serial Exception <SerialPortListener>: {0}", e.Message));
                         }
                     }
                 }

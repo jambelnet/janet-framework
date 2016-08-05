@@ -42,9 +42,9 @@
  * Version: 0.2.9          29 Oct 2015
  * ****************************************************************************************************************************/
 
+using jaNETFramework;
 using System;
 using System.Diagnostics;
-using jaNETFramework;
 
 namespace jaNETProgram
 {

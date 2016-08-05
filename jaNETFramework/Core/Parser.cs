@@ -24,6 +24,8 @@ using System.IO;
 using System.Xml;
 using System.Threading;
 using System.Linq;
+using static jaNETFramework.Server.Web.Request;
+using System.Collections.Generic;
 
 namespace jaNETFramework
 {
@@ -31,51 +33,39 @@ namespace jaNETFramework
     {
         internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
     
-        /// <summary>
-        /// returns the status of the parser.
-        /// </summary>
         public static volatile bool ParserState = true;
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
 
-        /// <summary>
-        /// args - more than one in-line argument separated by semicolon.
-        /// Example: Parse ("judo serial open; judo server start; %checkin%);
-        /// ReturnAsHTML - In web request it formats the \r\n to html break <br />.
-        /// </summary>
-        /// <param name="args">
-        /// A <see cref="System.String"/>
-        /// </param>
-        /// <param name = "returnAsHTML"></param>
-        /// <param name="ReturnAsHTML">
-        /// A <see cref="System.Boolean"/>
-        /// </param>
-        /// <returns>
-        /// A <see cref="System.String"/>
-        /// </returns>
-        /// <param name="disableSpeech"></param>
-        internal string Parse(string args, bool returnAsHTML, bool disableSpeech)
+        internal string Parse(string args, DataType dataType, bool disableSpeech)
         {
             if (args.Contains("{mute}") || args.Contains("{widget}"))
             {
                 args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
                 disableSpeech = true;
             }
-            if (args.Contains("</lock>"))
-                if (returnAsHTML)
+
+            if (args.Contains("</lock>")) // lock is extension of judo parser. No need for extra parsing
+                if (dataType == DataType.html)
                     return Judoers.JudoParser(args).Replace("\r", string.Empty).Replace("\n", "<br />");
                 else
                     return Judoers.JudoParser(args);
 
             string[] InstructionSet = args.Split(';');
-            string results = string.Empty;
+            var results = new Dictionary<string, string>();
 
             foreach (string Instruction in InstructionSet)
                 if (Instruction.Trim() != string.Empty)
-                    results += Execute(Instruction.Trim(), disableSpeech);
+                    results.Add(Instruction.Trim(), Execute(Instruction.Trim(), disableSpeech));
 
-            return returnAsHTML ?
-                results.Replace("<", "&lt;").Replace(">", "&gt;").Replace("\r", string.Empty).Replace("\n", "<br />") : results;
+            switch (dataType)
+            {
+                case DataType.html:
+                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\r", string.Empty).Replace("\n", "<br />");
+                case DataType.json:
+                    return results.ToJson();
+            }
+            return results.ToDebugString();
         }
 
         string Execute(string arg, bool disableSpeech)
@@ -85,9 +75,10 @@ namespace jaNETFramework
 
             try
             {
-                if (arg.Substring(0, 1) == "%" ||
-                    arg.Substring(0, 2) == "./" ||
-                    arg.Length >= 4 && (arg.Substring(0, 4) == "judo"))
+                if (arg.StartsWith("%") ||
+                    arg.StartsWith("./") ||
+                    arg.StartsWith("judo"))
+                    
                     return ParsingTools.ParseTokens(arg);
 
                 else
@@ -120,10 +111,6 @@ namespace jaNETFramework
                                                                                 nodeItem.SelectSingleNode("MailTo").InnerText,
                                                                                 nodeItem.SelectSingleNode("MailSubject").InnerText,
                                                                                 output);
-                                //Judoers.JudoParser("judo mail send " + nodeItem.SelectSingleNode("MailFrom").InnerText + " " +
-                                                                                                   //nodeItem.SelectSingleNode("MailTo").InnerText + " `" +
-                                                                                                   //nodeItem.SelectSingleNode("MailSubject").InnerText + "` `" +
-                                                                                                   //output + "`");
                             Process.CallWithTimeout(SendNotification, 10000);
                         }
                     }
@@ -155,12 +142,6 @@ namespace jaNETFramework
             }
         }
 
-        /// <summary>
-        /// speek something.
-        /// </summary>
-        /// <param name="sText">
-        /// A <see cref="System.String"/>
-        /// </param>
         public static void SayText(string sText)
         {
             SayText((object)sText);

@@ -22,9 +22,10 @@
 using System;
 //using System.CodeDom;
 using System.CodeDom.Compiler;
-using System.Text;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
+using static jaNETFramework.Server.Web.Request;
 
 namespace jaNETFramework
 {
@@ -138,8 +139,8 @@ namespace jaNETFramework
                         else
                             e = Evaluator.EvaluateToBool(condition);
 
-                        sValue = e ? sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[1].Replace(" ", ";"), false, true)) :
-                                     sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[2].Replace(" ", ";"), false, true));
+                        sValue = e ? sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true)) :
+                                     sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true));
                     }
                 }
             }

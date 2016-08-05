@@ -51,7 +51,7 @@ namespace jaNETFramework
         internal static string ParseTokens(string sValue)
         {
             if (sValue.Contains("%"))
-                if (sValue.Substring(0, 1) == "%")
+                if (sValue.StartsWith("%"))
                     return string.Format("{0}\r\n", sValue.ToLower().ToValues());
                 else
                     sValue = sValue.ToValues();
@@ -78,7 +78,7 @@ namespace jaNETFramework
 
             if (sValue.Contains("./") || sValue.Contains("judo"))
             {
-                if (sValue.Substring(0, 2).Contains("./"))
+                if (sValue.StartsWith("./"))
                 {
                     MatchCollection mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
 
@@ -97,11 +97,9 @@ namespace jaNETFramework
 
                     return Process.Instance.Start(fileName, arguments);
                 }
-                switch (sValue.Substring(0, 4))
-                {
-                    case "judo":
-                        return sValue.Replace(sValue, Judoers.JudoParser(sValue));
-                } // + "\r\n"; Causing problem to evaluation - need solution
+                if (sValue.StartsWith("judo"))
+                    return sValue.Replace(sValue, Judoers.JudoParser(sValue));
+                // + "\r\n"; Causing problem to evaluation - need solution
             }
             return sValue;
         }

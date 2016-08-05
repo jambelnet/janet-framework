@@ -20,25 +20,29 @@
     along with Project jaNET. If not, see <http://www.gnu.org/licenses/>. */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Web.Script.Serialization;
+using static jaNETFramework.Server.Web.Request;
 
 namespace jaNETFramework
 {
     public static class ExtensionMethods
     {
-        /// <summary>
-        /// args - more than one in-line argument separated by semicolon.
-        /// Example: Parse ("judo serial open; judo server start; %checkin%);
-        /// </summary>
-        /// <param name="args">
-        /// A <see cref="System.String"/>
-        /// </param>
-        /// <returns>
-        /// A <see cref="System.String"/>
-        /// </returns>
         public static string Parse(this string args)
         {
-            return Parser.Instance.Parse(args, false, false);
+            return Parser.Instance.Parse(args, DataType.text, false);
+        }
+
+        public static string ToJson(this object res)
+        {
+            return new JavaScriptSerializer().Serialize(res);
+        }
+
+        public static string ToDebugString<TKey, TValue>(this IDictionary<TKey, TValue> dictionary)
+        {
+            return string.Join("\r\n", dictionary.Select(kv => kv.Value).ToArray());
         }
 
         internal static Schedule ToSchedule(this string rawSchedule)
