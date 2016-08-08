@@ -31,7 +31,7 @@ namespace jaNETFramework
         static readonly object _serial_locker = new object();
         internal static volatile string SerialData = string.Empty;
         internal static SerialPort port = new SerialPort();
-        
+
         internal static void ActivateSerialPort(string portName)
         {
             try
@@ -52,15 +52,21 @@ namespace jaNETFramework
                     || OperatingSystem.Version == OperatingSystem.Type.MacOS)
                     if (!File.Exists(port.PortName))
                         return;
-                if (!port.IsOpen)
-                    port.Open();
+
+                if (port.IsOpen)
+                    return;
+
+                port.ReadTimeout = 500;
+                port.WriteTimeout = 500;
+                port.Open();
 
                 var t = new Thread(SerialPortListener);
                 t.IsBackground = true;
                 t.Start();
             }
-            catch (Exception e) {
-                Logger.Instance.Append(string.Join("Serial Exception <ActivateSerialPort>: {0}", e.Message));
+            catch (Exception e)
+            {
+                Logger.Instance.Append(string.Format("Serial Exception <ActivateSerialPort>: {0}", e.Message));
                 //try {
                 //    throw new InvalidOperationException("Serial port state: " + port.IsOpen);
                 //}
@@ -72,57 +78,61 @@ namespace jaNETFramework
 
         internal static void DeactivateSerialPort()
         {
-            try {
+            try
+            {
                 if (port.IsOpen)
                     port.Close();
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 //throw new InvalidOperationException("Serial port state: " + port.IsOpen);
-                Logger.Instance.Append(string.Join("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
+                Logger.Instance.Append(string.Format("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
             }
         }
 
         static void SerialPortListener()
         {
-            lock (_serial_locker)
+            try
             {
-                while (port.IsOpen)
+                lock (_serial_locker)
                 {
-                    try
+                    while (port.IsOpen)
                     {
                         SerialData = port.ReadLine().Replace("\r", string.Empty)
                                                     .Replace("SIGKILL", "\n");
 
                         if (SerialData != string.Empty &&
                             Helpers.Xml.AppConfigQuery(
-                            ApplicationSettings.ApplicationStructure.SystemEventsRoot + 
+                            ApplicationSettings.ApplicationStructure.SystemEventsRoot +
                             "/event[@id='" + SerialData + "']").Count > 0)
                         {
                             Action ParseSerialData = () =>
                             {
-                                try {
+                                try
+                                {
                                     Helpers.Xml.AppConfigQuery(
-                                    ApplicationSettings.ApplicationStructure.SystemEventsRoot + 
+                                    ApplicationSettings.ApplicationStructure.SystemEventsRoot +
                                     "/event[@id='" + SerialData + "']").Item(0).InnerText.Parse();
                                 }
-                                catch {
+                                catch
+                                {
                                     //null reference exception from Xml.AppConfigQuery
                                 }
                             };
                             Process.CallWithTimeout(ParseSerialData, 30000);
                         }
                     }
-                    catch (Exception e)
-                    {
-                        if (e is TimeoutException)
-                        {
-                            Logger.Instance.Append(string.Join("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
-                        }
-                        else
-                        {
-                            Logger.Instance.Append(string.Join("Serial Exception <SerialPortListener>: {0}", e.Message));
-                        }
-                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is TimeoutException)
+                {
+                    Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
+                }
+                else
+                {
+                    Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
                 }
             }
         }

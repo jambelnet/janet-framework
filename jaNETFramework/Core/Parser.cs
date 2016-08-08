@@ -52,11 +52,16 @@ namespace jaNETFramework
                     return Judoers.JudoParser(args);
 
             string[] InstructionSet = args.Split(';');
-            var results = new Dictionary<string, string>();
+            var results = new List<KeyValuePair<string, string>>();
 
             foreach (string Instruction in InstructionSet)
                 if (Instruction.Trim() != string.Empty)
-                    results.Add(Instruction.Trim(), Execute(Instruction.Trim(), disableSpeech));
+                {
+                    var exe = Execute(Instruction.Trim(), disableSpeech);
+                    if (dataType.Equals(DataType.json))
+                        exe = exe.Replace("\r\n", string.Empty);
+                    results.Add(new KeyValuePair<string, string>(Instruction.Trim(), exe));
+                }
 
             switch (dataType)
             {

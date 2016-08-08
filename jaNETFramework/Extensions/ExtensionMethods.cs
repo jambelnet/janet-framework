@@ -40,7 +40,7 @@ namespace jaNETFramework
             return new JavaScriptSerializer().Serialize(res);
         }
 
-        public static string ToDebugString<TKey, TValue>(this IDictionary<TKey, TValue> dictionary)
+        public static string ToDebugString<TKey, TValue>(this IList<KeyValuePair<TKey, TValue>> dictionary)
         {
             return string.Join("\r\n", dictionary.Select(kv => kv.Value).ToArray());
         }
