@@ -114,7 +114,7 @@ namespace jaNETFramework
                 }
                 catch //(Exception e)
                 {
-		    return null;
+                    return null;
                     //Logger.Instance.Append("obj [ Helpers.AppConfigQuery <Exception> ]: Exception: [ " + e.Message + " ] Message: [ Your AppConfig.xml is not well formed according to the XML specification ]");
                     //throw new ArgumentNullException();
                 }
