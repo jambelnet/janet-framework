@@ -66,7 +66,8 @@ namespace jaNETFramework
             switch (dataType)
             {
                 case DataType.html:
-                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\r", string.Empty).Replace("\n", "<br />");
+                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;")
+                                                  .Replace("\r", string.Empty).Replace("\n", "<br />");
                 case DataType.json:
                     return results.ToJson();
             }
@@ -251,9 +252,9 @@ namespace jaNETFramework
                                         output = "Serial port state: " + SerialComm.port.IsOpen;
                                 }
                             }
-                            catch
+                            catch (Exception e)
                             {
-                                // Suppress
+                                Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
                             }
                             break;
                         case "set":

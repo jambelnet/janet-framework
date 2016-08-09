@@ -160,9 +160,9 @@ namespace jaNETFramework
                     Logger.Instance.Append("obj [ Server.TCP.ListenforClients <SocketException> ]: " + e.Message);
                     //Debug.Print("SocketException: {0}", e);
                 }
-                /*catch (Exception e) {
-                    FileSystem.Log.Append("obj [ Server.TCP.ListenforClients <Exception> ]: " + e.Message);
-                }*/
+                catch (Exception e) {
+                    Logger.Instance.Append("obj [ Server.TCP.ListenforClients <Exception> ]: " + e.Message);
+                }
                 /*finally
                 {
                     // Stop listening for new clients.

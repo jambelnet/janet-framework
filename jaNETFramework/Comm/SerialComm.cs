@@ -36,6 +36,11 @@ namespace jaNETFramework
         {
             try
             {
+                if (OperatingSystem.Version == OperatingSystem.Type.Unix
+                    || OperatingSystem.Version == OperatingSystem.Type.MacOS)
+                    if (!File.Exists(port.PortName))
+                        return;
+
                 port.BaudRate = Convert.ToInt32(
                     Helpers.Xml.AppConfigQuery(
                     ApplicationSettings.ApplicationStructure.ComBaudRatePath)
@@ -48,16 +53,6 @@ namespace jaNETFramework
                 else
                     port.PortName = portName;
 
-                if (OperatingSystem.Version == OperatingSystem.Type.Unix
-                    || OperatingSystem.Version == OperatingSystem.Type.MacOS)
-                    if (!File.Exists(port.PortName))
-                        return;
-
-                if (port.IsOpen)
-                    return;
-
-                port.ReadTimeout = 500;
-                port.WriteTimeout = 500;
                 port.Open();
 
                 var t = new Thread(SerialPortListener);
@@ -92,11 +87,11 @@ namespace jaNETFramework
 
         static void SerialPortListener()
         {
-            try
+            lock (_serial_locker)
             {
-                lock (_serial_locker)
+                while (port.IsOpen)
                 {
-                    while (port.IsOpen)
+                    try
                     {
                         SerialData = port.ReadLine().Replace("\r", string.Empty)
                                                     .Replace("SIGKILL", "\n");
@@ -122,17 +117,17 @@ namespace jaNETFramework
                             Process.CallWithTimeout(ParseSerialData, 30000);
                         }
                     }
-                }
-            }
-            catch (Exception e)
-            {
-                if (e is TimeoutException)
-                {
-                    Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
-                }
-                else
-                {
-                    Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
+                    catch (Exception e)
+                    {
+                        if (e is TimeoutException)
+                        {
+                            Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
+                        }
+                        else
+                        {
+                            Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
+                        }
+                    }
                 }
             }
         }
