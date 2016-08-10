@@ -47,6 +47,7 @@
     <Compile Include="Application\Application.cs" />
     <Compile Include="Core\ParsingTools.cs" />
     <Compile Include="Extensions\Singleton.cs" />
+    <Compile Include="Network\TCP.cs" />
     <Compile Include="Providers\Evaluator.cs" />
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\Helpers.cs" />
@@ -63,7 +64,7 @@
     <Compile Include="Security\RijndaelSimple.cs" />
     <Compile Include="Providers\Scheduler.cs" />
     <Compile Include="Comm\SerialComm.cs" />
-    <Compile Include="Network\Server.cs" />
+    <Compile Include="Network\HTTP.cs" />
     <Compile Include="Application\Settings.cs" />
     <Compile Include="Application\User.cs" />
     <Compile Include="Providers\YahooWeather.cs" />

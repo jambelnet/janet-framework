@@ -168,6 +168,7 @@ namespace jaNETFramework
             }
             catch (ArgumentNullException e)
             {
+                Logger.Instance.Append(string.Format("obj [ ApplicationSettings <ArgumentNullException> ]: Exception: [ " + e.Message + " ]"));
                 Application.Dispose();
             }
         }

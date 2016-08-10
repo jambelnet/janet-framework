@@ -31,7 +31,7 @@ namespace jaNETFramework
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
         public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.21]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        { return "jaNET Framework [Version 0.2.9.25]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
 
         public string GetWinPath()
         { return Directory.GetCurrentDirectory(); }
@@ -264,20 +264,12 @@ namespace jaNETFramework
                 File.Copy(path, path + ".bak", true);
                 File.Delete(path);
 
-                XmlNodeList xmlnodelist = xmldoc.SelectNodes(xPath + "/" + elementName + "[@id='" + elementID + "']");
                 // Remove Handler
-                for (int i = xmlnodelist.Count - 1; i >= 0; i--)
-                {
-                    XmlNode xmlnode = xmlnodelist[i];
-                    xmlnode.ParentNode.RemoveChild(xmlnode);
-                }
+                XmlNodeList xmlnodelist = xmldoc.SelectNodes(xPath + "/" + elementName + "[@id='" + elementID + "']");
+                RemoveElement(xmlnodelist);
                 // Remove Launcher
                 xmlnodelist = xmldoc.SelectNodes(xPath + "/" + elementName + "[@id='*" + elementID + "']");
-                for (int i = xmlnodelist.Count - 1; i >= 0; i--)
-                {
-                    XmlNode xmlnode = xmlnodelist[i];
-                    xmlnode.ParentNode.RemoveChild(xmlnode);
-                }
+                RemoveElement(xmlnodelist);
 
                 xmldoc.Save(path);
 
@@ -286,6 +278,15 @@ namespace jaNETFramework
             catch (Exception e)
             {
                 return string.Format("{0}\r\nPlease try again.", e.Message);
+            }
+        }
+
+        void RemoveElement(XmlNodeList xmlnodelist)
+        {
+            for (int i = xmlnodelist.Count - 1; i >= 0; i--)
+            {
+                XmlNode xmlnode = xmlnodelist[i];
+                xmlnode.ParentNode.RemoveChild(xmlnode);
             }
         }
 

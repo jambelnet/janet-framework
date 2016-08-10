@@ -121,7 +121,7 @@ namespace jaNETFramework
                     {
                         if (e is TimeoutException)
                         {
-                            Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
+                            //Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
                         }
                         else
                         {

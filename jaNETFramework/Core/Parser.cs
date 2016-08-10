@@ -29,6 +29,19 @@ using System.Collections.Generic;
 
 namespace jaNETFramework
 {
+    //internal class ResultItem<TKey, TValue>
+    //{
+    //    string ID { get; set; }
+
+    //    KeyValuePair<string, string> Items { get; set; }
+
+    //    internal void Add(string v, KeyValuePair<string, string> keyValuePair)
+    //    {
+    //        ID = v;
+    //        Items = keyValuePair;
+    //    }
+    //}
+
     public class Parser
     {
         internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
@@ -52,7 +65,7 @@ namespace jaNETFramework
                     return Judoers.JudoParser(args);
 
             string[] InstructionSet = args.Split(';');
-            var results = new List<KeyValuePair<string, string>>();
+            var results = new Dictionary<string, KeyValuePair<string, string>>();
 
             foreach (string Instruction in InstructionSet)
                 if (Instruction.Trim() != string.Empty)
@@ -60,7 +73,7 @@ namespace jaNETFramework
                     var exe = Execute(Instruction.Trim(), disableSpeech);
                     if (dataType.Equals(DataType.json))
                         exe = exe.Replace("\r\n", string.Empty);
-                    results.Add(new KeyValuePair<string, string>(Instruction.Trim(), exe));
+                    results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), new KeyValuePair<string, string>(Instruction.Trim(), exe));
                 }
 
             switch (dataType)
