@@ -265,9 +265,10 @@ namespace jaNETFramework
                                         output = "Serial port state: " + SerialComm.port.IsOpen;
                                 }
                             }
-                            catch (Exception e)
+                            catch
                             {
-                                Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
+                                //Suppress
+                                //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
                             }
                             break;
                         case "set":
