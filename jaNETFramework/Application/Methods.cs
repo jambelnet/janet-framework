@@ -31,7 +31,7 @@ namespace jaNETFramework
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
         public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.27]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        { return "jaNET Framework [Version 0.2.9.28]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
 
         public string GetWinPath()
         { return Directory.GetCurrentDirectory(); }

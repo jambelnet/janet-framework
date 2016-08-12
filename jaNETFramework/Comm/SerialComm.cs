@@ -61,7 +61,7 @@ namespace jaNETFramework
             }
             catch (Exception e)
             {
-                Logger.Instance.Append(string.Format("Serial Exception <ActivateSerialPort>: {0}", e.Message));
+                //Logger.Instance.Append(string.Format("Serial Exception <ActivateSerialPort>: {0}", e.Message));
                 //try {
                 //    throw new InvalidOperationException("Serial port state: " + port.IsOpen);
                 //}
@@ -81,7 +81,7 @@ namespace jaNETFramework
             catch (Exception e)
             {
                 //throw new InvalidOperationException("Serial port state: " + port.IsOpen);
-                Logger.Instance.Append(string.Format("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
+                //Logger.Instance.Append(string.Format("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
             }
         }
 
@@ -125,7 +125,7 @@ namespace jaNETFramework
                         }
                         else
                         {
-                            Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
+                            //Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
                         }
                     }
                 }
