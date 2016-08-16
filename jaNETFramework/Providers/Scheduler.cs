@@ -120,7 +120,14 @@ namespace jaNETFramework
                     IList<String> Schedules = scheduleSettings.LoadSettings(schedulerFilename);
                     foreach (string schedule in Schedules)
                         if (schedule != string.Empty)
-                            Add(schedule.ToSchedule());
+                        {
+                            var s = schedule.ToSchedule();
+                            int i;
+                            if (int.TryParse(s.Time, out i))
+                                Add(s, i);
+                            else
+                                Add(s);
+                        }
                 }
             }).Start();
         }
