@@ -71,8 +71,8 @@ namespace jaNETFramework
                 if (Instruction.Trim() != string.Empty)
                 {
                     var exe = Execute(Instruction.Trim(), disableSpeech);
-                    if (dataType.Equals(DataType.json))
-                        exe = exe.Replace("\r\n", string.Empty);
+                    //if (dataType.Equals(DataType.json))
+                    //    exe = exe.Replace("\r\n", string.Empty);
                     results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), new KeyValuePair<string, string>(Instruction.Trim(), exe));
                 }
 
