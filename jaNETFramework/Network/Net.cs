@@ -313,7 +313,7 @@ namespace jaNETFramework
                         string output = string.Empty;
                         for (int i = 0; i < UnreadMailEntries.Count; ++i)
                         {
-                            output += string.Format("{0}\r\n", ("Message " + (i + 1) + "."));
+                            output += string.Format("{0}\r\n", ("Message " + (i + 1)));
                             output += string.Format("{0}\r\n", ("Subject: " + (UnreadMailEntries[i]["title"]).InnerText));
                             output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText + " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
                             output += string.Format("{0}\r\n", ("Date: " + DateTime.Parse((UnreadMailEntries[i]["modified"]).InnerText)));

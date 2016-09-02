@@ -73,14 +73,14 @@ namespace jaNETFramework
                     var exe = Execute(Instruction.Trim(), disableSpeech);
                     //if (dataType.Equals(DataType.json))
                     //    exe = exe.Replace("\r\n", string.Empty);
-                    results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), new KeyValuePair<string, string>(Instruction.Trim(), exe));
+                    results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), 
+                                new KeyValuePair<string, string>(Instruction.Trim(), exe.Replace("<", "&lt;").Replace(">", "&gt;")));
                 }
 
             switch (dataType)
             {
                 case DataType.html:
-                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;")
-                                                  .Replace("\r", string.Empty).Replace("\n", "<br />");
+                    return results.ToDebugString().Replace("\r", string.Empty).Replace("\n", "<br />");
                 case DataType.json:
                     return results.ToJson();
             }
