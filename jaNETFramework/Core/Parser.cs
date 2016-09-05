@@ -70,9 +70,9 @@ namespace jaNETFramework
             foreach (string Instruction in InstructionSet)
                 if (Instruction.Trim() != string.Empty)
                 {
-                    var exe = Execute(Instruction.Trim(), disableSpeech);
+                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
                     if (dataType.Equals(DataType.json) && exe.EndsWith("\n"))
-                        exe = exe.Replace("\r", string.Empty).Substring(0, exe.LastIndexOf("\n"));
+                        exe = exe.Substring(0, exe.LastIndexOf("\n"));
                     results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), 
                                 new KeyValuePair<string, string>(Instruction.Trim(), exe.Replace("<", "&lt;").Replace(">", "&gt;")));
                 }
