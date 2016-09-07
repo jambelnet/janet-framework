@@ -29,19 +29,6 @@ using System.Collections.Generic;
 
 namespace jaNETFramework
 {
-    //internal class ResultItem<TKey, TValue>
-    //{
-    //    string ID { get; set; }
-
-    //    KeyValuePair<string, string> Items { get; set; }
-
-    //    internal void Add(string v, KeyValuePair<string, string> keyValuePair)
-    //    {
-    //        ID = v;
-    //        Items = keyValuePair;
-    //    }
-    //}
-
     public class Parser
     {
         internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
@@ -64,17 +51,22 @@ namespace jaNETFramework
                 else
                     return Judoers.JudoParser(args);
 
-            string[] InstructionSet = args.Split(';');
+            string[] InstructionSets = args.Split(';');
             var results = new Dictionary<string, KeyValuePair<string, string>>();
 
-            foreach (string Instruction in InstructionSet)
+            foreach (string Instruction in InstructionSets)
                 if (Instruction.Trim() != string.Empty)
                 {
-                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
-                    if (dataType.Equals(DataType.json) && exe.EndsWith("\n"))
+                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty).Replace("<", "&lt;").Replace(">", "&gt;");
+                    if (exe.EndsWith("\n"))
                         exe = exe.Substring(0, exe.LastIndexOf("\n"));
-                    results.Add(Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty), 
-                                new KeyValuePair<string, string>(Instruction.Trim(), exe.Replace("<", "&lt;").Replace(">", "&gt;")));
+                    var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
+                    try {
+                        results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
+                    }
+                    catch {
+                        // Duplicate keys are not allowed.
+                    }
                 }
 
             switch (dataType)
