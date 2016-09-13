@@ -108,9 +108,7 @@ namespace jaNETFramework
                 try
                 {
                     string endpoint = Helpers.Xml.AppConfigQuery("jaNET/System/Others/Weather").Item(0).InnerText;
-                    var oJS = new JavaScriptSerializer();
-                    var oRootObject = new RootObject();
-                    oRootObject = oJS.Deserialize<RootObject>(Helpers.Http.Get(endpoint));
+                    var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                     TodayConditions = oRootObject.weather[0].main;
                     TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
                     TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");

@@ -57,7 +57,7 @@ namespace jaNETFramework
             foreach (string Instruction in InstructionSets)
                 if (Instruction.Trim() != string.Empty)
                 {
-                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty).Replace("<", "&lt;").Replace(">", "&gt;");
+                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
                     if (exe.EndsWith("\n"))
                         exe = exe.Substring(0, exe.LastIndexOf("\n"));
                     var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
@@ -72,7 +72,7 @@ namespace jaNETFramework
             switch (dataType)
             {
                 case DataType.html:
-                    return results.ToDebugString().Replace("\r", string.Empty).Replace("\n", "<br />");
+                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
                 case DataType.json:
                     return results.ToJson();
             }
