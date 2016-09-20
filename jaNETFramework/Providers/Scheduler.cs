@@ -234,7 +234,8 @@ namespace jaNETFramework
                         break;
                     case State.Enable:
                     case State.Disable:
-                        foreach (Schedule s in ScheduleList.Where(s => s.Name == scheduleName).Where(s => s.Status != Convert.ToBoolean(stat)))
+                        foreach (var s in ScheduleList.Where(s => s.Name == scheduleName)
+                                                      .Where(s => s.Status != Convert.ToBoolean(stat)))
                         {
                             s.Status = Convert.ToBoolean(stat);
                             if (s.Status)
@@ -245,16 +246,14 @@ namespace jaNETFramework
                         }
                         break;
                     case State.EnableAll:
-                        foreach (Schedule s in ScheduleList.Where(s => !s.Status)) // (s => s.Status == false))
-                        
+                        foreach (var s in ScheduleList.Where(s => !s.Status))
                         {
                             s.Status = true;
                             Add(s);
                         }
                         break;
                     case State.DisableAll:
-                        foreach (Schedule s in ScheduleList.Where(s => s.Status))
-                            // (s => s.Status == true))
+                        foreach (var s in ScheduleList.Where(s => s.Status))
                             s.Status = false;
                         break;
                 }
