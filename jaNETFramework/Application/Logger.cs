@@ -35,15 +35,13 @@ namespace jaNETFramework
         }*/
         static readonly object _log_locker = new Object();
 
-        internal virtual void Append(string logMessage)
-        {
+        internal virtual void Append(string logMessage) {
             lock (_log_locker)
                 using (StreamWriter w = File.AppendText(Methods.Instance.GetApplicationPath() + "log.txt"))
                     Append(logMessage, w);
         }
 
-        void Append(string logMessage, TextWriter w)
-        {
+        void Append(string logMessage, TextWriter w) {
             w.Write("\r\nLog Entry @ ");
             w.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(),
                 DateTime.Now.ToLongDateString());
@@ -52,8 +50,7 @@ namespace jaNETFramework
             w.WriteLine("--------------------------------------------------------------------------------------------------");
         }
 
-        void DumpLog(TextReader r)
-        {
+        void DumpLog(TextReader r) {
             string line;
 
             while ((line = r.ReadLine()) != null)

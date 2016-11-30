@@ -14,29 +14,23 @@ namespace jaNETFramework
             static TcpListener server;
             internal static volatile bool ServerState;
 
-            internal static void Start()
-            {
-                if (!ServerState)
-                {
+            internal static void Start() {
+                if (!ServerState) {
                     var t = new Thread(ListenForClients);
                     t.IsBackground = true;
                     t.Start();
                 }
             }
 
-            internal static void Stop()
-            {
-                if (ServerState)
-                {
+            internal static void Stop() {
+                if (ServerState) {
                     ServerState = false;
                     server.Stop();
                 }
             }
 
-            static void ListenForClients()
-            {
-                try
-                {
+            static void ListenForClients() {
+                try {
                     IPAddress localAddr = IPAddress.Parse("127.0.0.1");
                     Int32 port = 5744;
                     String trusted = "127.0.0.1";
@@ -66,8 +60,7 @@ namespace jaNETFramework
                     String data = null;
 
                     // Enter the listening loop.
-                    while (ServerState)
-                    {
+                    while (ServerState) {
                         // Perform a blocking call to accept requests.
                         // You could also user server.AcceptSocket() here.
                         TcpClient client = server.AcceptTcpClient();
@@ -77,31 +70,26 @@ namespace jaNETFramework
                         int i;
 
                         // Loop to receive all the data sent by the client.
-                        while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-                        {
+                        while ((i = stream.Read(bytes, 0, bytes.Length)) != 0) {
                             byte[] response = null;
                             // Translate data bytes to a ASCII string.
                             data += Web.SimpleUriDecode(Encoding.ASCII.GetString(bytes, 0, i));
 
                             Match mItem = Regex.Match(data, "GET.*HTTP");
 
-                            if (mItem.Success)
-                            {
+                            if (mItem.Success) {
                                 data = string.Format("{0}\r\n", mItem.ToString().Replace("GET /", string.Empty).Replace("HTTP", string.Empty).Trim());
                                 if (data.ToLower().Contains("favicon.ico"))
                                     break;
                             }
 
-                            try
-                            {
+                            try {
                                 if (!trusted.Contains(
                                       IPAddress.Parse(((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()).ToString()
-                                  ))
-                                {
+                                  )) {
                                     throw new UnauthorizedAccessException();
                                 }
-                                if (data.IndexOf("\r\n", StringComparison.Ordinal) >= 0)
-                                {
+                                if (data.IndexOf("\r\n", StringComparison.Ordinal) >= 0) {
                                     response = Encoding.ASCII.GetBytes(string.Format("{0}\r\n", data.Replace("\r\n", string.Empty).Parse()));
                                     // Send back a response.
                                     stream.Write(response, 0, response.Length);
@@ -110,8 +98,7 @@ namespace jaNETFramework
                                         break; // HTTP post, need to break when finished
                                 }
                             }
-                            catch (UnauthorizedAccessException e)
-                            {
+                            catch (UnauthorizedAccessException e) {
                                 response = Encoding.ASCII.GetBytes(string.Format("{0}\r\n", e.Message));
                                 stream.Write(response, 0, response.Length);
                                 data = string.Empty;
@@ -124,8 +111,7 @@ namespace jaNETFramework
                         client.Close();
                     }
                 }
-                catch (SocketException e)
-                {
+                catch (SocketException e) {
                     ServerState = false;
                     server.Stop();
                     Logger.Instance.Append("obj [ Server.TCP.ListenforClients <SocketException> ]: " + e.Message);

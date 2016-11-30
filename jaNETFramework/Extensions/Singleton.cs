@@ -31,8 +31,7 @@ namespace jaNETFramework
 
         public static T Instance { get { return lazy.Value; } }
 
-        private Singleton()
-        {
+        private Singleton() {
 
         }
     }

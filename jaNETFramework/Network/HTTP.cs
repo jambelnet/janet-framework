@@ -51,19 +51,16 @@ namespace jaNETFramework
                 string Username { get; set; }
                 string Password { get; set; }
 
-                internal Login()
-                {
+                internal Login() {
                     IList<String> webLogin = new Settings().LoadSettings(".htaccess");
 
-                    if (webLogin != null)
-                    {
+                    if (webLogin != null) {
                         Username = webLogin[0];
                         Password = webLogin[1];
                     }
                 }
 
-                internal bool Authenticate(string u, string p)
-                {
+                internal bool Authenticate(string u, string p) {
                     if (Username == u && Password == p)
                         return true;
                     return false;
@@ -72,8 +69,7 @@ namespace jaNETFramework
 
             internal static readonly HttpListener httplistener = new HttpListener();
 
-            internal static async void Start()
-            {
+            internal static async void Start() {
                 string Prefix = "http://localhost:8080/";
                 string AuthenticationType = "none";
 
@@ -84,8 +80,7 @@ namespace jaNETFramework
                 if (httplistener.IsListening)
                     return;
 
-                try
-                {
+                try {
                     if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.HttpAuthenticationPath).Count > 0)
                         Prefix = "http://" + Helpers.Xml.AppConfigQuery(
                                                 ApplicationSettings.ApplicationStructure.HttpHostNamePath)
@@ -98,8 +93,7 @@ namespace jaNETFramework
                                                 ApplicationSettings.ApplicationStructure.HttpAuthenticationPath)
                                                 .Item(0).InnerText;
                 }
-                catch (NullReferenceException e)
-                {
+                catch (NullReferenceException e) {
                     Logger.Instance.Append("obj [ Server.Web.Start <Exception> ]: NullReferenceException [ " + e.Message + " ]");
                     return;
                 }
@@ -112,42 +106,34 @@ namespace jaNETFramework
                 httplistener.IgnoreWriteExceptions = true;
                 httplistener.Start();
 
-                while (httplistener.IsListening)
-                {
-                    try
-                    {
+                while (httplistener.IsListening) {
+                    try {
                         var ctx = await httplistener.GetContextAsync();
                         Task.Run(() => ProcessRequestAsync(ctx));
                     }
-                    catch (HttpListenerException e)
-                    {
+                    catch (HttpListenerException e) {
                         Logger.Instance.Append("obj [ Server.Web.Start <Exception> ]: HttpListenerException [ " + e.Message + " ]");
                         //Restart();
                     }
-                    catch (InvalidOperationException)
-                    {
+                    catch (InvalidOperationException) {
                         //FileSystem.Log.Append("obj [ Server.Web.Start <Exception> ]: InvalidOperationException [ " + e.Message + " ]");
                         //Restart();
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         Logger.Instance.Append("obj [ Server.Web.Start <Exception> ]: Generic [ " + e.Message + " ]");
                         //Restart();
                     }
                 }
             }
 
-            static async Task ProcessRequestAsync(HttpListenerContext ctx)
-            {
+            static async Task ProcessRequestAsync(HttpListenerContext ctx) {
                 //string[] MIME_Image = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico" };
                 //string[] MIME_Text = { ".html", ".htm", ".xml", ".css", ".js", ".txt" };
-                try
-                {
+                try {
                     string mapPath = Methods.Instance.GetApplicationPath() + SimpleUriDecode(ctx.Request.RawUrl.Substring(1));
                     byte[] buf = null;
 
-                    if (isAuthenticated(ctx))
-                    {
+                    if (isAuthenticated(ctx)) {
                         ctx.Response.StatusCode = (int)HttpStatusCode.OK;
 
                         if (mapPath.EndsWith("/", StringComparison.Ordinal))
@@ -158,8 +144,7 @@ namespace jaNETFramework
                         //buf = File.ReadAllBytes(mapPath);
                         //else if (Array.Find(MIME_Text, s => s.Contains(mapPath.Substring(mapPath.LastIndexOf('.')))) != null || mapPath.Contains("?cmd="))
                         //buf = Encoding.UTF8.GetBytes(SendResponse(mapPath));
-                        if (mapPath.Contains("?cmd="))
-                        {
+                        if (mapPath.Contains("?cmd=")) {
                             var t = Request.DataType.html;
 
                             if (mapPath.Contains("&mode=json"))
@@ -178,8 +163,7 @@ namespace jaNETFramework
                         else
                             buf = File.ReadAllBytes(mapPath);
                     }
-                    else
-                    {
+                    else {
                         ctx.Response.StatusCode = 401;
                         if (OperatingSystem.Version == OperatingSystem.Type.Unix)
                             ctx.Response.AddHeader("WWW-Authenticate", "Basic Realm=\"Authentication Required\""); // show login dialog
@@ -192,29 +176,24 @@ namespace jaNETFramework
                     using (Stream s = ctx.Response.OutputStream)
                         await s.WriteAsync(buf, 0, buf.Length);
                 }
-                catch (InvalidOperationException)
-                {
+                catch (InvalidOperationException) {
                     //FileSystem.Log.Append("obj [ Server.Web.ProcessRequestAsync <InvalidOperationException> ]: " + e.Message);
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
                         Logger.Instance.Append("obj [ Server.Web.ProcessRequestAsync <Exception> ]: " + e.Message);
                 }
             }
 
-            static bool isAuthenticated(HttpListenerContext ctx)
-            {
-                if (httplistener.AuthenticationSchemes == AuthenticationSchemes.Basic)
-                {
+            static bool isAuthenticated(HttpListenerContext ctx) {
+                if (httplistener.AuthenticationSchemes == AuthenticationSchemes.Basic) {
                     var identity = (HttpListenerBasicIdentity)ctx.User.Identity;
                     return new Login().Authenticate(ctx.User.Identity.Name, identity.Password);
                 }
                 return true;
             }
 
-            internal static void Stop()
-            {
+            internal static void Stop() {
                 httplistener.Stop();
             }
 
@@ -272,16 +251,14 @@ namespace jaNETFramework
                 {"~", "%7E"}
             };
 
-            internal static string SimpleUriDecode(string uri)
-            {
+            internal static string SimpleUriDecode(string uri) {
                 for (int i = 0; i < CharSet.GetUpperBound(0); i++)
                     uri = uri.Replace(CharSet[i, 1], CharSet[i, 0]);
 
                 return uri;
             }
 
-            internal static string SimpleUriEncode(string uri)
-            {
+            internal static string SimpleUriEncode(string uri) {
                 for (int i = 0; i < CharSet.GetUpperBound(0); i++)
                     uri = uri.Replace(CharSet[i, 0], CharSet[i, 1]);
 

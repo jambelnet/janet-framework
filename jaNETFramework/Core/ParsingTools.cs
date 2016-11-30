@@ -51,13 +51,12 @@ namespace jaNETFramework
         internal static string ParseTokens(string sValue)
         {
             if (sValue.Contains("%"))
-                if (sValue.StartsWith("%"))
-                    return string.Format("{0}\r\n", sValue.ToLower().ToValues());
-                else
+                //if (sValue.StartsWith("%"))
+                //    return string.Format("{0}\r\n", sValue.ToLower().ToValues());
+                //else
                     sValue = sValue.ToValues();
 
-            while (sValue.Contains("*"))
-            {
+            while (sValue.Contains("*")) {
                 MatchCollection mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
 
                 if (mItems.Count > 0)
@@ -76,10 +75,8 @@ namespace jaNETFramework
             if (sValue.Contains("evalBool"))
                 sValue = Evaluator.EvaluateCondition(sValue);
 
-            if (sValue.Contains("./") || sValue.Contains("judo"))
-            {
-                if (sValue.StartsWith("./"))
-                {
+            if (sValue.Contains("./") || sValue.Contains("judo")) {
+                if (sValue.StartsWith("./")) {
                     MatchCollection mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
 
                     String fileName = string.Empty;

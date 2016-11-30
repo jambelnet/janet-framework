@@ -40,14 +40,12 @@ namespace jaNETFramework
     {
         internal static class SimplePing
         {
-            static Boolean resolveHostEntry(string entry)
-            {
+            static Boolean resolveHostEntry(string entry) {
                 var rg = new Regex("[^a-zA-Z]");
                 return rg.IsMatch(entry);
             }
 
-            internal static bool Ping(string host = null, int timeout = 1000)
-            {
+            internal static bool Ping(string host = null, int timeout = 1000) {
                 return Pinger(host, timeout);
             }
 
@@ -55,16 +53,13 @@ namespace jaNETFramework
             // modified by jambel
             // TCP Ping
             // original post: http://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
-            static bool altPing(string endPoint)
-            {
-                try
-                {
+            static bool altPing(string endPoint) {
+                try {
                     IPHostEntry hostEntry;
                     IPAddress hostAddress;
                     IPEndPoint iep;
 
-                    if (resolveHostEntry(endPoint))
-                    {
+                    if (resolveHostEntry(endPoint)) {
                         hostEntry = Dns.GetHostEntry(endPoint);
                         hostAddress = hostEntry.AddressList[0];
                         iep = new IPEndPoint(hostAddress, 0);
@@ -110,22 +105,17 @@ namespace jaNETFramework
                     host.Close();
                     return true;
                 }
-                catch (SocketException)
-                {
+                catch (SocketException) {
                     return false;
                 }
             }
 
-            static bool Pinger(string host, int timeout)
-            {
-                try
-                {
+            static bool Pinger(string host, int timeout) {
+                try {
                     bool network_available = NetworkInterface.GetIsNetworkAvailable();
 
-                    if (network_available)
-                    {
-                        using (var pingSender = new Ping())
-                        {
+                    if (network_available) {
+                        using (var pingSender = new Ping()) {
                             // Create a buffer of 32 bytes of data to be transmitted.
                             const string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
                             byte[] buffer = Encoding.ASCII.GetBytes(data);
@@ -138,8 +128,7 @@ namespace jaNETFramework
                     }
                     return false;
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     Logger.Instance.Append("obj [ Net.SimplePing.Pinger <Exception> ]: " + e.Message);
                     return false;
                 }
@@ -154,13 +143,11 @@ namespace jaNETFramework
             internal int MessageSize;
             internal byte[] Message = new byte[1024];
 
-            public ICMP()
-            {
+            public ICMP() {
 
             }
 
-            public ICMP(byte[] data, int size)
-            {
+            public ICMP(byte[] data, int size) {
                 Type = data[20];
                 Code = data[21];
                 Checksum = BitConverter.ToUInt16(data, 22);
@@ -169,8 +156,7 @@ namespace jaNETFramework
                 Buffer.BlockCopy(data, 24, Message, 0, MessageSize);
             }
 
-            public byte[] GetBytes()
-            {
+            public byte[] GetBytes() {
                 var data = new byte[MessageSize + 9];
                 Buffer.BlockCopy(BitConverter.GetBytes(Type), 0, data, 0, 1);
                 Buffer.BlockCopy(BitConverter.GetBytes(Code), 0, data, 1, 1);
@@ -179,15 +165,13 @@ namespace jaNETFramework
                 return data;
             }
 
-            public UInt16 GetChecksum()
-            {
+            public UInt16 GetChecksum() {
                 UInt32 chcksm = 0;
                 byte[] data = GetBytes();
                 int packetsize = MessageSize + 8;
                 int index = 0;
 
-                while (index < packetsize)
-                {
+                while (index < packetsize) {
                     chcksm += Convert.ToUInt32(BitConverter.ToUInt16(data, index));
                     index += 2;
                 }
@@ -199,17 +183,14 @@ namespace jaNETFramework
 
         internal class Mail
         {
-            internal bool Send(string sFrom, string sTo, string sSubject, string sBody)
-            {
+            internal bool Send(string sFrom, string sTo, string sSubject, string sBody) {
                 if (!Methods.Instance.HasInternetConnection())
                     return false;
 
-                try
-                {
+                try {
                     var smtpSettings = new SmtpSettings();
 
-                    if (smtpSettings.Host != null)
-                    {
+                    if (smtpSettings.Host != null) {
                         var mail = new MailMessage();
 
                         mail.From = new MailAddress(sFrom);
@@ -223,42 +204,35 @@ namespace jaNETFramework
                         smtpClient.EnableSsl = smtpSettings.SSL;
                         if (smtpClient.EnableSsl)
                             ServicePointManager.ServerCertificateValidationCallback =
-                                delegate(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-                                { return true; };
+                                delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
                         smtpClient.Send(mail);
                         return true;
                     }
                     return false; // Settings not found
                 }
-                catch
-                {
+                catch {
                     return false;
                 }
             }
 
-            internal int Pop3Check()
-            {
-                try
-                {
+            internal int Pop3Check() {
+                try {
                     var pop3Settings = new Pop3Settings();
                     var obj = new Pop3();
                     obj.Connect(pop3Settings.Host, pop3Settings.Username, pop3Settings.Password, pop3Settings.Port);
                     string KeyWord = Helpers.Xml.AppConfigQuery("jaNET/System/Comm/MailKeyword").Item(0).InnerText;
 
-                    foreach (Pop3Message msg in obj.List())
-                    {
+                    foreach (Pop3Message msg in obj.List()) {
                         Pop3Message msg2 = obj.Retrieve(msg);
                         /*Console.WriteLine("Message {0}: {1}",
                             msg2.number, msg2.message);*/
-                        if (msg2.Message.Contains("<" + KeyWord + ">"))
-                        {
+                        if (msg2.Message.Contains("<" + KeyWord + ">")) {
                             //If a command found to mail subject
                             Match Command = Regex.Match(msg2.Message.Replace("\r\n", " "), @"(<" + KeyWord + ">)(.*?)(?=</" + KeyWord + ">)");
                             Command.ToString().ToLower().Replace("<" + KeyWord + ">", string.Empty).Parse();
                             obj.Delete(msg2);
                         }
-                        else
-                        {
+                        else {
                             //For Future Use
                             /*Match From = Regex.Match(msg2.message, @"(?<=From: )(.*?)(?= <)");
                             Match Subject = Regex.Match(msg2.message, @"(?<=Subject: )(.*?)(?=\\r\\nDate: )"); //(?<=Subject:</B> )(.*?)(?=</)");
@@ -270,21 +244,17 @@ namespace jaNETFramework
                     obj.Disconnect();
                     return obj.List().Count;
                 }
-                catch
-                {
+                catch {
                     return 0;
                 }
             }
 
-            internal string GmailCheck(bool countOnly)
-            {
-                try
-                {
+            internal string GmailCheck(bool countOnly) {
+                try {
                     //Change SSL checks so that all checks pass
                     ServicePointManager.ServerCertificateValidationCallback =
                         new RemoteCertificateValidationCallback(
-                            delegate
-                            { return true; }
+                            delegate { return true; }
                         );
 
                     WebRequest webGmailRequest = WebRequest.Create(@"https://mail.google.com/mail/feed/atom");
@@ -308,11 +278,9 @@ namespace jaNETFramework
                     UnreadMailXmlDoc.LoadXml(sbUnreadMailInfo.ToString());
                     XmlNodeList UnreadMailEntries = UnreadMailXmlDoc.GetElementsByTagName("entry");
 
-                    if (!countOnly)
-                    {
+                    if (!countOnly) {
                         string output = string.Empty;
-                        for (int i = 0; i < UnreadMailEntries.Count; ++i)
-                        {
+                        for (int i = 0; i < UnreadMailEntries.Count; ++i) {
                             output += string.Format("{0}\r\n", ("Message " + (i + 1)));
                             output += string.Format("{0}\r\n", ("Subject: " + (UnreadMailEntries[i]["title"]).InnerText));
                             output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText + " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
@@ -323,8 +291,7 @@ namespace jaNETFramework
                     }
                     return UnreadMailEntries.Count.ToString();
                 }
-                catch
-                {
+                catch {
                     return "0";
                 }
             }
@@ -332,8 +299,7 @@ namespace jaNETFramework
             public class Pop3Exception : ApplicationException
             {
                 public Pop3Exception(string str)
-                    : base(str)
-                {
+                    : base(str) {
                 }
             }
             public class Pop3Message
@@ -345,70 +311,57 @@ namespace jaNETFramework
             }
             public class Pop3 : TcpClient
             {
-                public void Connect(string server, string username, string password, int port)
-                {
-                    try
-                    {
+                public void Connect(string server, string username, string password, int port) {
+                    try {
                         string message;
                         string response;
 
                         Connect(server, port);
                         response = Response();
-                        if (response == string.Empty)
-                        {
+                        if (response == string.Empty) {
                             throw new Pop3Exception(response);
                         }
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
 
                         message = "USER " + username + "\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
 
                         message = "PASS " + password + "\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                     }
                 }
-                public void Disconnect()
-                {
-                    try
-                    {
+                public void Disconnect() {
+                    try {
                         string message;
                         string response;
                         message = "QUIT\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                     }
                 }
-                public ArrayList List()
-                {
-                    try
-                    {
+                public ArrayList List() {
+                    try {
                         string message;
                         string response;
 
@@ -416,20 +369,16 @@ namespace jaNETFramework
                         message = "LIST\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
 
-                        while (true)
-                        {
+                        while (true) {
                             response = Response();
-                            if (response == ".\r\n")
-                            {
+                            if (response == ".\r\n") {
                                 return retval;
                             }
-                            else
-                            {
+                            else {
                                 var msg = new Pop3Message();
                                 char[] seps = { ' ' };
                                 string[] values = response.Split(seps);
@@ -441,17 +390,14 @@ namespace jaNETFramework
                             }
                         }
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                         return null;
                     }
                 }
-                public Pop3Message Retrieve(Pop3Message rhs)
-                {
-                    try
-                    {
+                public Pop3Message Retrieve(Pop3Message rhs) {
+                    try {
                         string message;
                         string response;
 
@@ -462,58 +408,47 @@ namespace jaNETFramework
                         message = "RETR " + rhs.Number + "\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
 
                         msg.Retrieved = true;
-                        while (true)
-                        {
+                        while (true) {
                             response = Response();
-                            if (response == ".\r\n")
-                            {
+                            if (response == ".\r\n") {
                                 break;
                             }
-                            else
-                            {
+                            else {
                                 msg.Message += response;
                             }
                         }
                         return msg;
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                         return null;
                     }
                 }
-                public void Delete(Pop3Message rhs)
-                {
-                    try
-                    {
+                public void Delete(Pop3Message rhs) {
+                    try {
                         string message;
                         string response;
 
                         message = "DELE " + rhs.Number + "\r\n";
                         Write(message);
                         response = Response();
-                        if (response.Substring(0, 3) != "+OK")
-                        {
+                        if (response.Substring(0, 3) != "+OK") {
                             throw new Pop3Exception(response);
                         }
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                     }
                 }
-                void Write(string message)
-                {
-                    try
-                    {
+                void Write(string message) {
+                    try {
                         var en = new ASCIIEncoding();
 
                         byte[] WriteBuffer = new byte[1024];
@@ -524,35 +459,28 @@ namespace jaNETFramework
 
                         //Debug.WriteLine("WRITE:" + message);
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         //Console.WriteLine(e.Message);
                         Debug.Print(e.Message);
                     }
                 }
-                string Response()
-                {
-                    try
-                    {
+                string Response() {
+                    try {
                         var enc = new ASCIIEncoding();
                         byte[] serverbuff = new Byte[1024];
                         NetworkStream stream = GetStream();
                         int count = 0;
-                        while (true)
-                        {
+                        while (true) {
                             byte[] buff = new Byte[2];
                             int bytes = stream.Read(buff, 0, 1);
-                            if (bytes == 1)
-                            {
+                            if (bytes == 1) {
                                 serverbuff[count] = buff[0];
                                 count++;
-                                if (buff[0] == '\n')
-                                {
+                                if (buff[0] == '\n') {
                                     break;
                                 }
                             }
-                            else
-                            {
+                            else {
                                 break;
                             }
                         }
@@ -560,8 +488,7 @@ namespace jaNETFramework
                         //Debug.WriteLine("READ:" + retval);
                         return retval;
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         return e.Message;
                     }
                 }
@@ -579,12 +506,10 @@ namespace jaNETFramework
                 internal int Port { get; private set; }
                 internal bool SSL { get; private set; }
 
-                internal SmtpSettings()
-                {
+                internal SmtpSettings() {
                     IList<String> smtpSettings = new Settings().LoadSettings(".smtpsettings");
 
-                    if (smtpSettings != null)
-                    {
+                    if (smtpSettings != null) {
                         Host = smtpSettings[0];
                         Username = smtpSettings[1];
                         Password = smtpSettings[2];
@@ -602,12 +527,10 @@ namespace jaNETFramework
                 internal int Port { get; private set; }
                 internal bool SSL { get; private set; }
 
-                internal Pop3Settings()
-                {
+                internal Pop3Settings() {
                     IList<String> pop3Settings = new Settings().LoadSettings(".pop3settings");
 
-                    if (pop3Settings != null)
-                    {
+                    if (pop3Settings != null) {
                         Host = pop3Settings[0];
                         Username = pop3Settings[1];
                         Password = pop3Settings[2];
@@ -622,12 +545,10 @@ namespace jaNETFramework
                 internal string Username { get; private set; }
                 internal string Password { get; private set; }
 
-                internal GmailSettings()
-                {
+                internal GmailSettings() {
                     IList<String> gmailSettings = new Settings().LoadSettings(".gmailsettings");
 
-                    if (gmailSettings != null)
-                    {
+                    if (gmailSettings != null) {
                         Username = gmailSettings[0];
                         Password = gmailSettings[1];
                     }
@@ -639,8 +560,7 @@ namespace jaNETFramework
     #region SMS
     class SMS
     {
-        internal string Send(string smsTo, string smsMsg)
-        {
+        internal string Send(string smsTo, string smsMsg) {
             var client = new WebClient();
             var smsSettings = new SmsSettings();
             // Add a user agent header in case the requested URI contains a query.
@@ -653,7 +573,7 @@ namespace jaNETFramework
             const string baseurl = "http://api.clickatell.com/http/sendmsg";
             //using (Stream data = client.OpenRead(baseurl))
             using (var reader = new StreamReader(client.OpenRead(baseurl))) // data
-                    return reader.ReadToEnd();
+                return reader.ReadToEnd();
         }
 
         internal class SmsSettings
@@ -662,12 +582,10 @@ namespace jaNETFramework
             internal string SmsPassword { get; private set; }
             internal string SmsAPI { get; private set; }
 
-            internal SmsSettings()
-            {
+            internal SmsSettings() {
                 IList<String> smsSettings = new Settings().LoadSettings(".smssettings");
 
-                if (smsSettings != null)
-                {
+                if (smsSettings != null) {
                     SmsAPI = smsSettings[0];
                     SmsUsername = smsSettings[1];
                     SmsPassword = smsSettings[2];

@@ -50,38 +50,32 @@ namespace jaNETProgram
 {
     class Program
     {
-        public static void Main(string[] args)
-        {
+        public static void Main(string[] args) {
             Application.Initialize();
-            
-            if (args.Length > 0)
-            {
+
+            if (args.Length > 0) {
                 foreach (string arg in args)
                     arg.Parse();
             }
-            
+
             Console.Write("%copyright%".Parse() + "\r\n");
-      
-            while (Parser.ParserState)
-            {
-                try
-                {
+
+            while (Parser.ParserState) {
+                try {
                     Console.Write(Environment.NewLine + Methods.Instance.WhoAmI() + "@jaNET>");
                     Console.ForegroundColor = ConsoleColor.Green;
-                    
+
                     string cmdReader = Console.ReadLine();
-                    
+
                     Console.ResetColor();
-                    
-                    if (cmdReader.Length > 0)
-                    {
+
+                    if (cmdReader.Length > 0) {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine(cmdReader.Parse());
                         Console.ResetColor();
                     }
                 }
-                catch (ArgumentOutOfRangeException e)
-                {
+                catch (ArgumentOutOfRangeException e) {
                     Debug.Print(e.Message);
                 }
             }

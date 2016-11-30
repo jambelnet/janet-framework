@@ -27,14 +27,11 @@ namespace jaNETFramework
 
         static bool _status;
 
-        internal static bool Status
-        {
+        internal static bool Status {
             get { return _status; }
-            set
-            {
+            set {
                 if (value != Status)
-                    if (value)
-                    {
+                    if (value) {
                         _status = value;
                         doEventCheck(value);
                     }
@@ -43,17 +40,14 @@ namespace jaNETFramework
             }
         }
 
-        static bool doEventCheck(bool status)
-        {
+        static bool doEventCheck(bool status) {
             var method = Methods.Instance;
-            if (status)
-            {
+            if (status) {
                 // Throw oncheckin event if exists
                 if (method.GetEvent("oncheckin").Count > 0)
                     method.GetEvent("oncheckin").Item(0).InnerText.Parse();
             }
-            else
-            {
+            else {
                 // Throw oncheckout event if exists
                 if (method.GetEvent("oncheckout").Count > 0)
                     method.GetEvent("oncheckout").Item(0).InnerText.Parse();

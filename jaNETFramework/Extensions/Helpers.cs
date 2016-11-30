@@ -29,8 +29,7 @@ namespace jaNETFramework
 {
     static class Helpers
     {
-        internal static String getRawData(string uri)
-        {
+        internal static String getRawData(string uri) {
             String rawData;
 
             using (var wc = new WebClient())
@@ -41,8 +40,7 @@ namespace jaNETFramework
 
         internal static class Xml
         {
-            internal static List<String> SelectNodes(string endpoint, string node, string attribute)
-            {
+            internal static List<String> SelectNodes(string endpoint, string node, string attribute) {
                 string[] nsprefixuri = node.Split('=');
                 string ns = nsprefixuri[0].Substring(nsprefixuri[0].LastIndexOf(':') + 1);
                 string uri = nsprefixuri[1].Trim();
@@ -53,8 +51,7 @@ namespace jaNETFramework
                 return SelectNodes(endpoint, ns, uri, n, attr);
             }
 
-            static List<String> SelectNodes(string endpoint, string namespacePrefix, string namespaceUri, string node, string attribute)
-            {
+            static List<String> SelectNodes(string endpoint, string namespacePrefix, string namespaceUri, string node, string attribute) {
                 XmlNodeList nodes = SelectNodeList(endpoint, namespacePrefix, namespaceUri, node);
 
                 var e = new List<String>();
@@ -68,8 +65,7 @@ namespace jaNETFramework
                 return e;
             }
 
-            internal static XmlNodeList SelectNodeList(string endpoint, string namespacePrefix, string namespaceUri, string node)
-            {
+            internal static XmlNodeList SelectNodeList(string endpoint, string namespacePrefix, string namespaceUri, string node) {
                 var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(getRawData(endpoint));
 
@@ -79,10 +75,8 @@ namespace jaNETFramework
                 return xmlDoc.SelectNodes(node, ns);
             }
 
-            internal static String SelectSingleNode(string endpoint, string node, int nodeIndex)
-            {
-                try
-                {
+            internal static String SelectSingleNode(string endpoint, string node, int nodeIndex) {
+                try {
                     var xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(getRawData(endpoint));
 
@@ -91,21 +85,17 @@ namespace jaNETFramework
                     :
                         xmlDoc.SelectNodes(node).Item(nodeIndex).InnerText;
                 }
-                catch
-                {
+                catch {
                     return null;
                 }
             }
 
-            internal static String SelectSingleNode(string endpoint, string node)
-            {
+            internal static String SelectSingleNode(string endpoint, string node) {
                 return SelectSingleNode(endpoint, node, 0);
             }
 
-            internal static XmlNodeList AppConfigQuery(string xPathNode)
-            {
-                try
-                {
+            internal static XmlNodeList AppConfigQuery(string xPathNode) {
+                try {
                     var xmlDoc = new XmlDocument();
 
                     xmlDoc.Load(Methods.Instance.GetApplicationPath() + "AppConfig.xml");
@@ -124,16 +114,14 @@ namespace jaNETFramework
         internal class Json
         {
             // Json on line editor: http://codebeautify.org/online-json-editor
-            internal String SelectSingleNode(string endpoint, string node)
-            {
+            internal String SelectSingleNode(string endpoint, string node) {
                 string json = getRawData(endpoint);
 
                 var serializer = new JavaScriptSerializer();
                 dynamic item = serializer.Deserialize<object>(json);
 
                 var steps = node.Split('/');
-                for (var i = 0; i < steps.Length; i++)
-                {
+                for (var i = 0; i < steps.Length; i++) {
                     int n;
                     // item = int.TryParse(steps[i], out n) ? item[n] : item[steps[i]];
                     if (int.TryParse(steps[i], out n))
@@ -149,8 +137,7 @@ namespace jaNETFramework
 
         internal static class Http
         {
-            internal static String Get(string requestURI)
-            {
+            internal static String Get(string requestURI) {
                 return getRawData(requestURI);
             }
         }

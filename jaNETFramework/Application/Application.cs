@@ -30,41 +30,34 @@ namespace jaNETFramework
 
         internal static class Uptime
         {
-            internal static String getAll
-            {
+            internal static String getAll {
                 get { return "Days[" + getDays + "], Hours[" + getHours + "], Minutes[" + getMinutes + "], Seconds[" + getSeconds + "]"; }
             }
 
-            internal static int getDays
-            {
+            internal static int getDays {
                 get { return (DateTime.Now - _Uptime).Days; }
             }
 
-            internal static int getHours
-            {
+            internal static int getHours {
                 get { return (DateTime.Now - _Uptime).Hours; }
             }
 
-            internal static int getMinutes
-            {
+            internal static int getMinutes {
                 get { return (DateTime.Now - _Uptime).Minutes; }
             }
 
-            internal static int getSeconds
-            {
+            internal static int getSeconds {
                 get { return (DateTime.Now - _Uptime).Seconds; }
             }
         }
 
-        public static void Initialize()
-        {
+        public static void Initialize() {
             _Uptime = DateTime.Now;
-            
+
             string AppPath = Methods.Instance.GetApplicationPath();
             var appset = new ApplicationSettings();
 
-            if (!File.Exists(AppPath + "AppConfig.xml"))
-            {
+            if (!File.Exists(AppPath + "AppConfig.xml")) {
                 Logger.Instance.Append("obj [ Global.Application.Initialize <AppConfig.xml> ]: File not found.");
                 return;
             }
@@ -81,8 +74,7 @@ namespace jaNETFramework
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
         }
 
-        public static void Dispose()
-        {
+        public static void Dispose() {
             SerialComm.DeactivateSerialPort();
             Server.Web.Stop();
             Server.TCP.Stop();

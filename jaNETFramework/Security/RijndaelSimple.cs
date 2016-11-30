@@ -66,8 +66,7 @@ namespace jaNETFramework
         /// </returns>
         /// 
 
-        internal static string Encrypt(string plainText)
-        {
+        internal static string Encrypt(string plainText) {
             const string passPhrase = "pass_janet";  // can be any string
             const string saltValue = "salt_janet";   // can be any string
             const string hashAlgorithm = "SHA1";          // can be "MD5"
@@ -179,8 +178,7 @@ namespace jaNETFramework
         /// the Encrypt function which was called to generate the
         /// ciphertext.
         /// </remarks>
-        internal static string Decrypt(string cipherText)
-        {
+        internal static string Decrypt(string cipherText) {
             const string passPhrase = "pass_janet";  // can be any string
             const string saltValue = "salt_janet";   // can be any string
             const string hashAlgorithm = "SHA1";          // can be "MD5"

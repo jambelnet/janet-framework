@@ -31,25 +31,21 @@ namespace jaNETFramework
 {
     class Evaluator
     {
-        private Evaluator(EvaluatorItem[] items)
-        {
+        private Evaluator(EvaluatorItem[] items) {
             ConstructEvaluator(items);
         }
 
-        private Evaluator(Type returnType, string expression, string name)
-        {
+        private Evaluator(Type returnType, string expression, string name) {
             EvaluatorItem[] items = { new EvaluatorItem(returnType, expression, name) };
             ConstructEvaluator(items);
         }
 
-        private Evaluator(EvaluatorItem item)
-        {
+        private Evaluator(EvaluatorItem item) {
             EvaluatorItem[] items = { item };
             ConstructEvaluator(items);
         }
 
-        private void ConstructEvaluator(EvaluatorItem[] items)
-        {
+        private void ConstructEvaluator(EvaluatorItem[] items) {
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
             CompilerParameters comp = new CompilerParameters();
             //comp.ReferencedAssemblies.Add("system.dll");
@@ -61,8 +57,7 @@ namespace jaNETFramework
             code.Append("namespace libJanet { \n");
             code.Append("public class _Evaluator { \n");
 
-            foreach (EvaluatorItem item in items)
-            {
+            foreach (EvaluatorItem item in items) {
                 code.AppendFormat(" public {0} {1}() ", item.ReturnType.Name, item.Name);
                 code.Append(" { ");
                 code.AppendFormat(" return ({0}); ", item.Expression);
@@ -71,12 +66,10 @@ namespace jaNETFramework
             code.Append("} }");
 
             CompilerResults cr = provider.CompileAssemblyFromSource(comp, code.ToString());
-            if (cr.Errors.HasErrors)
-            {
+            if (cr.Errors.HasErrors) {
                 StringBuilder error = new StringBuilder();
                 error.Append("Error Compiling Expression: ");
-                foreach (CompilerError err in cr.Errors)
-                {
+                foreach (CompilerError err in cr.Errors) {
                     error.AppendFormat("{0}\n", err.ErrorText);
                 }
                 throw new Exception("Error Compiling Expression: " + error.ToString());
@@ -86,44 +79,36 @@ namespace jaNETFramework
         }
 
         #region Private Members
-        private int EvaluateInt(string name)
-        {
+        private int EvaluateInt(string name) {
             return (int)Evaluate(name);
         }
 
-        private string EvaluateString(string name)
-        {
+        private string EvaluateString(string name) {
             return (string)Evaluate(name);
         }
 
-        private bool EvaluateBool(string name)
-        {
+        private bool EvaluateBool(string name) {
             return (bool)Evaluate(name);
         }
 
-        private object Evaluate(string name)
-        {
+        private object Evaluate(string name) {
             MethodInfo mi = _Compiled.GetType().GetMethod(name);
             return mi.Invoke(_Compiled, null);
         }
         #endregion
 
         #region Static Members
-        static internal string EvaluateCondition(string sValue)
-        {
+        static internal string EvaluateCondition(string sValue) {
             sValue = sValue.Replace("\r", " ").Replace("\n", " ");
 
             MatchCollection mItems = Regex.Matches(sValue, @"\{(.*?)\}");
 
-            foreach (Match matchString in mItems)
-            {
-                if (matchString.Success)
-                {
+            foreach (Match matchString in mItems) {
+                if (matchString.Success) {
                     string[] args = matchString.ToString().Split(';');
                     if (args[0].Contains("*"))
                         args[0] = ParsingTools.ParseTokens(args[0]);
-                    if (args[0].Contains("evalBool"))
-                    {
+                    if (args[0].Contains("evalBool")) {
                         string condition = args[0].Replace("{", string.Empty)
                                                   .Replace("evalBool", string.Empty)
                                                   .Replace("(", string.Empty)
@@ -131,8 +116,7 @@ namespace jaNETFramework
 
                         bool e;
 
-                        if (condition.Contains("~>"))
-                        {
+                        if (condition.Contains("~>")) {
                             string[] vals = Regex.Split(condition, "~>");
                             e = vals[0].Replace("\"", string.Empty).Contains(vals[1].Replace("\"", string.Empty));
                         }
@@ -146,27 +130,23 @@ namespace jaNETFramework
             }
             return sValue;
         }
-        
-        static internal int EvaluateToInteger(string code)
-        {
+
+        static internal int EvaluateToInteger(string code) {
             Evaluator eval = new Evaluator(typeof(int), code, staticMethodName);
             return (int)eval.Evaluate(staticMethodName);
         }
 
-        static internal string EvaluateToString(string code)
-        {
+        static internal string EvaluateToString(string code) {
             Evaluator eval = new Evaluator(typeof(string), code, staticMethodName);
             return (string)eval.Evaluate(staticMethodName);
         }
 
-        static internal bool EvaluateToBool(string code)
-        {
+        static internal bool EvaluateToBool(string code) {
             Evaluator eval = new Evaluator(typeof(bool), code, staticMethodName);
             return (bool)eval.Evaluate(staticMethodName);
         }
 
-        static internal object EvaluateToObject(string code)
-        {
+        static internal object EvaluateToObject(string code) {
             Evaluator eval = new Evaluator(typeof(object), code, staticMethodName);
             return eval.Evaluate(staticMethodName);
         }
@@ -181,8 +161,7 @@ namespace jaNETFramework
 
     class EvaluatorItem
     {
-        internal EvaluatorItem(Type returnType, string expression, string name)
-        {
+        internal EvaluatorItem(Type returnType, string expression, string name) {
             ReturnType = returnType;
             Expression = expression;
             Name = name;

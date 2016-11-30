@@ -27,12 +27,10 @@ namespace jaNETFramework
 {
     class Process
     {
-        public static Process Instance { get { return Singleton<Process>.Instance; } }    
-    
-        internal string Start(string sFilePath)
-        {
-            if (sFilePath.Trim().Contains(" "))
-            {
+        public static Process Instance { get { return Singleton<Process>.Instance; } }
+
+        internal string Start(string sFilePath) {
+            if (sFilePath.Trim().Contains(" ")) {
                 String fileName = sFilePath.Substring(0, sFilePath.IndexOf(' '));
                 String arguments = sFilePath.Substring(fileName.Length);
                 return Start(fileName, arguments);
@@ -40,17 +38,13 @@ namespace jaNETFramework
             return Start(sFilePath, string.Empty);
         }
 
-        internal string Start(string sFilePath, string sArguments)
-        {
-            try
-            {
-                if (sFilePath != string.Empty)
-                {
+        internal string Start(string sFilePath, string sArguments) {
+            try {
+                if (sFilePath != string.Empty) {
                     var process = new System.Diagnostics.Process();
                     process.EnableRaisingEvents = false;
 
-                    if (sArguments != string.Empty)
-                    {
+                    if (sArguments != string.Empty) {
                         process.StartInfo.FileName = sFilePath;
                         process.StartInfo.Arguments = sArguments;
                     }
@@ -70,20 +64,17 @@ namespace jaNETFramework
                 }
                 return string.Empty;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Logger.Instance.Append("obj [ Process.Start <Exception> ]: args [ " + sFilePath + " " + sArguments + " ]: " + e.Message);
                 return string.Empty;
             }
         }
 
         // True => worked, False => timeout
-        internal static bool CallWithTimeout(Action method, int timeout)
-        {
+        internal static bool CallWithTimeout(Action method, int timeout) {
             Exception e;
             Task worker = Task.Factory.StartNew(method)
-                              .ContinueWith(t =>
-                              {
+                              .ContinueWith(t => {
                                   // Ensure any exception is observed, is no-op if no exception.
                                   // Using closure to help avoid this being optimised out.
                                   e = t.Exception;

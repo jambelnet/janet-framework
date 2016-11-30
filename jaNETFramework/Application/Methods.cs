@@ -30,17 +30,19 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public string GetCopyright()
-        { return "jaNET Framework [Version 0.2.9.39]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; }
+        public string GetCopyright() {
+            return "jaNET Framework [Version 0.2.9.45]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
+        }
 
-        public string GetWinPath()
-        { return Directory.GetCurrentDirectory(); }
+        public string GetWinPath() {
+            return Directory.GetCurrentDirectory();
+        }
 
-        public string GetLinuxPath()
-        { return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/")); }
+        public string GetLinuxPath() {
+            return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/"));
+        }
 
-        public string GetApplicationPath()
-        {
+        public string GetApplicationPath() {
             string Path = string.Empty;
 
             if (OperatingSystem.Version == OperatingSystem.Type.Unix ||
@@ -52,8 +54,7 @@ namespace jaNETFramework
             return Path;
         }
 
-        public string GetPartOfDay(bool salute)
-        {
+        public string GetPartOfDay(bool salute) {
             if (DateTime.Now.Hour < 6)
                 if (salute) return "morning";
                 else return "midnight";
@@ -74,114 +75,93 @@ namespace jaNETFramework
             return string.Empty;
         }
 
-        public string GetSalute()
-        {
+        public string GetSalute() {
             return GetPartOfDay(true);
         }
 
-        public string GetTime()
-        {
+        public string GetTime() {
             return (string.Format("{0:t}", DateTime.Now));
         }
 
-        public string GetTime24()
-        {
+        public string GetTime24() {
             return (string.Format("{0:HH:mm}", DateTime.Now));
         }
 
-        public string GetHour()
-        {
+        public string GetHour() {
             return (string.Format("{0:HH}", DateTime.Now));
         }
 
-        public string GetMinute()
-        {
+        public string GetMinute() {
             return (string.Format("{0:mm}", DateTime.Now));
         }
 
-        public string GetDate()
-        {
+        public string GetDate() {
             return (string.Format("{0:M}", DateTime.Now));
         }
 
-        public string GetCalendarDate()
-        {
+        public string GetCalendarDate() {
             return (string.Format("{0:d/M/yyyy}", DateTime.Now));
         }
 
-        public string GetDay()
-        {
+        public string GetDay() {
             return (DateTime.Now.DayOfWeek.ToString());
         }
 
-        public string GetCalendarDay()
-        {
+        public string GetCalendarDay() {
             return (DateTime.Now.Day.ToString());
         }
 
-        public string GetCalendarMonth()
-        {
+        public string GetCalendarMonth() {
             return (DateTime.Now.Month.ToString());
         }
 
-        public string GetCalendarYear()
-        {
+        public string GetCalendarYear() {
             return (DateTime.Now.Year.ToString());
         }
 
-        public string WhoAmI()
-        {
+        public string WhoAmI() {
             return Environment.UserName;
         }
 
-        public XmlNodeList GetEvent(string eventID)
-        {
+        public XmlNodeList GetEvent(string eventID) {
             return Helpers.Xml.AppConfigQuery(
                 ApplicationSettings.ApplicationStructure.SystemEventsRoot +
                 "/event[@id='" + eventID + "']");
         }
 
-        public XmlNodeList GetInstructionSet(string instructionID)
-        {
+        public XmlNodeList GetInstructionSet(string instructionID) {
             return Helpers.Xml.AppConfigQuery(
                 ApplicationSettings.ApplicationStructure.SystemInstructionsRoot +
                 "/InstructionSet[@id='" + instructionID + "']");
         }
 
-        public XmlNodeList GetMailHeaders()
-        {
+        public XmlNodeList GetMailHeaders() {
             return Helpers.Xml.AppConfigQuery("jaNET/System/Alerts/MailHeaders");
         }
 
-        public XmlNodeList GetXmlElementList(string xPath, string elementName)
-        {
+        public XmlNodeList GetXmlElementList(string xPath, string elementName) {
             return Helpers.Xml.AppConfigQuery(xPath + "/" + elementName);
         }
 
-        public bool HasInternetConnection()
-        {
+        public bool HasInternetConnection() {
             return HasInternetConnection(string.Empty);
         }
 
-        public bool HasInternetConnection(string host)
-        {
-            try
-            {
+        public bool HasInternetConnection(string host) {
+            try {
                 if (host == string.Empty)
                     host = "http://www.google.com";
                 using (var client = new WebClient())
-                    using (var stream = client.OpenRead(host))
-                        return true;
+                using (var stream = client.OpenRead(host))
+                    return true;
             }
             catch {
                 return false;
             }
         }
 
-        internal string AddToXML(InstructionSet newElement, string xPath, string elementName)
-        {
-            try
-            {
+        internal string AddToXML(InstructionSet newElement, string xPath, string elementName) {
+            try {
                 string path = GetApplicationPath() + "AppConfig.xml";
 
                 var xmldoc = new XmlDocument();
@@ -235,8 +215,7 @@ namespace jaNETFramework
 
                 if (NewAttributeID.Value == string.Empty)
                     xmlnode.SelectSingleNode(elementName).InnerText = NewElement.InnerText;
-                else
-                {
+                else {
                     xmlnode.InsertAfter(NewElement, xmlnode.LastChild);
                     xmldoc.DocumentElement.AppendChild(xmlnode);
                 }
@@ -245,16 +224,13 @@ namespace jaNETFramework
 
                 return "Element added.";
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 return string.Format("{0}\r\nPlease try again.", e.Message);
             }
         }
 
-        internal string RemoveFromXML(string elementID, string xPath, string elementName)
-        {
-            try
-            {
+        internal string RemoveFromXML(string elementID, string xPath, string elementName) {
+            try {
                 string path = GetApplicationPath() + "AppConfig.xml";
 
                 var xmldoc = new XmlDocument();
@@ -275,25 +251,21 @@ namespace jaNETFramework
 
                 return "Element removed.";
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 return string.Format("{0}\r\nPlease try again.", e.Message);
             }
         }
 
-        void RemoveElement(XmlNodeList xmlnodelist)
-        {
-            for (int i = xmlnodelist.Count - 1; i >= 0; i--)
-            {
+        void RemoveElement(XmlNodeList xmlnodelist) {
+            for (int i = xmlnodelist.Count - 1; i >= 0; i--) {
                 XmlNode xmlnode = xmlnodelist[i];
                 xmlnode.ParentNode.RemoveChild(xmlnode);
             }
         }
 
-        internal string getHelp(string chapter)
-        {
+        internal string getHelp(string chapter) {
             const
-            string _inset =     "1.  Instruction Sets & Events\r\n" +
+            string _inset = "1.  Instruction Sets & Events\r\n" +
                                 "     1.1 Add New Instruction Set\r\n" +
                                 "         + judo inset add <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
                                 "         + judo inset new <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
@@ -328,7 +300,7 @@ namespace jaNETFramework
                                 "         + judo event list\r\n" +
                                 "         + judo event ls";
             const
-            string _mail =      "2.  Mail\r\n" +
+            string _mail = "2.  Mail\r\n" +
                                 "     2.1 Smtp Settings\r\n" +
                                 "         + judo smtp add [Host] [Username] [Password] [Port] [Ssl]\r\n" +
                                 "         + judo smtp setup [Host] [Username] [Password] [Port] [Ssl]\r\n" +
@@ -347,7 +319,7 @@ namespace jaNETFramework
                                 "     2.4 Send\r\n" +
                                 "         + judo mail send [From Address] [To Address] `[Subject]` `[Message]`";
             const
-            string _sms =       "3.  SMS\r\n" +
+            string _sms = "3.  SMS\r\n" +
                                 "     3.1 Settings\r\n" +
                                 "         + judo sms add [Api Id] [Username] [Password]\r\n" +
                                 "         + judo sms setup [Api Id] [Username] [Password]\r\n" +
@@ -356,7 +328,7 @@ namespace jaNETFramework
                                 "     3.2 Send\r\n" +
                                 "         + judo sms send [Phone Number] [Message]";
             const
-            string _schedule =  "4.  Scheduler\r\n" +
+            string _schedule = "4.  Scheduler\r\n" +
                                 "     4.1 New Schedule\r\n" +
                                 "         + judo schedule add [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
                                 "         + judo schedule new [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
@@ -438,7 +410,7 @@ namespace jaNETFramework
                                 "         + judo schedule status [Name (optional)]\r\n" +
                                 "         + judo schedule state [Name (optional)]";
             const
-            string _socket =    "5.  Socket Communication\r\n" +
+            string _socket = "5.  Socket Communication\r\n" +
                                 "     5.1 Start Service\r\n" +
                                 "         + judo socket start\r\n" +
                                 "         + judo socket enable\r\n" +
@@ -459,7 +431,7 @@ namespace jaNETFramework
                                 "         + judo socket status\r\n" +
                                 "         + judo socket state";
             const
-            string _server =    "6.  Web Server\r\n" +
+            string _server = "6.  Web Server\r\n" +
                                 "     6.1 Start\r\n" +
                                 "         + judo server start\r\n" +
                                 "         + judo server enable\r\n" +
@@ -482,7 +454,7 @@ namespace jaNETFramework
                                 "         + judo server status\r\n" +
                                 "         + judo server state";
             const
-            string _serial =    "7.  Serial Port\r\n" +
+            string _serial = "7.  Serial Port\r\n" +
                                 "     7.1 Open\r\n" +
                                 "         + judo serial open [Port (optional)]\r\n" +
                                 "     7.2 Close\r\n" +
@@ -498,7 +470,7 @@ namespace jaNETFramework
                                 "         + judo serial listen [Timeout in ms (optional)]\r\n" +
                                 "         + judo serial monitor [Timeout in ms (optional)]";
             const
-            string _cloud =     "8.  Web Services\r\n" +
+            string _cloud = "8.  Web Services\r\n" +
                                 "     8.1 Json Setup\r\n" +
                                 //"       Create an instance (Instruction Set) for the response method.\r\n" +
                                 "         + judo json add [ID] [Endpoint] [Node]\r\n" +
@@ -531,17 +503,17 @@ namespace jaNETFramework
                                 "         + judo xml consume [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
                                 "         + judo xml extract [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]";
             const
-            string _http =      "9.  Http\r\n" +
+            string _http = "9.  Http\r\n" +
                                 "     9.1 Get\r\n" +
                                 "         + judo http get [Request-URI]";
             const
-            string _ping =      "10. Ping\r\n" +
+            string _ping = "10. Ping\r\n" +
                                 "     10.1 Default Timeout [ 1000ms ]\r\n" +
                                 "         + judo ping [Host]\r\n" +
                                 "     10.2 Specific Timeout\r\n" +
                                 "         + judo ping [Host] [Timeout]";
             const
-            string _help =      "11. Help\r\n" +
+            string _help = "11. Help\r\n" +
                                 "     11.1 Preview All\r\n" +
                                 "         + judo help\r\n" +
                                 "         + judo ?\r\n" +
@@ -552,7 +524,7 @@ namespace jaNETFramework
                                 "(**) <lock>parser protected document</lock> Lock tags used to bypass parser.\r\n" +
                                 "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, ping, help";
             const
-            string _all =   _inset + "\r\n" +
+            string _all = _inset + "\r\n" +
                             _mail + "\r\n" +
                             _sms + "\r\n" +
                             _schedule + "\r\n" +
@@ -564,8 +536,7 @@ namespace jaNETFramework
                             _ping + "\r\n" +
                             _help + "\r\n";
 
-            switch (chapter)
-            {
+            switch (chapter) {
                 case "inset":
                 case "event":
                     return _inset;

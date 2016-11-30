@@ -60,26 +60,21 @@ namespace jaNETFramework
         internal string Time { get; set; }
         internal string Action { get; set; }
         bool _status;
-        public bool Status
-        {
+        public bool Status {
             get { return _status; }
-            set
-            {
-                if (value != _status)
-                {
+            set {
+                if (value != _status) {
                     _status = value;
                     SaveList();
                 }
             }
         }
 
-        internal Schedule()
-        {
+        internal Schedule() {
             //
         }
 
-        internal Schedule(string sName, string sDate, string sTime, string sAction, bool bStatus)
-        {
+        internal Schedule(string sName, string sDate, string sTime, string sAction, bool bStatus) {
             Name = sName;
             Date = sDate;
             Time = sTime;
@@ -88,12 +83,9 @@ namespace jaNETFramework
         }
 
         static ObservableCollection<Schedule> _ScheduleList;
-        internal static ObservableCollection<Schedule> ScheduleList
-        {
-            get
-            {
-                if (_ScheduleList == null)
-                {
+        internal static ObservableCollection<Schedule> ScheduleList {
+            get {
+                if (_ScheduleList == null) {
                     _ScheduleList = new ObservableCollection<Schedule>();
                     _ScheduleList.CollectionChanged += ScheduleList_Changed;
                 }
@@ -101,26 +93,21 @@ namespace jaNETFramework
             }
         }
 
-        static void ScheduleList_Changed(object sender, NotifyCollectionChangedEventArgs e)
-        {
+        static void ScheduleList_Changed(object sender, NotifyCollectionChangedEventArgs e) {
             SaveList();
         }
 
-        internal static void Init()
-        {
-            new Thread(() =>
-            {
+        internal static void Init() {
+            new Thread(() => {
                 const string schedulerFilename = ".scheduler";
 
-                if (File.Exists(Methods.Instance.GetApplicationPath() + schedulerFilename))
-                {
+                if (File.Exists(Methods.Instance.GetApplicationPath() + schedulerFilename)) {
                     if (ScheduleList.Count > 0)
                         ScheduleList.Clear();
                     var scheduleSettings = new Settings();
                     IList<String> Schedules = scheduleSettings.LoadSettings(schedulerFilename);
                     foreach (string schedule in Schedules)
-                        if (schedule != string.Empty)
-                        {
+                        if (schedule != string.Empty) {
                             var s = schedule.ToSchedule();
                             int i;
                             if (int.TryParse(s.Time, out i))
@@ -132,8 +119,7 @@ namespace jaNETFramework
             }).Start();
         }
 
-        static void SaveList()
-        {
+        static void SaveList() {
             string schedules = string.Empty;
             const string schedulerPath = ".scheduler";
 
@@ -145,16 +131,13 @@ namespace jaNETFramework
             scheduleSettings.SaveSettings(schedulerPath, schedules);
         }
 
-        internal static string Add(Schedule ss)
-        {
+        internal static string Add(Schedule ss) {
             return Add(ss, 1000);
         }
 
-        internal static string Add(Schedule ss, int interval)
-        {
+        internal static string Add(Schedule ss, int interval) {
             interval = interval < 1000 ? 1000 : interval;
-            try
-            {
+            try {
                 if (!ScheduleList.Contains(ss))
                     ScheduleList.Add(ss);
 
@@ -166,19 +149,16 @@ namespace jaNETFramework
             catch { return "Failed to add " + ss.Name + " schedule"; }
         }
 
-        static void ScheduleListener(Schedule oSchedule, int interval)
-        {
+        static void ScheduleListener(Schedule oSchedule, int interval) {
             bool _done = false;
 
-            IList<DayOfWeek> WorkDays = new [] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-            IList<DayOfWeek> Weekend = new [] { DayOfWeek.Saturday, DayOfWeek.Sunday };
+            IList<DayOfWeek> WorkDays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+            IList<DayOfWeek> Weekend = new[] { DayOfWeek.Saturday, DayOfWeek.Sunday };
 
             var method = Methods.Instance;
 
-            lock (_schedule_locker)
-            {
-                while (oSchedule.Status)
-                {
+            lock (_schedule_locker) {
+                while (oSchedule.Status) {
                     if ((oSchedule.Date == Period.Repeat || oSchedule.Date == Period.Interval || oSchedule.Date == Period.Timer) ||                // repeated (ms)
                         (oSchedule.Date == Period.Daily || oSchedule.Date == Period.Everyday) && oSchedule.Time == method.GetTime24() ||           // every day
                          oSchedule.Date == Period.Workdays && oSchedule.Time == method.GetTime24() && WorkDays.Contains(DateTime.Now.DayOfWeek) || // workdays
@@ -186,8 +166,7 @@ namespace jaNETFramework
                          oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()) && oSchedule.Time == method.GetTime24() ||                   // specific day
                          oSchedule.Date == method.GetCalendarDate() && oSchedule.Time == method.GetTime24())                                       // specific date - only once, then deleted
                     {
-                        if (!_done)
-                        {
+                        if (!_done) {
                             if (method.GetInstructionSet(oSchedule.Action).Count > 0)
                                 oSchedule.Action.Parse();
                             else
@@ -210,23 +189,17 @@ namespace jaNETFramework
             }
         }
 
-        internal static string ChangeStatus(State stat)
-        {
+        internal static string ChangeStatus(State stat) {
             return ChangeStatus(string.Empty, stat);
         }
 
-        internal static string ChangeStatus(string scheduleName, State stat)
-        {
-            try
-            {
-                switch (stat)
-                {
+        internal static string ChangeStatus(string scheduleName, State stat) {
+            try {
+                switch (stat) {
                     case State.Remove:
                     case State.RemoveAll:
-                        for (int i = ScheduleList.Count - 1; i >= 0; i--)
-                        {
-                            if (ScheduleList[i].Name == scheduleName || stat == State.RemoveAll)
-                            {
+                        for (int i = ScheduleList.Count - 1; i >= 0; i--) {
+                            if (ScheduleList[i].Name == scheduleName || stat == State.RemoveAll) {
                                 ScheduleList[i].Status = false;
                                 ScheduleList.RemoveAt(i);
                             }
@@ -235,8 +208,7 @@ namespace jaNETFramework
                     case State.Enable:
                     case State.Disable:
                         foreach (var s in ScheduleList.Where(s => s.Name == scheduleName)
-                                                      .Where(s => s.Status != Convert.ToBoolean(stat)))
-                        {
+                                                      .Where(s => s.Status != Convert.ToBoolean(stat))) {
                             s.Status = Convert.ToBoolean(stat);
                             if (s.Status)
                                 if (s.Time.Contains(":"))
@@ -246,8 +218,7 @@ namespace jaNETFramework
                         }
                         break;
                     case State.EnableAll:
-                        foreach (var s in ScheduleList.Where(s => !s.Status))
-                        {
+                        foreach (var s in ScheduleList.Where(s => !s.Status)) {
                             s.Status = true;
                             Add(s);
                         }

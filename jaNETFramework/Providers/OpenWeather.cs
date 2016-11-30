@@ -101,12 +101,9 @@ namespace jaNETFramework
             public int cod { get; set; }
         }
 
-        public OpenWeather()
-        {
-            Action getWeather = () =>
-            {
-                try
-                {
+        public OpenWeather() {
+            Action getWeather = () => {
+                try {
                     string endpoint = Helpers.Xml.AppConfigQuery("jaNET/System/Others/Weather").Item(0).InnerText;
                     var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                     TodayConditions = oRootObject.weather[0].main;

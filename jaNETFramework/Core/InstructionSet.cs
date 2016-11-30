@@ -34,20 +34,17 @@ namespace jaNETFramework
         internal string ThumbnailUrl { get; set; }
         internal string Reference { get; set; }
 
-        internal InstructionSet(string action) : 
-            this (string.Empty, action, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
-        {
-            
-        }
-
-        internal InstructionSet(string id, string action) : 
-            this (id, action, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
-        {
+        internal InstructionSet(string action) :
+            this(string.Empty, action, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty) {
 
         }
 
-        internal InstructionSet(string id, string action, string category, string header, string shortDescription, string description, string thumbnailUrl, string reference)
-        {
+        internal InstructionSet(string id, string action) :
+            this(id, action, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty) {
+
+        }
+
+        internal InstructionSet(string id, string action, string category, string header, string shortDescription, string description, string thumbnailUrl, string reference) {
             Id = id;
             Action = action;
 

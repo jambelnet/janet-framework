@@ -42,12 +42,9 @@ namespace jaNETFramework
         public string CurrentCity { get; set; }
         public string WeatherIcon { get; set; }
 
-        public YahooWeather()
-        {
-            Action getWeather = () =>
-            {
-                try
-                {
+        public YahooWeather() {
+            Action getWeather = () => {
+                try {
                     string endpoint = Helpers.Xml.AppConfigQuery("jaNET/System/Others/YahooForecastFeed").Item(0).InnerText;
                     const string ns = "yweather";
                     const string uri = "http://xml.weather.yahoo.com/ns/rss/1.0";
@@ -56,8 +53,7 @@ namespace jaNETFramework
                     XmlNodeList nodes = Helpers.Xml.SelectNodeList(endpoint, ns, uri, nodePath);
                     var le = new List<String>();
 
-                    foreach (XmlNode node in nodes)
-                    {
+                    foreach (XmlNode node in nodes) {
                         le.Add(node.Attributes["day"].InnerText.GetDay());
                         le.Add(node.Attributes["text"].InnerText);
                         le.Add(node.Attributes["low"].InnerText);
@@ -74,8 +70,7 @@ namespace jaNETFramework
                     TomorrowLow = le[6];
                     TomorrowHigh = le[7];
                 }
-                catch
-                {
+                catch {
                     // Suppress
                 }
             };

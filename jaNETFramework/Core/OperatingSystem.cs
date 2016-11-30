@@ -33,15 +33,12 @@ namespace jaNETFramework
             Unknown
         }
 
-        internal static Type Version
-        {
+        internal static Type Version {
             get { return getOSversion(); }
         }
 
-        static Type getOSversion()
-        {
-            switch (Environment.OSVersion.Platform)
-            {
+        static Type getOSversion() {
+            switch (Environment.OSVersion.Platform) {
                 case PlatformID.Unix:
                     return Type.Unix;
                 case PlatformID.Win32NT:

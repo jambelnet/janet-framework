@@ -39,8 +39,7 @@ namespace jaNETFramework
 
         internal string Parse(string args, DataType dataType, bool disableSpeech)
         {
-            if (args.Contains("{mute}") || args.Contains("{widget}"))
-            {
+            if (args.Contains("{mute}") || args.Contains("{widget}")) {
                 args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
                 disableSpeech = true;
             }
@@ -55,8 +54,7 @@ namespace jaNETFramework
             var results = new Dictionary<string, KeyValuePair<string, string>>();
 
             foreach (string Instruction in InstructionSets)
-                if (Instruction.Trim() != string.Empty)
-                {
+                if (Instruction.Trim() != string.Empty) {
                     var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
                     if (exe.EndsWith("\n"))
                         exe = exe.Substring(0, exe.LastIndexOf("\n"));
@@ -84,16 +82,14 @@ namespace jaNETFramework
             string output = string.Empty;
             var method = Methods.Instance;
 
-            try
-            {
+            try {
                 if (arg.StartsWith("%") ||
                     arg.StartsWith("./") ||
                     arg.StartsWith("judo"))
                     
                     return ParsingTools.ParseTokens(arg);
 
-                else
-                {
+                else {
                     XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
 
                     if (xList.Count <= 0 && !arg.Contains("*"))
@@ -112,12 +108,10 @@ namespace jaNETFramework
 
                 if (method.HasInternetConnection() && !disableSpeech)
                 {
-                    if (!User.Status && output.Trim() != string.Empty && File.Exists(method.GetApplicationPath() + ".smtpsettings"))
-                    {
+                    if (!User.Status && output.Trim() != string.Empty && File.Exists(method.GetApplicationPath() + ".smtpsettings")) {
                         XmlNodeList xList = method.GetMailHeaders();
 
-                        foreach (XmlNode nodeItem in xList)
-                        {
+                        foreach (XmlNode nodeItem in xList) {
                             Action SendNotification = () => new Net.Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
                                                                                 nodeItem.SelectSingleNode("MailTo").InnerText,
                                                                                 nodeItem.SelectSingleNode("MailSubject").InnerText,
@@ -127,15 +121,13 @@ namespace jaNETFramework
                     }
                 }
 
-                if (output.Trim() != string.Empty && !Mute && !disableSpeech)
-                {
+                if (output.Trim() != string.Empty && !Mute && !disableSpeech) {
                     var t = new Thread(() => SayText(output.Replace("Parser: ", string.Empty)));
                     t.IsBackground = true;
                     t.Start();
                 }
 
-                if (!ParserState)
-                {
+                if (!ParserState) {
                     Thread.Sleep(1000);
                     Environment.Exit(0);
                 }
@@ -144,8 +136,7 @@ namespace jaNETFramework
             }
             catch (Exception e)
             {
-                if (!e.Message.Contains("Parameter name: length"))
-                {
+                if (!e.Message.Contains("Parameter name: length")) {
                     Logger.Instance.Append("obj [ Parser.Execute <Exception> ]: Argument: [ " + arg + " ] Exception: [ " + e.Message + " ]");
                     return e.Message;
                 }
@@ -160,18 +151,15 @@ namespace jaNETFramework
 
         static void SayText(object sText)
         {
-            lock (_speech_locker)
-            {
-                if (OperatingSystem.Version == OperatingSystem.Type.Unix)
-                {
+            lock (_speech_locker) {
+                if (OperatingSystem.Version == OperatingSystem.Type.Unix) {
                     if (File.Exists("/usr/bin/festival"))
                         Process.Instance.Start(string.Format("festival -b '(SayText \"{0}\")'", sText.ToString().Replace("_", string.Empty)));
                         //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
                     else
                         Process.Instance.Start("say " + sText.ToString().Replace("_", string.Empty));
                 }
-                else
-                {
+                else {
                     String jspeechPath = Methods.Instance.GetApplicationPath() + "jspeech.exe";
                     if (File.Exists(jspeechPath))
                         Process.Instance.Start(jspeechPath, sText.ToString().Replace("_", string.Empty));
@@ -196,8 +184,7 @@ namespace jaNETFramework
                 ParsingTools.SplitArguments(arg.ToValues()) // Parse it normally
                 : ParsingTools.SplitArguments(arg); // Leave it as is, code container
 
-            switch (args[1])
-            {
+            switch (args[1]) {
                 // TIMER
                 case "timer":
                 case "sleep":
@@ -206,8 +193,7 @@ namespace jaNETFramework
                 // SERIAL
                 case "serial":
                     SerialComm.SerialData = string.Empty;
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "open":
                             if (args.Count() > 3)
                                 SerialComm.ActivateSerialPort(args[3]);
@@ -224,14 +210,10 @@ namespace jaNETFramework
                         case "send":
                         case "listen":
                         case "monitor":
-                            try
-                            {
-                                lock (_serial_locker)
-                                {
-                                    if (SerialComm.port.IsOpen)
-                                    {
-                                        if (args[2] == "send")
-                                        {
+                            try {
+                                lock (_serial_locker) {
+                                    if (SerialComm.port.IsOpen) {
+                                        if (args[2] == "send") {
                                             // Clear all buffers
                                             SerialComm.port.DiscardInBuffer();
                                             SerialComm.port.DiscardOutBuffer();
@@ -240,10 +222,8 @@ namespace jaNETFramework
                                             SerialComm.port.WriteLine(args[3]);
                                             Thread.Sleep(220);
                                         }
-                                        Action getSerialData = () =>
-                                        {
-                                            while (output == string.Empty)
-                                            {
+                                        Action getSerialData = () => {
+                                            while (output == string.Empty) {
                                                 output = SerialComm.SerialData;
                                                 Thread.Sleep(50);
                                             }
@@ -257,8 +237,7 @@ namespace jaNETFramework
                                         output = "Serial port state: " + SerialComm.port.IsOpen;
                                 }
                             }
-                            catch
-                            {
+                            catch {
                                 //Suppress
                                 //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
                             }
@@ -294,8 +273,7 @@ namespace jaNETFramework
                     break;
                 // INSTRUCTION SETS
                 case "inset":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "new":
                         case "set":
@@ -335,8 +313,7 @@ namespace jaNETFramework
                     break;
                 // EVENTS
                 case "event":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "new":
                         case "set":
@@ -364,8 +341,7 @@ namespace jaNETFramework
                     break;
                 // SOCKET LISTENING MODE
                 case "socket":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "on":
                         case "enable":
                         case "start":
@@ -406,8 +382,7 @@ namespace jaNETFramework
                     break;
                 // WEB SERVER MODE
                 case "server":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "on":
                         case "enable":
                         case "start":
@@ -455,8 +430,7 @@ namespace jaNETFramework
                     break;
                 // SCHEDULER
                 case "schedule":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "new":
                         case "set":
@@ -571,8 +545,7 @@ namespace jaNETFramework
                         case "ls":
                         default:
                             foreach (Schedule schedule in Schedule.ScheduleList)
-                                if (args.Count() > 3)
-                                {
+                                if (args.Count() > 3) {
                                     if (args[3] == schedule.Name)
                                         output += string.Format("{0} | {1} | {2} | {3} | {4}\r\n",
                                                                  schedule.Name,
@@ -595,8 +568,7 @@ namespace jaNETFramework
                     break;
                 // SMTP
                 case "smtp":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "setup":
                         case "set":
@@ -613,8 +585,7 @@ namespace jaNETFramework
                     break;
                 // POP3
                 case "pop3":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "setup":
                         case "set":
@@ -631,8 +602,7 @@ namespace jaNETFramework
                     break;
                 // GMAIL
                 case "gmail":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "setup":
                         case "set":
@@ -646,8 +616,7 @@ namespace jaNETFramework
                     break;
                 // MAIL
                 case "mail":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "send":
                             output = new Net.Mail().Send(args[3], args[4], args[5], args[6]).ToString()
                                                    .Replace("True", "Mail sent!").Replace("False", "Mail could not be sent");
@@ -656,8 +625,7 @@ namespace jaNETFramework
                     break;
                 // SMS
                 case "sms":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "setup":
                         case "set":
@@ -674,8 +642,7 @@ namespace jaNETFramework
                     break;
                 // WEB API
                 case "json":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "new":
                         case "set":
@@ -695,14 +662,12 @@ namespace jaNETFramework
                     break;
                 // WEB SERVICE
                 case "xml":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "add":
                         case "new":
                         case "set":
                         case "setup":
-                            switch (args.Count())
-                            {
+                            switch (args.Count()) {
                                 case 6:
                                     output = method.AddToXML(new InstructionSet(args[3], // ID
                                                              "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5]), //Action
@@ -724,8 +689,7 @@ namespace jaNETFramework
                         case "response":
                         case "consume":
                         case "extract":
-                            switch (args.Count())
-                            {
+                            switch (args.Count()) {
                                 case 5:
                                     output = Helpers.Xml.SelectSingleNode(Server.Web.SimpleUriDecode(args[3]), args[4]);
                                     break;
@@ -743,8 +707,7 @@ namespace jaNETFramework
                     break;
                 // HTTP
                 case "http":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "get":
                             output = Helpers.Http.Get(Server.Web.SimpleUriDecode(args[3]));
                             break;
@@ -752,8 +715,7 @@ namespace jaNETFramework
                     break;
                 // WEATHER
                 case "weather":
-                    switch (args[2])
-                    {
+                    switch (args[2]) {
                         case "set":
                         case "setup":
                             output = method.AddToXML(new InstructionSet(args[3]),
@@ -784,8 +746,7 @@ namespace jaNETFramework
 
             arg = arg.ToLower();
 
-            if (arg.Contains("set alarm at") || arg.Contains("set an alarm for") || arg.Contains("set alarm for"))
-            {
+            if (arg.Contains("set alarm at") || arg.Contains("set an alarm for") || arg.Contains("set alarm for")) {
                 string t = arg.Replace("set alarm at", string.Empty).Replace(".", string.Empty)
                               .Replace("set an alarm for", string.Empty).Replace(".", string.Empty)
                               .Replace("set alarm for", string.Empty).Replace(".", string.Empty)
@@ -793,7 +754,8 @@ namespace jaNETFramework
                 string when = "%calendardate%";
 
                 if (Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) < DateTime.Now.Hour ||
-                    Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour && Convert.ToInt32(t.ToHour24().Substring(t.ToHour24().IndexOf(':') + 1)) < DateTime.Now.Minute)
+                    Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour && 
+                    Convert.ToInt32(t.ToHour24().Substring(t.ToHour24().IndexOf(':') + 1)) < DateTime.Now.Minute)
                     when = String.Format("{0:d/M/yyyy}", DateTime.Now.AddDays(1).Date);
 
                 Judoers.JudoParser("judo schedule add " + tmpSchedule + " " + when + " " + t.ToHour24() + " __SYS_ALARM");

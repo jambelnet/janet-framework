@@ -27,19 +27,15 @@ namespace jaNETFramework
 {
     class Settings
     {
-        internal IList<String> LoadSettings(string fileName)
-        {
+        internal IList<String> LoadSettings(string fileName) {
             string fullPath = Methods.Instance.GetApplicationPath() + fileName;
 
-            if (File.Exists(fullPath))
-            {
+            if (File.Exists(fullPath)) {
                 string input;
                 var args = new List<String>();
-                
-                using (var tr = new StreamReader(fullPath))
-                {
-                    while ((input = tr.ReadLine()) != null)
-                    {
+
+                using (var tr = new StreamReader(fullPath)) {
+                    while ((input = tr.ReadLine()) != null) {
                         if (input != null)
                             args.Add(RijndaelSimple.Decrypt(input));
                     }
@@ -49,10 +45,8 @@ namespace jaNETFramework
             return null;
         }
 
-        internal string SaveSettings(string fileName, string settings)
-        {
-            try
-            {
+        internal string SaveSettings(string fileName, string settings) {
+            try {
                 string[] args = settings.Split('\n');
 
                 string fullPath = Methods.Instance.GetApplicationPath() + fileName;
@@ -60,15 +54,13 @@ namespace jaNETFramework
                 if (File.Exists(fullPath))
                     File.Delete(fullPath);
 
-                using (var tw = new StreamWriter(fullPath))
-                {
+                using (var tw = new StreamWriter(fullPath)) {
                     for (int i = 0; i < args.Length; i++)
                         tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
                 }
                 return "Settings saved";
             }
-            catch
-            {
+            catch {
                 return "Fail to save settings";
             }
         }
@@ -124,12 +116,9 @@ namespace jaNETFramework
         internal string Authentication { get; private set; }
         internal string Weather { get; private set; }
 
-        internal ApplicationSettings()
-        {
-            try
-            {
-                if (!File.Exists(Methods.Instance.GetApplicationPath() + "AppConfig.xml"))
-                {
+        internal ApplicationSettings() {
+            try {
+                if (!File.Exists(Methods.Instance.GetApplicationPath() + "AppConfig.xml")) {
                     Logger.Instance.Append("obj [ ApplicationSettings Constructor ]: arg [ AppConfig.xml, not found. ]");
                     return;
                 }
@@ -166,8 +155,7 @@ namespace jaNETFramework
                         ApplicationStructure.WeatherPath)
                         .Item(0).InnerText;
             }
-            catch (ArgumentNullException e)
-            {
+            catch (ArgumentNullException e) {
                 Logger.Instance.Append(string.Format("obj [ ApplicationSettings <ArgumentNullException> ]: Exception: [ " + e.Message + " ]"));
                 Application.Dispose();
             }

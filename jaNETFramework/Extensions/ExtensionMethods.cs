@@ -30,27 +30,22 @@ namespace jaNETFramework
 {
     public static class ExtensionMethods
     {
-        public static string Parse(this string args)
-        {
+        public static string Parse(this string args) {
             return Parser.Instance.Parse(args, DataType.text, false);
         }
 
-        public static string ToJson(this object res)
-        {
+        public static string ToJson(this object res) {
             return new JavaScriptSerializer().Serialize(res);
         }
 
         //public static string ToDebugString<TKey, TValue>(this IList<KeyValuePair<TKey, TValue>> dictionary)
-        public static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary)
-        {
+        public static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
             return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToArray());
         }
 
-        internal static Schedule ToSchedule(this string rawSchedule)
-        {
+        internal static Schedule ToSchedule(this string rawSchedule) {
             string[] args = ParsingTools.SplitArguments(rawSchedule);
-            var s = new Schedule
-            {
+            var s = new Schedule {
                 Name = args[0],
                 Date = args[1].ToLower().FixScheduleDate(),
                 Time = args[2],
@@ -61,31 +56,25 @@ namespace jaNETFramework
             return s;
         }
 
-        internal static string ToHour24(this string hour)
-        {
+        internal static string ToHour24(this string hour) {
             DateTime dt = DateTime.ParseExact(hour, "h:mm tt",
                                               CultureInfo.InvariantCulture);
             return String.Format("{0:HH:mm}", dt);
         }
 
-        internal static string FixScheduleDate(this string date)
-        {
-            try
-            {
+        internal static string FixScheduleDate(this string date) {
+            try {
                 var dt = DateTime.ParseExact(date.Replace("-", "/").Replace(".", "/"), "dd/MM/yyyy",
                                         CultureInfo.InvariantCulture);
                 return dt.ToString("d/M/yyyy", CultureInfo.InvariantCulture);
             }
-            catch
-            {
+            catch {
                 return date;
             }
         }
 
-        internal static string GetDay(this string day)
-        {
-            switch (day)
-            {
+        internal static string GetDay(this string day) {
+            switch (day) {
                 case "Sun":
                     return "Sunday";
                 case "Mon":
@@ -100,39 +89,34 @@ namespace jaNETFramework
                     return "Friday";
                 case "Sat":
                     return "Saturday";
-            } return string.Empty;
+            }
+            return string.Empty;
         }
 
-        internal static string ToValues(this string context)
-        {
+        internal static string ToValues(this string context) {
             var method = Methods.Instance;
             IWeather weather = new OpenWeather();
 
-            if (context.Contains("%exit%") || context.Contains("%quit%"))
-            {
+            if (context.Contains("%exit%") || context.Contains("%quit%")) {
                 SerialComm.DeactivateSerialPort();
                 Parser.ParserState = false;
                 context = context.Replace("%exit%", string.Empty)
                                  .Replace("%quit%", string.Empty);
             }
-            if (context.Contains("%clear%") || context.Contains("%cls%"))
-            {
+            if (context.Contains("%clear%") || context.Contains("%cls%")) {
                 Console.Clear();
                 context = context.Replace("%clear%", string.Empty)
                                  .Replace("%cls%", string.Empty);
             }
-            if (context.Contains("%mute%"))
-            {
+            if (context.Contains("%mute%")) {
                 Parser.Mute = true;
                 context = context.Replace("%mute%", string.Empty);
             }
-            if (context.Contains("%unmute%"))
-            {
+            if (context.Contains("%unmute%")) {
                 Parser.Mute = false;
                 context = context.Replace("%unmute%", string.Empty);
             }
-            if (context.Contains("%inet%") || context.Contains("%inetcon%"))
-            {
+            if (context.Contains("%inet%") || context.Contains("%inetcon%")) {
                 String con = method.HasInternetConnection().ToString();
                 context = context.Replace("%inet%", con)
                                  .Replace("%inetcon%", con);
@@ -147,20 +131,17 @@ namespace jaNETFramework
                                  .Replace("%gheaders%", new Net.Mail().GmailCheck(false));
             if (context.Contains("%pop3count%"))
                 context = context.Replace("%pop3count%", new Net.Mail().Pop3Check().ToString());
-            if (context.Contains("%user%") || context.Contains("%whoami%"))
-            {
+            if (context.Contains("%user%") || context.Contains("%whoami%")) {
                 String whoami = method.WhoAmI();
                 context = context.Replace("%user%", whoami)
                                  .Replace("%whoami%", whoami);
             }
-            if (context.Contains("%checkin%") || context.Contains("%usercheckin%"))
-            {
+            if (context.Contains("%checkin%") || context.Contains("%usercheckin%")) {
                 User.Status = true;
                 context = context.Replace("%usercheckin%", string.Empty)
                                  .Replace("%checkin%", string.Empty);
             }
-            if (context.Contains("%checkout%") || context.Contains("%usercheckout%"))
-            {
+            if (context.Contains("%checkout%") || context.Contains("%usercheckout%")) {
                 User.Status = false;
                 context = context.Replace("%usercheckout%", string.Empty)
                                  .Replace("%checkout%", string.Empty);
@@ -187,8 +168,7 @@ namespace jaNETFramework
                 context = context.Replace("%calendaryear%", method.GetCalendarYear());
             if (context.Contains("%salute%"))
                 context = context.Replace("%salute%", method.GetSalute());
-            if (context.Contains("%daypart%") || context.Contains("%partofday%"))
-            {
+            if (context.Contains("%daypart%") || context.Contains("%partofday%")) {
                 String daypart = method.GetPartOfDay(false);
                 context = context.Replace("%daypart%", daypart)
                                  .Replace("%partofday%", daypart);
@@ -246,8 +226,7 @@ namespace jaNETFramework
                                  .Replace("%copyright%", method.GetCopyright());
 
             // If Event
-            if (context.Contains("%~>"))
-            {
+            if (context.Contains("%~>")) {
                 method.GetEvent(context.Replace("%~>", string.Empty)
                                        .Replace("%", string.Empty)).Item(0).InnerText.Parse();
                 context = context.Replace(context, string.Empty);
