@@ -32,13 +32,12 @@ namespace jaNETFramework
     public class Parser
     {
         internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
-    
+
         public static volatile bool ParserState = true;
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
 
-        internal string Parse(string args, DataType dataType, bool disableSpeech)
-        {
+        internal string Parse(string args, DataType dataType, bool disableSpeech) {
             if (args.Contains("{mute}") || args.Contains("{widget}")) {
                 args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
                 disableSpeech = true;
@@ -67,8 +66,7 @@ namespace jaNETFramework
                     }
                 }
 
-            switch (dataType)
-            {
+            switch (dataType) {
                 case DataType.html:
                     return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
                 case DataType.json:
@@ -77,8 +75,7 @@ namespace jaNETFramework
             return results.ToDebugString();
         }
 
-        string Execute(string arg, bool disableSpeech)
-        {
+        string Execute(string arg, bool disableSpeech) {
             string output = string.Empty;
             var method = Methods.Instance;
 
@@ -86,17 +83,15 @@ namespace jaNETFramework
                 if (arg.StartsWith("%") ||
                     arg.StartsWith("./") ||
                     arg.StartsWith("judo"))
-                    
+
                     return ParsingTools.ParseTokens(arg);
 
                 else {
                     XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
 
-                    if (xList.Count <= 0 && !arg.Contains("*"))
-                    {
+                    if (xList.Count <= 0 && !arg.Contains("*")) {
                         output = Judoers.IntelParser(arg);
-                        if (output == string.Empty)
-                        {
+                        if (output == string.Empty) {
                             Logger.Instance.Append("obj [ Parser.Execute ]: arg [ " + arg + ", not found. ]");
                             output = arg + ", not found.";
                         }
@@ -106,8 +101,7 @@ namespace jaNETFramework
                             output += string.Format("{0}\r\n", ParsingTools.ParseTokens(nodeItem.InnerText));
                 }
 
-                if (method.HasInternetConnection() && !disableSpeech)
-                {
+                if (method.HasInternetConnection() && !disableSpeech) {
                     if (!User.Status && output.Trim() != string.Empty && File.Exists(method.GetApplicationPath() + ".smtpsettings")) {
                         XmlNodeList xList = method.GetMailHeaders();
 
@@ -134,8 +128,7 @@ namespace jaNETFramework
 
                 return string.Format("{0}\r\n", output.Trim());
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 if (!e.Message.Contains("Parameter name: length")) {
                     Logger.Instance.Append("obj [ Parser.Execute <Exception> ]: Argument: [ " + arg + " ] Exception: [ " + e.Message + " ]");
                     return e.Message;
@@ -144,18 +137,16 @@ namespace jaNETFramework
             }
         }
 
-        public static void SayText(string sText)
-        {
+        public static void SayText(string sText) {
             SayText((object)sText);
         }
 
-        static void SayText(object sText)
-        {
+        static void SayText(object sText) {
             lock (_speech_locker) {
                 if (OperatingSystem.Version == OperatingSystem.Type.Unix) {
                     if (File.Exists("/usr/bin/festival"))
                         Process.Instance.Start(string.Format("festival -b '(SayText \"{0}\")'", sText.ToString().Replace("_", string.Empty)));
-                        //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
+                    //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
                     else
                         Process.Instance.Start("say " + sText.ToString().Replace("_", string.Empty));
                 }
@@ -172,8 +163,7 @@ namespace jaNETFramework
     {
         static readonly object _serial_locker = new object();
 
-        internal static string JudoParser(string arg)
-        {
+        internal static string JudoParser(string arg) {
             var appset = new ApplicationSettings();
             var method = Methods.Instance;
 
@@ -572,7 +562,7 @@ namespace jaNETFramework
                         case "add":
                         case "setup":
                         case "set":
-                            output = new Settings().SaveSettings(".smtpsettings", 
+                            output = new Settings().SaveSettings(".smtpsettings",
                                                                   string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
                                                                   args[3], args[4], args[5], args[6], args[7]));
                             break;
@@ -694,8 +684,8 @@ namespace jaNETFramework
                                     output = Helpers.Xml.SelectSingleNode(Server.Web.SimpleUriDecode(args[3]), args[4]);
                                     break;
                                 case 6:
-                                    output = args[4].Contains("=") ? 
-                                        Helpers.Xml.SelectNodes(Server.Web.SimpleUriDecode(args[3]), args[4], args[5])[0] : 
+                                    output = args[4].Contains("=") ?
+                                        Helpers.Xml.SelectNodes(Server.Web.SimpleUriDecode(args[3]), args[4], args[5])[0] :
                                         Helpers.Xml.SelectSingleNode(Server.Web.SimpleUriDecode(args[3]), args[4], Convert.ToInt32(args[5]));
                                     break;
                                 case 7:
@@ -729,16 +719,15 @@ namespace jaNETFramework
                     break;
                 // PINGER
                 case "ping":
-                    output = args.Count() == 3 ? 
-                        Net.SimplePing.Ping(args[2]).ToString() : 
+                    output = args.Count() == 3 ?
+                        Net.SimplePing.Ping(args[2]).ToString() :
                         Net.SimplePing.Ping(args[2], Convert.ToInt32(args[3])).ToString();
                     break;
             }
             return output;
         }
 
-        internal static string IntelParser(string arg)
-        {
+        internal static string IntelParser(string arg) {
             string output = string.Empty;
             var method = Methods.Instance;
 
@@ -754,7 +743,7 @@ namespace jaNETFramework
                 string when = "%calendardate%";
 
                 if (Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) < DateTime.Now.Hour ||
-                    Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour && 
+                    Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour &&
                     Convert.ToInt32(t.ToHour24().Substring(t.ToHour24().IndexOf(':') + 1)) < DateTime.Now.Minute)
                     when = String.Format("{0:d/M/yyyy}", DateTime.Now.AddDays(1).Date);
 

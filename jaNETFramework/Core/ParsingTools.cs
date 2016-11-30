@@ -27,8 +27,7 @@ namespace jaNETFramework
 {
     class ParsingTools
     {
-        internal static string[] SplitArguments(string arg)
-        {
+        internal static string[] SplitArguments(string arg) {
             var argList = new List<String>();
             MatchCollection mItems = Regex.Matches(arg, @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+");
 
@@ -47,23 +46,20 @@ namespace jaNETFramework
 
             return argList.ToArray();
         }
-        
-        internal static string ParseTokens(string sValue)
-        {
+
+        internal static string ParseTokens(string sValue) {
             if (sValue.Contains("%"))
                 //if (sValue.StartsWith("%"))
                 //    return string.Format("{0}\r\n", sValue.ToLower().ToValues());
                 //else
-                    sValue = sValue.ToValues();
+                sValue = sValue.ToValues();
 
             while (sValue.Contains("*")) {
                 MatchCollection mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
 
                 if (mItems.Count > 0)
-                    foreach (Match matchString in mItems)
-                    {
-                        if (matchString.Success)
-                        {
+                    foreach (Match matchString in mItems) {
+                        if (matchString.Success) {
                             string retval = ParseTokens(Methods.Instance.GetInstructionSet(matchString.ToString().Trim()).Item(0).InnerText);
                             sValue = sValue.Replace(matchString.ToString().Trim(), retval);
                         }
@@ -86,8 +82,7 @@ namespace jaNETFramework
                         fileName = sValue.Replace("./", string.Empty);
                     else if (mItems.Count == 1)
                         fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                    if (mItems.Count == 2)
-                    {
+                    if (mItems.Count == 2) {
                         fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
                         arguments = mItems[1].Value.Replace("`", string.Empty).Replace("'", string.Empty);
                     }
