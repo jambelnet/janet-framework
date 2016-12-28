@@ -4,9 +4,9 @@
  * Created: 24 Apr. 2010
  *
  * License:
- *  This file is part of Project jaNET.
+ *  This file is part of jaNET Framework.
 
-    Project jaNET is free software: you can redistribute it and/or modify
+    jaNET Framework is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -31,7 +31,7 @@ namespace jaNETFramework
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
         public string GetCopyright() {
-            return "jaNET Framework [Version 0.2.9.47]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
+            return "jaNET Framework [Version 0.2.9.48]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
         }
 
         public string GetWinPath() {
