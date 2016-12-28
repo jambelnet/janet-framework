@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -105,7 +105,7 @@ namespace jaNETFramework
                     if (ScheduleList.Count > 0)
                         ScheduleList.Clear();
                     var scheduleSettings = new Settings();
-                    IList<String> Schedules = scheduleSettings.LoadSettings(schedulerFilename);
+                    var Schedules = scheduleSettings.LoadSettings(schedulerFilename);
                     foreach (string schedule in Schedules)
                         if (schedule != string.Empty) {
                             var s = schedule.ToSchedule();
@@ -152,8 +152,8 @@ namespace jaNETFramework
         static void ScheduleListener(Schedule oSchedule, int interval) {
             bool _done = false;
 
-            IList<DayOfWeek> WorkDays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
-            IList<DayOfWeek> Weekend = new[] { DayOfWeek.Saturday, DayOfWeek.Sunday };
+            var WorkDays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+            var Weekend = new[] { DayOfWeek.Saturday, DayOfWeek.Sunday };
 
             var method = Methods.Instance;
 

@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -34,12 +34,12 @@ namespace jaNETFramework
             return Parser.Instance.Parse(args, DataType.text, false);
         }
 
-        public static string ToJson(this object res) {
+        internal static string ToJson(this object res) {
             return new JavaScriptSerializer().Serialize(res);
         }
 
         //public static string ToDebugString<TKey, TValue>(this IList<KeyValuePair<TKey, TValue>> dictionary)
-        public static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
+        internal static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
             return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToArray());
         }
 

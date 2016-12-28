@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -25,16 +25,24 @@ using System.Web.Script.Serialization;
 
 namespace jaNETFramework
 {
-    public class OpenWeather : IWeather
+    class OpenWeather : IWeather
     {
         public string TodayConditions { get; set; }
         public string TodayLow { get; set; }
         public string TodayHigh { get; set; }
-        public string TodayDay { get; set; }
+        public string TodayDay {
+            get {
+                return DateTime.Now.DayOfWeek.ToString();
+            }
+        }
         public string TomorrowConditions { get; set; }
         public string TomorrowLow { get; set; }
         public string TomorrowHigh { get; set; }
-        public string TomorrowDay { get; set; }
+        public string TomorrowDay {
+            get {
+                return DateTime.Now.AddDays(1).DayOfWeek.ToString();
+            }
+        }
         public string CurrentTemp { get; set; }
         public string CurrentPressure { get; set; }
         public string CurrentHumidity { get; set; }
@@ -101,7 +109,7 @@ namespace jaNETFramework
             public int cod { get; set; }
         }
 
-        public OpenWeather() {
+        internal OpenWeather() {
             Action getWeather = () => {
                 try {
                     string endpoint = Helpers.Xml.AppConfigQuery("jaNET/System/Others/Weather").Item(0).InnerText;

@@ -67,7 +67,6 @@
     <Compile Include="Network\HTTP.cs" />
     <Compile Include="Application\Settings.cs" />
     <Compile Include="Application\User.cs" />
-    <Compile Include="Providers\YahooWeather.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

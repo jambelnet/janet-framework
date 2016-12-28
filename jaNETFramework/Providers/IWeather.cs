@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -26,11 +26,11 @@ namespace jaNETFramework
         string TodayConditions { get; set; }
         string TodayLow { get; set; }
         string TodayHigh { get; set; }
-        string TodayDay { get; set; }
+        string TodayDay { get; }
         string TomorrowConditions { get; set; }
         string TomorrowLow { get; set; }
         string TomorrowHigh { get; set; }
-        string TomorrowDay { get; set; }
+        string TomorrowDay { get; }
         string CurrentTemp { get; set; }
         string CurrentPressure { get; set; }
         string CurrentHumidity { get; set; }

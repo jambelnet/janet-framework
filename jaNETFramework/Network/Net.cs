@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -507,7 +507,7 @@ namespace jaNETFramework
                 internal bool SSL { get; private set; }
 
                 internal SmtpSettings() {
-                    IList<String> smtpSettings = new Settings().LoadSettings(".smtpsettings");
+                    var smtpSettings = new Settings().LoadSettings(".smtpsettings");
 
                     if (smtpSettings != null) {
                         Host = smtpSettings[0];
@@ -528,7 +528,7 @@ namespace jaNETFramework
                 internal bool SSL { get; private set; }
 
                 internal Pop3Settings() {
-                    IList<String> pop3Settings = new Settings().LoadSettings(".pop3settings");
+                    var pop3Settings = new Settings().LoadSettings(".pop3settings");
 
                     if (pop3Settings != null) {
                         Host = pop3Settings[0];
@@ -546,7 +546,7 @@ namespace jaNETFramework
                 internal string Password { get; private set; }
 
                 internal GmailSettings() {
-                    IList<String> gmailSettings = new Settings().LoadSettings(".gmailsettings");
+                    var gmailSettings = new Settings().LoadSettings(".gmailsettings");
 
                     if (gmailSettings != null) {
                         Username = gmailSettings[0];
@@ -583,7 +583,7 @@ namespace jaNETFramework
             internal string SmsAPI { get; private set; }
 
             internal SmsSettings() {
-                IList<String> smsSettings = new Settings().LoadSettings(".smssettings");
+                var smsSettings = new Settings().LoadSettings(".smssettings");
 
                 if (smsSettings != null) {
                     SmsAPI = smsSettings[0];

@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -33,9 +33,19 @@ namespace jaNETFramework
     {
         internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
 
-        public static volatile bool ParserState = true;
+        static volatile bool _parserState = true;
+
+        public static bool ParserState {
+            get { return _parserState; }
+            internal set { _parserState = value; }
+        }
+
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
+
+        public static string Parse(string args) {
+            return Instance.Parse(args, DataType.text, false);
+        }
 
         internal string Parse(string args, DataType dataType, bool disableSpeech) {
             if (args.Contains("{mute}") || args.Contains("{widget}")) {

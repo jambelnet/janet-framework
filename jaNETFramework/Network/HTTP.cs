@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -52,7 +52,7 @@ namespace jaNETFramework
                 string Password { get; set; }
 
                 internal Login() {
-                    IList<String> webLogin = new Settings().LoadSettings(".htaccess");
+                    var webLogin = new Settings().LoadSettings(".htaccess");
 
                     if (webLogin != null) {
                         Username = webLogin[0];

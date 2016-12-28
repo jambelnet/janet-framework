@@ -1,5 +1,5 @@
 ﻿/* *****************************************************************************************************************************
- * (c) J@mBeL.net 2010-2016
+ * (c) J@mBeL.net 2010-2017
  * Author: John Ambeliotis
  * Created: 24 Apr. 2010
  *
@@ -27,7 +27,7 @@ namespace jaNETFramework
 {
     class Settings
     {
-        internal IList<String> LoadSettings(string fileName) {
+        internal List<String> LoadSettings(string fileName) {
             string fullPath = Methods.Instance.GetApplicationPath() + fileName;
 
             if (File.Exists(fullPath)) {
