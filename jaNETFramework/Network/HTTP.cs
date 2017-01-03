@@ -157,7 +157,6 @@ namespace jaNETFramework
                                                                .Replace("&mode=text", string.Empty)
                                                                .Replace("&mode=json", string.Empty)
                                                                .Replace("&mode=html", string.Empty)
-                                                               .Replace("&", ";")
                                                                , t, false));
                         }
                         else

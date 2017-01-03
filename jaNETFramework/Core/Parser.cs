@@ -59,7 +59,7 @@ namespace jaNETFramework
                 else
                     return Judoers.JudoParser(args);
 
-            string[] InstructionSets = args.Split(';');
+            string[] InstructionSets = args.Replace('&', ';').Split(';');
             var results = new Dictionary<string, KeyValuePair<string, string>>();
 
             foreach (string Instruction in InstructionSets)
