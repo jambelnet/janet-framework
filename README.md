@@ -8,4 +8,4 @@ A complete solution for Home Automation and IoT based on jaNET Framework is http
 Tech blog: http://jubitoblog.blogspot.com
 
 # Jubito Screenshot
-(https://1.bp.blogspot.com/-zckBAkF6q9k/V_nE97h0_BI/AAAAAAAAJDU/6fXFVP5eSOEj9cTG5XMDgVVLL10ySnLWQCLcB/s1600/dashboard-main.png)
+[logo]:https://1.bp.blogspot.com/-zckBAkF6q9k/V_nE97h0_BI/AAAAAAAAJDU/6fXFVP5eSOEj9cTG5XMDgVVLL10ySnLWQCLcB/s1600/dashboard-main.png
