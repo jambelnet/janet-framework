@@ -507,8 +507,7 @@ namespace jaNETFramework
                                 "     9.1 Get\r\n" +
                                 "         + judo http get [Request-URI]";
             const
-            string
-            _weather = "10. Weather\r\n" +
+            string _weather = "10. Weather\r\n" +
                                 "     10.1 Setup\r\n" +
                                 "         + judo weather set <lock>[Weather Endpoint]</lock>\r\n" +
                                 "         + judo weather setup <lock>[Weather Endpoint]</lock>\r\n" +
