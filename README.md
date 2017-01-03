@@ -6,3 +6,6 @@ https://github.com/jambelnet/janet-framework/wiki
 A complete solution for Home Automation and IoT based on jaNET Framework is http://www.jubito.org. Use Jubito's /www/ directory and study index.html and jubito.core.js to understand how the web application layer communicates and implement the framework.
 
 Tech blog: http://jubitoblog.blogspot.com
+
+# Jubito Screenshot
+https://1.bp.blogspot.com/-zckBAkF6q9k/V_nE97h0_BI/AAAAAAAAJDU/6fXFVP5eSOEj9cTG5XMDgVVLL10ySnLWQCLcB/s1600/dashboard-main.png
