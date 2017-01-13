@@ -31,7 +31,7 @@ namespace jaNETFramework
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
         public string GetCopyright() {
-            return "jaNET Framework [Version 0.2.9.67]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
+            return "jaNET Framework [Version 0.2.9.68]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
         }
 
         public string GetWinPath() {
@@ -466,7 +466,10 @@ namespace jaNETFramework
                                 "         + judo serial setup [Port] [Baud]\r\n" +
                                 "     7.5 Settings\r\n" +
                                 "         + judo serial settings\r\n" +
-                                "     7.6 Listen/Monitor\r\n" +
+                                "     7.6 Status\r\n" +
+                                "         + judo serial status\r\n" +
+                                "         + judo serial state\r\n" +
+                                "     7.7 Listen/Monitor\r\n" +
                                 "         + judo serial listen [Timeout in ms (optional)]\r\n" +
                                 "         + judo serial monitor [Timeout in ms (optional)]";
             const
