@@ -70,8 +70,8 @@ namespace jaNETFramework
                 Server.Web.Start();
             if (!String.IsNullOrEmpty(appset.LocalHost))
                 Server.TCP.Start();
-            if (!String.IsNullOrEmpty(appset.ComPort))
-                SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
+            //if (!String.IsNullOrEmpty(appset.ComPort))
+            //    SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
         }
 
         public static void Dispose() {

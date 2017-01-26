@@ -98,13 +98,19 @@ namespace jaNETFramework
                     return;
                 }
 
-                httplistener.Prefixes.Clear();
-                httplistener.Prefixes.Add(Prefix);
-                httplistener.AuthenticationSchemes = AuthenticationType.ToLower() == "basic" ?
-                    httplistener.AuthenticationSchemes = AuthenticationSchemes.Basic :
-                    httplistener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-                httplistener.IgnoreWriteExceptions = true;
-                httplistener.Start();
+                try {
+                    httplistener.Prefixes.Clear();
+                    httplistener.Prefixes.Add(Prefix);
+                    httplistener.AuthenticationSchemes = AuthenticationType.ToLower() == "basic" ?
+                        httplistener.AuthenticationSchemes = AuthenticationSchemes.Basic :
+                        httplistener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+                    httplistener.IgnoreWriteExceptions = true;
+                    httplistener.Start();
+                }
+                catch (Exception e) {
+                    Logger.Instance.Append("obj [ Server.Web.Start <Exception> ]: Exception [ " + e.Message + " ]");
+                    return;
+                }
 
                 while (httplistener.IsListening) {
                     try {
