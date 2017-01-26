@@ -11,13 +11,13 @@
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Project jaNET is distributed in the hope that it will be useful,
+    jaNET Framework is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Project jaNET. If not, see <http://www.gnu.org/licenses/>.
+    along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>.
    
     Resources: http://msdn.microsoft.com/en-us/library/system.net.sockets.tcplistener.aspx
                http://www.codehosting.net/blog/BlogEngine/post/Simple-C-Web-Server.aspx 
@@ -163,7 +163,6 @@ namespace jaNETFramework
                                                                .Replace("&mode=text", string.Empty)
                                                                .Replace("&mode=json", string.Empty)
                                                                .Replace("&mode=html", string.Empty)
-                                                               .Replace("&", ";")
                                                                , t, false));
                         }
                         else

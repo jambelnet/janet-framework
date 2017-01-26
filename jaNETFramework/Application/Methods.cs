@@ -11,13 +11,13 @@
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Project jaNET is distributed in the hope that it will be useful,
+    jaNET Framework is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Project jaNET. If not, see <http://www.gnu.org/licenses/>. */
+    along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using System;
 using System.IO;
@@ -31,7 +31,7 @@ namespace jaNETFramework
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
         public string GetCopyright() {
-            return "jaNET Framework [Version 0.2.9.48]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
+            return "jaNET Framework [Version 0.2.9.68]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
         }
 
         public string GetWinPath() {
@@ -466,7 +466,10 @@ namespace jaNETFramework
                                 "         + judo serial setup [Port] [Baud]\r\n" +
                                 "     7.5 Settings\r\n" +
                                 "         + judo serial settings\r\n" +
-                                "     7.6 Listen/Monitor\r\n" +
+                                "     7.6 Status\r\n" +
+                                "         + judo serial status\r\n" +
+                                "         + judo serial state\r\n" +
+                                "     7.7 Listen/Monitor\r\n" +
                                 "         + judo serial listen [Timeout in ms (optional)]\r\n" +
                                 "         + judo serial monitor [Timeout in ms (optional)]";
             const
@@ -507,24 +510,31 @@ namespace jaNETFramework
                                 "     9.1 Get\r\n" +
                                 "         + judo http get [Request-URI]";
             const
-            string _ping = "10. Ping\r\n" +
-                                "     10.1 Default Timeout [ 1000ms ]\r\n" +
+            string _weather = "10. Weather\r\n" +
+                                "     10.1 Setup\r\n" +
+                                "         + judo weather set <lock>[Weather Endpoint]</lock>\r\n" +
+                                "         + judo weather setup <lock>[Weather Endpoint]</lock>\r\n" +
+                                "     10.2 Settings\r\n" +
+                                "         + judo weather settings";
+            const
+            string _ping = "11. Ping\r\n" +
+                                "     11.1 Default Timeout [ 1000ms ]\r\n" +
                                 "         + judo ping [Host]\r\n" +
-                                "     10.2 Specific Timeout\r\n" +
+                                "     11.2 Specific Timeout\r\n" +
                                 "         + judo ping [Host] [Timeout]";
             const
-            string _help = "11. Help\r\n" +
-                                "     11.1 Preview All\r\n" +
+            string _help = "12. Help\r\n" +
+                                "     12.1 Preview All\r\n" +
                                 "         + judo help\r\n" +
                                 "         + judo ?\r\n" +
-                                "     11.2 Preview Specific Category\r\n" +
+                                "     12.2 Preview Specific Category\r\n" +
                                 "         + judo help [help keyword]\r\n" +
                                 "         + judo ? [help keyword]\r\n\r\n" +
                                 "(*) Brackets are mandatory when place a sentence as one argument.\r\n" +
                                 "(**) <lock>parser protected document</lock> Lock tags used to bypass parser.\r\n" +
                                 "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, ping, help";
             const
-            string _all = _inset + "\r\n" +
+            string _all =   _inset + "\r\n" +
                             _mail + "\r\n" +
                             _sms + "\r\n" +
                             _schedule + "\r\n" +
@@ -533,6 +543,7 @@ namespace jaNETFramework
                             _serial + "\r\n" +
                             _cloud + "\r\n" +
                             _http + "\r\n" +
+                            _weather + "\r\n" +
                             _ping + "\r\n" +
                             _help + "\r\n";
 
@@ -556,6 +567,8 @@ namespace jaNETFramework
                     return _cloud;
                 case "http":
                     return _http;
+                case "weather":
+                    return _weather;
                 case "ping":
                     return _ping;
                 case "help":
