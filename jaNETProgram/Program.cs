@@ -45,6 +45,7 @@
 using jaNETFramework;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace jaNETProgram
 {
@@ -54,8 +55,9 @@ namespace jaNETProgram
             Application.Initialize();
 
             if (args.Length > 0) {
-                foreach (string arg in args)
-                    arg.Parse();
+                args.ToList().ForEach(a => a.Parse());
+                //foreach (string arg in args)
+                //    arg.Parse();
             }
 
             Console.Write("%copyright%".Parse() + "\r\n");

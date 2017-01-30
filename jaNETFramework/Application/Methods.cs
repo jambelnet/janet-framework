@@ -30,8 +30,31 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
+        public const string AssemblyVersion = "0.2.9.74";
+
         public string GetCopyright() {
-            return "jaNET Framework [Version 0.2.9.73]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net";
+            String cp = "jaNET Framework [Version " + AssemblyVersion + "]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; ;
+
+            if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
+                cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";
+
+            return cp;
+        }
+
+        public bool UpdateAvailable(int assemblyVersion) {
+            int currentVersion;
+
+            try {
+                int.TryParse(Helpers.getRawData("http://www.jubito.org/current-version.txt"), out currentVersion);
+            }
+            catch (WebException) {
+                // 404 Not Found
+                return false;
+            }
+            if (currentVersion > assemblyVersion)
+                return true;
+
+            return false;
         }
 
         public string GetWinPath() {

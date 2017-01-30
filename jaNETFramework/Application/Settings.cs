@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace jaNETFramework
 {
@@ -55,8 +56,9 @@ namespace jaNETFramework
                     File.Delete(fullPath);
 
                 using (var tw = new StreamWriter(fullPath)) {
-                    for (int i = 0; i < args.Length; i++)
-                        tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
+                    args.ToList().ForEach(s => tw.WriteLine(RijndaelSimple.Encrypt(s.Trim())));
+                    //for (int i = 0; i < args.Length; i++)
+                        //tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
                 }
                 return "Settings saved";
             }

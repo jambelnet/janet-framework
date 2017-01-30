@@ -24,7 +24,6 @@
                http://www.albahari.com/nutshell/cs5ch16.aspx */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
