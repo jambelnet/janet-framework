@@ -65,7 +65,7 @@ namespace jaNETFramework
                 return string.Empty;
             }
             catch (Exception e) {
-                Logger.Instance.Append("obj [ Process.Start <Exception> ]: args [ " + sFilePath + " " + sArguments + " ]: " + e.Message);
+                Logger.Instance.Append(String.Format("obj [ Process.Start <Exception> ]: args [ {0} [1} ]: {2}", sFilePath, sArguments, e.Message));
                 return string.Empty;
             }
         }

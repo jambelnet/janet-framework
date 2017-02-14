@@ -63,7 +63,7 @@ namespace jaNETFramework
                 return "Settings saved";
             }
             catch {
-                return "Fail to save settings";
+                return "Unable to save settings";
             }
         }
     }
@@ -158,7 +158,7 @@ namespace jaNETFramework
                         .Item(0).InnerText;
             }
             catch (ArgumentNullException e) {
-                Logger.Instance.Append(string.Format("obj [ ApplicationSettings <ArgumentNullException> ]: Exception: [ " + e.Message + " ]"));
+                Logger.Instance.Append(string.Format("obj [ ApplicationSettings <ArgumentNullException> ]: Exception: [ {0} ]", e.Message));
                 Application.Dispose();
             }
         }

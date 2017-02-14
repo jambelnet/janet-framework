@@ -30,10 +30,10 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.2.9.74";
+        public const string AssemblyVersion = "0.2.9.75";
 
         public string GetCopyright() {
-            String cp = "jaNET Framework [Version " + AssemblyVersion + "]\r\nCopyright (c) 2010-" + DateTime.Now.Year + " J@mBeL.net"; ;
+            String cp = String.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
 
             if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
                 cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";
@@ -245,10 +245,10 @@ namespace jaNETFramework
 
                 xmldoc.Save(path);
 
-                return "Element added.";
+                return "Element added";
             }
             catch (Exception e) {
-                return string.Format("{0}\r\nPlease try again.", e.Message);
+                return string.Format("{0}\r\nPlease try again", e.Message);
             }
         }
 
@@ -272,10 +272,10 @@ namespace jaNETFramework
 
                 xmldoc.Save(path);
 
-                return "Element removed.";
+                return "Element removed";
             }
             catch (Exception e) {
-                return string.Format("{0}\r\nPlease try again.", e.Message);
+                return string.Format("{0}\r\nPlease try again", e.Message);
             }
         }
 

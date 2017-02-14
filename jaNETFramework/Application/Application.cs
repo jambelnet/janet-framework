@@ -31,7 +31,8 @@ namespace jaNETFramework
         internal static class Uptime
         {
             internal static String getAll {
-                get { return "Days[" + getDays + "], Hours[" + getHours + "], Minutes[" + getMinutes + "], Seconds[" + getSeconds + "]"; }
+                get { return String.Format("Days[{0}], Hours[{1}], Minutes[{2}], Seconds[{3}]", 
+                                                getDays, getHours, getMinutes, getSeconds); }
             }
 
             internal static int getDays {

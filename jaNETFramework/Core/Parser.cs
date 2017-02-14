@@ -102,7 +102,7 @@ namespace jaNETFramework
                     if (xList.Count <= 0 && !arg.Contains("*")) {
                         output = Judoers.IntelParser(arg);
                         if (output == string.Empty) {
-                            Logger.Instance.Append("obj [ Parser.Execute ]: arg [ " + arg + ", not found. ]");
+                            Logger.Instance.Append(String.Format("obj [ Parser.Execute ]: arg [ {0}, not found. ]", arg));
                             output = arg + ", not found.";
                         }
                     }
@@ -140,7 +140,7 @@ namespace jaNETFramework
             }
             catch (Exception e) {
                 if (!e.Message.Contains("Parameter name: length")) {
-                    Logger.Instance.Append("obj [ Parser.Execute <Exception> ]: Argument: [ " + arg + " ] Exception: [ " + e.Message + " ]");
+                    Logger.Instance.Append(String.Format("obj [ Parser.Execute <Exception> ]: Argument: [ {0} ] Exception: [ {1} ]", arg, e.Message));
                     return e.Message;
                 }
                 return string.Empty;
@@ -156,7 +156,7 @@ namespace jaNETFramework
                 if (OperatingSystem.Version == OperatingSystem.Type.Unix) {
                     if (File.Exists("/usr/bin/festival"))
                         Process.Instance.Start(string.Format("festival -b '(SayText \"{0}\")'", sText.ToString().Replace("_", string.Empty)));
-                    //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
+                        //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
                     else
                         Process.Instance.Start("say " + sText.ToString().Replace("_", string.Empty));
                 }
@@ -737,6 +737,7 @@ namespace jaNETFramework
             return output;
         }
 
+        // Experimental method
         internal static string IntelParser(string arg) {
             string output = string.Empty;
             var method = Methods.Instance;

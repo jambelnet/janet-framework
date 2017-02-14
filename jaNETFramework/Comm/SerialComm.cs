@@ -57,14 +57,7 @@ namespace jaNETFramework
                 t.IsBackground = true;
                 t.Start();
             }
-            catch (Exception e) {
-                //Logger.Instance.Append(string.Format("Serial Exception <ActivateSerialPort>: {0}", e.Message));
-                //try {
-                //    throw new InvalidOperationException("Serial port state: " + port.IsOpen);
-                //}
-                //catch {
-                // Suppress
-                //}
+            catch {
             }
         }
 
@@ -73,9 +66,7 @@ namespace jaNETFramework
                 if (port.IsOpen)
                     port.Close();
             }
-            catch (Exception e) {
-                //throw new InvalidOperationException("Serial port state: " + port.IsOpen);
-                //Logger.Instance.Append(string.Format("Serial Exception <DeactivateSerialPort>: {0}", e.Message));
+            catch {
             }
         }
 

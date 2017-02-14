@@ -144,9 +144,9 @@ namespace jaNETFramework
                 lock (_schedule_locker)
                     Task.Factory.StartNew(() => ScheduleListener(ss, interval));
 
-                return "Schedule " + ss.Name + " added";
+                return String.Format("Schedule {0} added", ss.Name);
             }
-            catch { return "Failed to add " + ss.Name + " schedule"; }
+            catch { return String.Format("Failed to add {0} schedule", ss.Name); }
         }
 
         static void ScheduleListener(Schedule oSchedule, int interval) {
@@ -232,9 +232,9 @@ namespace jaNETFramework
                 lock (_schedule_locker)
                     Monitor.PulseAll(_schedule_locker);
 
-                return "Scheduler updated [" + scheduleName + ":" + stat + "]";
+                return String.Format("Scheduler updated [{0}:{1}]", scheduleName, stat);
             }
-            catch { return "Failed to " + stat + " schedule " + scheduleName; }
+            catch { return String.Format("Failed to {0} schedule {1}", stat, scheduleName); }
         }
     }
 }

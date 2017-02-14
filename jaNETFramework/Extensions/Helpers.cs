@@ -102,11 +102,8 @@ namespace jaNETFramework
 
                     return xmlDoc.SelectNodes(xPathNode);
                 }
-                catch //(Exception e)
-                {
+                catch {
                     return null;
-                    //Logger.Instance.Append("obj [ Helpers.AppConfigQuery <Exception> ]: Exception: [ " + e.Message + " ] Message: [ Your AppConfig.xml is not well formed according to the XML specification ]");
-                    //throw new ArgumentNullException();
                 }
             }
         }

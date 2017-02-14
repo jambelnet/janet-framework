@@ -135,13 +135,10 @@ namespace jaNETFramework
                 catch (SocketException e) {
                     ServerState = false;
                     server.Stop();
-                    Logger.Instance.Append("obj [ Server.TCP.ListenforClients <SocketException> ]: " + e.Message);
+                    Logger.Instance.Append(String.Format("obj [ Server.TCP.ListenforClients <SocketException> ]: {0}", e.Message));
                     //Debug.Print("SocketException: {0}", e);
                 }
-                catch //(Exception e)
-                {
-                    //Suppress, no need to log
-                    //Logger.Instance.Append("obj [ Server.TCP.ListenforClients <Exception> ]: " + e.Message);
+                catch {
                 }
                 /*finally
                 {
