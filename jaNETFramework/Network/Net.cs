@@ -121,8 +121,7 @@ namespace jaNETFramework
 
                             PingReply reply = pingSender.Send(host, timeout, buffer);
 
-                            if (reply.Status == IPStatus.Success)
-                                return true;
+                            return (reply.Status == IPStatus.Success);
                         }
                     }
                     return false;

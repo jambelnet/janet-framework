@@ -49,9 +49,6 @@ namespace jaNETFramework
 
         internal static string ParseTokens(string sValue) {
             if (sValue.Contains("%"))
-                //if (sValue.StartsWith("%"))
-                //    return string.Format("{0}\r\n", sValue.ToLower().ToValues());
-                //else
                 sValue = sValue.ToValues();
 
             while (sValue.Contains("*")) {

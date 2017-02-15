@@ -30,7 +30,7 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.2.9.76";
+        public const string AssemblyVersion = "0.2.9.77";
 
         public string GetCopyright() {
             String cp = String.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
@@ -43,7 +43,6 @@ namespace jaNETFramework
 
         public bool UpdateAvailable(int assemblyVersion) {
             int currentVersion;
-
             try {
                 int.TryParse(Helpers.getRawData("http://www.jubito.org/current-version.txt"), out currentVersion);
             }
@@ -51,10 +50,7 @@ namespace jaNETFramework
                 // 404 Not Found
                 return false;
             }
-            if (currentVersion > assemblyVersion)
-                return true;
-
-            return false;
+            return (currentVersion > assemblyVersion);
         }
 
         public string GetWinPath() {
