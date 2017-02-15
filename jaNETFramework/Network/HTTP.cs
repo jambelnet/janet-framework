@@ -187,8 +187,8 @@ namespace jaNETFramework
 
             static bool isAuthenticated(HttpListenerContext ctx) {
                 if (httplistener.AuthenticationSchemes == AuthenticationSchemes.Basic) {
-                    var id = (HttpListenerBasicIdentity)ctx.User.Identity;
-                    return new Login().Authenticate(id.Name, id.Password);
+                    var identity = (HttpListenerBasicIdentity)ctx.User.Identity;
+                    return new Login().Authenticate(ctx.User.Identity.Name, identity.Password);
                 }
                 return true;
             }
