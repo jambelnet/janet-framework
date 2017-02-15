@@ -41,8 +41,7 @@ namespace jaNETFramework
         internal static class SimplePing
         {
             static Boolean resolveHostEntry(string entry) {
-                var rg = new Regex("[^a-zA-Z]");
-                return rg.IsMatch(entry);
+                return new Regex("[^a-zA-Z]").IsMatch(entry);
             }
 
             internal static bool Ping(string host = null, int timeout = 1000) {
@@ -283,7 +282,8 @@ namespace jaNETFramework
                         for (int i = 0; i < UnreadMailEntries.Count; ++i) {
                             output += string.Format("{0}\r\n", ("Message " + (i + 1)));
                             output += string.Format("{0}\r\n", ("Subject: " + (UnreadMailEntries[i]["title"]).InnerText));
-                            output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText + " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
+                            output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText +
+                                        " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
                             output += string.Format("{0}\r\n", ("Date: " + DateTime.Parse((UnreadMailEntries[i]["modified"]).InnerText)));
                         }
                         output += "Total: " + UnreadMailEntries.Count;

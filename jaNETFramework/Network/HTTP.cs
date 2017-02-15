@@ -60,9 +60,7 @@ namespace jaNETFramework
                 }
 
                 internal bool Authenticate(string u, string p) {
-                    if (Username == u && Password == p)
-                        return true;
-                    return false;
+                    return (Username == u && Password == p);
                 }
             }
 
@@ -189,8 +187,8 @@ namespace jaNETFramework
 
             static bool isAuthenticated(HttpListenerContext ctx) {
                 if (httplistener.AuthenticationSchemes == AuthenticationSchemes.Basic) {
-                    var identity = (HttpListenerBasicIdentity)ctx.User.Identity;
-                    return new Login().Authenticate(ctx.User.Identity.Name, identity.Password);
+                    var id = (HttpListenerBasicIdentity)ctx.User.Identity;
+                    return new Login().Authenticate(id.Name, id.Password);
                 }
                 return true;
             }
