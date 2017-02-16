@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Web.Script.Serialization;
 
 namespace jaNETFramework
@@ -66,7 +67,7 @@ namespace jaNETFramework
         public class Main
         {
             public double temp { get; set; }
-            public int pressure { get; set; }
+            public double pressure { get; set; }
             public int humidity { get; set; }
             public double temp_min { get; set; }
             public double temp_max { get; set; }
@@ -75,7 +76,7 @@ namespace jaNETFramework
         public class Wind
         {
             public double speed { get; set; }
-            public int deg { get; set; }
+            public double deg { get; set; }
             public double gust { get; set; }
         }
 
@@ -120,10 +121,12 @@ namespace jaNETFramework
                     CurrentCity = oRootObject.name;
                     CurrentTemp = Math.Round(oRootObject.main.temp, 1).ToString().Replace(",", ".");
                     CurrentHumidity = oRootObject.main.humidity.ToString();
-                    CurrentPressure = oRootObject.main.pressure.ToString();
+                    CurrentPressure = oRootObject.main.pressure.ToString().Replace(",", ".");
                     WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
                 }
-                catch { }
+                catch (Exception e) {
+                    Debug.Print(e.Message);
+                }
             };
             Process.CallWithTimeout(getWeather, 10000);
         }
