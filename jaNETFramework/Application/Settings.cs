@@ -60,10 +60,10 @@ namespace jaNETFramework
                     //for (int i = 0; i < args.Length; i++)
                         //tw.WriteLine(RijndaelSimple.Encrypt(args[i].Trim()));
                 }
-                return "Settings saved";
+                return "Settings saved.";
             }
             catch {
-                return "Unable to save settings";
+                return "Unable to save settings.";
             }
         }
     }
