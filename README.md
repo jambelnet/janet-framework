@@ -5,7 +5,7 @@ A free and open source IoT framework that provides multiple built-in functions a
 https://github.com/jambelnet/janet-framework/wiki
 
 # Jubito
-[Jubito](http://www.jubito.org) is a complete DIY automation solution. An awarded IoT hub ([Technical Enabler: Application Enablement](http://www.postscapes.com/internet-of-things-award/2014/iot-application-enabler/) - [Honors & Awards](jubitoblog.blogspot.com/search/label/awards)) based on jaNET Framework. [Download](http://www.jubito.org/download.html) Jubito and examine index.html and jubito.core.js under /www/ directory to understand how the web application layer communicates and implements the framework. Afterwards you'll be able to create [custom widgets and more](http://jubitoblog.blogspot.com/2016/08/consuming-restful-data.html).
+[Jubito](http://www.jubito.org) is a complete DIY automation solution. An awarded IoT hub ([Technical Enabler: Application Enablement](http://www.postscapes.com/internet-of-things-award/2014/iot-application-enabler/) - [Honors & Awards](http://jubitoblog.blogspot.com/search/label/awards)) based on jaNET Framework. [Download](http://www.jubito.org/download.html) Jubito and examine index.html and jubito.core.js under /www/ directory to understand how the web application layer communicates and implements the framework. Afterwards you'll be able to create [custom widgets and more](http://jubitoblog.blogspot.com/2016/08/consuming-restful-data.html).
 
 Tech blog: http://jubitoblog.blogspot.com
 
