@@ -23,6 +23,7 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
@@ -53,9 +54,12 @@ namespace jaNETFramework
 
                 port.Open();
 
-                var t = new Thread(SerialPortListener);
-                t.IsBackground = true;
-                t.Start();
+                Task.Run(() => {
+                    SerialPortListener();
+                });
+                //var t = new Thread(SerialPortListener);
+                //t.IsBackground = true;
+                //t.Start();
             }
             catch {
             }
@@ -103,6 +107,38 @@ namespace jaNETFramework
                         }
                     }
                 }
+            }
+        }
+
+        static readonly object _write_locker = new object();
+
+        internal static string WriteToSerialPort(string message, string typeOfSerialMessage = "send", int timeout = 10000) {
+            try {
+                lock (_write_locker) {
+                    if (port.IsOpen) {
+                        if (message.Trim() != string.Empty && typeOfSerialMessage == "send") {
+                            // Clear all buffers
+                            port.DiscardInBuffer();
+                            port.DiscardOutBuffer();
+                            SerialData = string.Empty;
+                            // Send a new argument
+                            port.WriteLine(message);
+                            Thread.Sleep(220);
+                        }
+                        Process.CallWithTimeout(() => {
+                            while (SerialData == string.Empty)
+                                Thread.Sleep(50);
+                        }, timeout);
+                    }
+                    else
+                        return "Serial port state: " + port.IsOpen;
+                }
+                return SerialData;
+            }
+            catch {
+                return SerialData;
+                //Suppress
+                //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
             }
         }
     }
