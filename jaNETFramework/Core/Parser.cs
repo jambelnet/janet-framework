@@ -171,6 +171,8 @@ namespace jaNETFramework
 
     static class Judoers
     {
+        static readonly object _serial_locker = new object();
+
         internal static string JudoParser(string arg) {
             var appset = new ApplicationSettings();
             var method = Methods.Instance;
@@ -208,12 +210,39 @@ namespace jaNETFramework
                         case "send":
                         case "listen":
                         case "monitor":
-                            if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
-                                output = SerialComm.WriteToSerialPort(string.Empty, args[2], Convert.ToInt32(args[3]));
-                            else if (args.Count() > 4)
-                                output = SerialComm.WriteToSerialPort(args[3], args[2], Convert.ToInt32(args[4]));
-                            else
-                                output = SerialComm.WriteToSerialPort(args[3], args[2]);
+                            try {
+                                lock (_serial_locker) {
+                                    if (SerialComm.port.IsOpen) {
+                                        if (args[2] == "send") {
+                                            // Clear all buffers
+                                            SerialComm.port.DiscardInBuffer();
+                                            SerialComm.port.DiscardOutBuffer();
+                                            SerialComm.SerialData = string.Empty;
+                                            // Send a new argument
+                                            SerialComm.port.WriteLine(args[3]);
+                                            //Thread.Sleep(220);
+                                        }
+                                        Action getSerialData = () => {
+                                            while (output == string.Empty) {
+                                                output = SerialComm.SerialData;
+                                                Thread.Sleep(50);
+                                            }
+                                        };
+                                        if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
+                                            Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[3]));
+                                        else if (args.Count() > 4)
+                                            Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[4]));
+                                        else
+                                            Process.CallWithTimeout(getSerialData, 10000);
+                                    }
+                                    else
+                                        output = "Serial port state: " + SerialComm.port.IsOpen;
+                                }
+                            }
+                            catch {
+                                //Suppress
+                                //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
+                            }
                             break;
                         case "set":
                         case "setup":

@@ -23,7 +23,6 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
@@ -39,27 +38,27 @@ namespace jaNETFramework
                     || OperatingSystem.Version == OperatingSystem.Type.MacOS)
                     if (!File.Exists(port.PortName))
                         return;
-
-                port.BaudRate = Convert.ToInt32(
-                    Helpers.Xml.AppConfigQuery(
-                    ApplicationSettings.ApplicationStructure.ComBaudRatePath)
-                    .Item(0).InnerText);
-
+                // Port
                 if (portName == string.Empty)
                     port.PortName = Helpers.Xml.AppConfigQuery(
                         ApplicationSettings.ApplicationStructure.ComPortPath)
                         .Item(0).InnerText;
                 else
                     port.PortName = portName;
+                // Baud
+                port.BaudRate = Convert.ToInt32(
+                    Helpers.Xml.AppConfigQuery(
+                    ApplicationSettings.ApplicationStructure.ComBaudRatePath)
+                    .Item(0).InnerText);
+                // Timeouts
+                //port.WriteTimeout = 500;
+                //port.ReadTimeout = 500;
 
                 port.Open();
 
-                Task.Run(() => {
-                    SerialPortListener();
-                });
-                //var t = new Thread(SerialPortListener);
-                //t.IsBackground = true;
-                //t.Start();
+                var t = new Thread(SerialPortListener);
+                t.IsBackground = true;
+                t.Start();
             }
             catch {
             }
@@ -95,7 +94,7 @@ namespace jaNETFramework
                                     //null reference exception from Xml.AppConfigQuery
                                 }
                             };
-                            Process.CallWithTimeout(ParseSerialData, 30000);
+                            Process.CallWithTimeout(ParseSerialData, 10000);
                         }
                     }
                     catch (Exception e) {
@@ -107,38 +106,6 @@ namespace jaNETFramework
                         }
                     }
                 }
-            }
-        }
-
-        static readonly object _write_locker = new object();
-
-        internal static string WriteToSerialPort(string message, string typeOfSerialMessage = "send", int timeout = 10000) {
-            try {
-                lock (_write_locker) {
-                    if (port.IsOpen) {
-                        if (message.Trim() != string.Empty && typeOfSerialMessage == "send") {
-                            // Clear all buffers
-                            port.DiscardInBuffer();
-                            port.DiscardOutBuffer();
-                            SerialData = string.Empty;
-                            // Send a new argument
-                            port.WriteLine(message);
-                            Thread.Sleep(220);
-                        }
-                        Process.CallWithTimeout(() => {
-                            while (SerialData == string.Empty)
-                                Thread.Sleep(50);
-                        }, timeout);
-                    }
-                    else
-                        return "Serial port state: " + port.IsOpen;
-                }
-                return SerialData;
-            }
-            catch {
-                return SerialData;
-                //Suppress
-                //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
             }
         }
     }
