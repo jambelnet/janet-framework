@@ -21,6 +21,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace jaNETFramework
@@ -73,12 +74,17 @@ namespace jaNETFramework
         // True => worked, False => timeout
         internal static bool CallWithTimeout(Action method, int timeout) {
             Exception e;
-            Task worker = Task.Factory.StartNew(method)
+
+            //var ts = new CancellationTokenSource();
+            //CancellationToken ct = ts.Token;
+
+            var worker = Task.Factory.StartNew(method) // ,ct
                               .ContinueWith(t => {
                                   // Ensure any exception is observed, is no-op if no exception.
                                   // Using closure to help avoid this being optimised out.
                                   e = t.Exception;
                               });
+            //if (!worker.Wait(timeout, ct)) ts.Cancel();
             return worker.Wait(timeout);
         }
     }

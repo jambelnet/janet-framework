@@ -23,21 +23,33 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
     static class SerialComm
     {
+        public enum TypeOfSerialMessage
+        {
+            None,
+            Send,
+            Listen,
+            Monitor
+        }
+
         static readonly object _serial_locker = new object();
+        static readonly object _write_locker = new object();
         internal static volatile string SerialData = string.Empty;
         internal static SerialPort port = new SerialPort();
 
         internal static void ActivateSerialPort(string portName) {
             try {
-                if (OperatingSystem.Version == OperatingSystem.Type.Unix
-                    || OperatingSystem.Version == OperatingSystem.Type.MacOS)
-                    if (!File.Exists(port.PortName))
-                        return;
+                bool isPOSIX = OperatingSystem.Version == OperatingSystem.Type.Unix
+                            || OperatingSystem.Version == OperatingSystem.Type.MacOS;
+
+                if (isPOSIX && !File.Exists(port.PortName))
+                    return;
+
                 // Port
                 if (portName == string.Empty)
                     port.PortName = Helpers.Xml.AppConfigQuery(
@@ -50,12 +62,10 @@ namespace jaNETFramework
                     Helpers.Xml.AppConfigQuery(
                     ApplicationSettings.ApplicationStructure.ComBaudRatePath)
                     .Item(0).InnerText);
-                // Timeouts
-                //port.WriteTimeout = 500;
-                //port.ReadTimeout = 500;
 
                 port.Open();
 
+                //Task.Run(() => SerialPortListener());
                 var t = new Thread(SerialPortListener);
                 t.IsBackground = true;
                 t.Start();
@@ -106,6 +116,39 @@ namespace jaNETFramework
                         }
                     }
                 }
+            }
+        }
+
+        internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
+            string output = string.Empty;
+
+            try {
+                if (port.IsOpen) {
+                    lock (_write_locker) {
+                        if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
+                            // Clear all buffers
+                            port.DiscardInBuffer();
+                            port.DiscardOutBuffer();
+                            SerialData = string.Empty;
+                            // Send a new argument
+                            port.WriteLine(message);
+                            Thread.Sleep(50);
+                        }
+                        Action getSerialData = () => {
+                            while (output == string.Empty) {
+                                output = SerialData;
+                                Thread.Sleep(50);
+                            }
+                        };
+                        Process.CallWithTimeout(getSerialData, timeout);
+                    }
+                }
+                else
+                    output = "Serial port state: " + port.IsOpen;
+                return output;
+            }
+            catch {
+                return output;
             }
         }
     }

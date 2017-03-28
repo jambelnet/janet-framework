@@ -52,15 +52,11 @@ namespace jaNETProgram
     class Program
     {
         public static void Main(string[] args) {
+            Console.Write("%copyright%".Parse() + "\r\n");
             Application.Initialize();
 
-            if (args.Length > 0) {
+            if (args.Length > 0)
                 args.ToList().ForEach(a => a.Parse());
-                //foreach (string arg in args)
-                //    arg.Parse();
-            }
-
-            Console.Write("%copyright%".Parse() + "\r\n");
 
             while (Parser.ParserState) {
                 try {

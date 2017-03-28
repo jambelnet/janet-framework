@@ -97,7 +97,7 @@ namespace jaNETFramework
         }
 
         internal static void Init() {
-            new Thread(() => {
+            Task.Run(() => {
                 const string schedulerFilename = ".scheduler";
 
                 if (File.Exists(Methods.Instance.GetApplicationPath() + schedulerFilename)) {
@@ -115,7 +115,7 @@ namespace jaNETFramework
                                 Add(s);
                         }
                 }
-            }).Start();
+            });
         }
 
         static void SaveList() {
@@ -169,7 +169,7 @@ namespace jaNETFramework
                             if (method.GetInstructionSet(oSchedule.Action).Count > 0)
                                 oSchedule.Action.Parse();
                             else
-                                Parser.SayText(oSchedule.Action);
+                                Parser.Instance.SayText(oSchedule.Action);
 
                             if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer)
                                 _done = true;

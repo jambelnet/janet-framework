@@ -23,6 +23,7 @@ using System;
 using System.IO;
 using System.Xml;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using static jaNETFramework.Server.Web.Request;
@@ -43,46 +44,48 @@ namespace jaNETFramework
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
 
-        public static string Parse(string args) {
-            return Instance.Parse(args, DataType.text, false);
+        public async Task<string> Parse(string args) {
+            return await Parse(args, DataType.text, false);
         }
 
-        internal string Parse(string args, DataType dataType, bool disableSpeech) {
-            if (args.Contains("{mute}") || args.Contains("{widget}")) {
-                args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
-                disableSpeech = true;
-            }
-
-            if (args.Contains("</lock>")) // lock is extension of judo parser. No need for extra parsing
-                if (dataType.Equals(DataType.html))
-                    return Judoers.JudoParser(args).Replace("\r", string.Empty).Replace("\n", "<br />");
-                else
-                    return Judoers.JudoParser(args);
-
-            string[] InstructionSets = args.Replace('&', ';').Split(';');
-            var results = new Dictionary<string, KeyValuePair<string, string>>();
-
-            foreach (string Instruction in InstructionSets)
-                if (Instruction.Trim() != string.Empty) {
-                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
-                    if (exe.EndsWith("\n"))
-                        exe = exe.Substring(0, exe.LastIndexOf("\n"));
-                    var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
-                    try {
-                        results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
-                    }
-                    catch {
-                        // Duplicate keys are not allowed.
-                    }
+        internal async Task<string> Parse(string args, DataType dataType, bool disableSpeech) {
+            return await Task.Run(() => {
+                if (args.Contains("{mute}") || args.Contains("{widget}")) {
+                    args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
+                    disableSpeech = true;
                 }
 
-            switch (dataType) {
-                case DataType.html:
-                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
-                case DataType.json:
-                    return results.ToJson();
-            }
-            return results.ToDebugString();
+                if (args.Contains("</lock>")) // lock is extension of judo parser. No need for extra parsing
+                    if (dataType.Equals(DataType.html))
+                        return Judoers.JudoParser(args).Replace("\r", string.Empty).Replace("\n", "<br />");
+                    else
+                        return Judoers.JudoParser(args);
+
+                string[] InstructionSets = args.Replace('&', ';').Split(';');
+                var results = new Dictionary<string, KeyValuePair<string, string>>();
+
+                foreach (string Instruction in InstructionSets)
+                    if (Instruction.Trim() != string.Empty) {
+                        var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
+                        if (exe.EndsWith("\n"))
+                            exe = exe.Substring(0, exe.LastIndexOf("\n"));
+                        var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
+                        try {
+                            results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
+                        }
+                        catch {
+                            // Duplicate keys are not allowed.
+                        }
+                    }
+
+                switch (dataType) {
+                    case DataType.html:
+                        return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
+                    case DataType.json:
+                        return results.ToJson();
+                }
+                return results.ToDebugString();
+            });
         }
 
         string Execute(string arg, bool disableSpeech) {
@@ -126,9 +129,7 @@ namespace jaNETFramework
                 }
 
                 if (output.Trim() != string.Empty && !Mute && !disableSpeech) {
-                    var t = new Thread(() => SayText(output.Replace("Parser: ", string.Empty)));
-                    t.IsBackground = true;
-                    t.Start();
+                    Task.Run(() => SayText(output));
                 }
 
                 if (!ParserState) {
@@ -147,11 +148,11 @@ namespace jaNETFramework
             }
         }
 
-        public static void SayText(string sText) {
+        public void SayText(string sText) {
             SayText((object)sText);
         }
 
-        static void SayText(object sText) {
+        void SayText(object sText) {
             lock (_speech_locker) {
                 if (OperatingSystem.Version == OperatingSystem.Type.Unix) {
                     if (File.Exists("/usr/bin/festival"))
@@ -210,39 +211,45 @@ namespace jaNETFramework
                         case "send":
                         case "listen":
                         case "monitor":
-                            try {
-                                lock (_serial_locker) {
-                                    if (SerialComm.port.IsOpen) {
-                                        if (args[2] == "send") {
-                                            // Clear all buffers
-                                            SerialComm.port.DiscardInBuffer();
-                                            SerialComm.port.DiscardOutBuffer();
-                                            SerialComm.SerialData = string.Empty;
-                                            // Send a new argument
-                                            SerialComm.port.WriteLine(args[3]);
-                                            //Thread.Sleep(220);
-                                        }
-                                        Action getSerialData = () => {
-                                            while (output == string.Empty) {
-                                                output = SerialComm.SerialData;
-                                                Thread.Sleep(50);
-                                            }
-                                        };
-                                        if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
-                                            Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[3]));
-                                        else if (args.Count() > 4)
-                                            Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[4]));
-                                        else
-                                            Process.CallWithTimeout(getSerialData, 10000);
-                                    }
-                                    else
-                                        output = "Serial port state: " + SerialComm.port.IsOpen;
-                                }
-                            }
-                            catch {
-                                //Suppress
-                                //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
-                            }
+                            //try {
+                            //    lock (_serial_locker) {
+                            //        if (SerialComm.port.IsOpen) {
+                            //            if (args[2] == "send") {
+                            //                // Clear all buffers
+                            //                SerialComm.port.DiscardInBuffer();
+                            //                SerialComm.port.DiscardOutBuffer();
+                            //                SerialComm.SerialData = string.Empty;
+                            //                // Send a new argument
+                            //                SerialComm.port.WriteLine(args[3]);
+                            //                //Thread.Sleep(220);
+                            //            }
+                            //            Action getSerialData = () => {
+                            //                while (output == string.Empty) {
+                            //                    output = SerialComm.SerialData;
+                            //                    Thread.Sleep(50);
+                            //                }
+                            //            };
+                            //            if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
+                            //                Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[3]));
+                            //            else if (args.Count() > 4)
+                            //                Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[4]));
+                            //            else
+                            //                Process.CallWithTimeout(getSerialData, 10000);
+                            //        }
+                            //        else
+                            //            output = "Serial port state: " + SerialComm.port.IsOpen;
+                            //    }
+                            //}
+                            //catch {
+                            //    //Suppress
+                            //    //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
+                            //}
+                            if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
+                                output = SerialComm.WriteToSerialPort(string.Empty, args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[3]));
+                            else if (args.Count() > 4)
+                                output = SerialComm.WriteToSerialPort(args[3], args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[4]));
+                            else
+                                output = SerialComm.WriteToSerialPort(args[3], args[2].ToTypeOfSerialMessage());
                             break;
                         case "set":
                         case "setup":
@@ -764,7 +771,7 @@ namespace jaNETFramework
                 output = "Setting alarm for " + t;
             }
             if (arg.Contains("repeat after me"))
-                Parser.SayText(arg.Replace("repeat after me", string.Empty).Trim());
+                Parser.Instance.SayText(arg.Replace("repeat after me", string.Empty).Trim());
 
             return output;
         }
