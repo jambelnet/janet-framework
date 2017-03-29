@@ -123,8 +123,8 @@ namespace jaNETFramework
                         else
                             e = Evaluator.EvaluateToBool(condition);
 
-                        sValue = e ? sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true).Result) :
-                                     sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true).Result);
+                        sValue = e ? sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true)) :
+                                     sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true));
                     }
                 }
             }

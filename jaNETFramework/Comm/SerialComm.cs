@@ -23,7 +23,6 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
@@ -65,7 +64,6 @@ namespace jaNETFramework
 
                 port.Open();
 
-                //Task.Run(() => SerialPortListener());
                 var t = new Thread(SerialPortListener);
                 t.IsBackground = true;
                 t.Start();
@@ -144,7 +142,7 @@ namespace jaNETFramework
                     }
                 }
                 else
-                    output = "Serial port state: " + port.IsOpen;
+                    output = string.Format("Serial port state: {0}", port.IsOpen);
                 return output;
             }
             catch {

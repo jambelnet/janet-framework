@@ -111,7 +111,7 @@ namespace jaNETFramework
         }
 
         internal OpenWeather() {
-            Action getWeather = () => {
+            Process.CallWithTimeout(() => {
                 try {
                     string endpoint = Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.WeatherPath).Item(0).InnerText;
                     var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
@@ -127,8 +127,7 @@ namespace jaNETFramework
                 catch (Exception e) {
                     Debug.Print(e.Message);
                 }
-            };
-            Process.CallWithTimeout(getWeather, 10000);
+            }, 10000);
         }
     }
 }

@@ -127,7 +127,7 @@ namespace jaNETFramework
                     return false;
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(String.Format("obj [ Net.SimplePing.Pinger <Exception> ]: {0}", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Net.SimplePing.Pinger <Exception> ]: {0}", e.Message));
                     return false;
                 }
             }

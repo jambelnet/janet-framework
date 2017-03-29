@@ -44,48 +44,46 @@ namespace jaNETFramework
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
 
-        public async Task<string> Parse(string args) {
-            return await Parse(args, DataType.text, false);
+        public string Parse(string args) {
+            return Parse(args, DataType.text, false);
         }
 
-        internal async Task<string> Parse(string args, DataType dataType, bool disableSpeech) {
-            return await Task.Run(() => {
-                if (args.Contains("{mute}") || args.Contains("{widget}")) {
-                    args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
-                    disableSpeech = true;
-                }
+        internal string Parse(string args, DataType dataType, bool disableSpeech) {
+            if (args.Contains("{mute}") || args.Contains("{widget}")) {
+                args = args.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
+                disableSpeech = true;
+            }
 
-                if (args.Contains("</lock>")) // lock is extension of judo parser. No need for extra parsing
-                    if (dataType.Equals(DataType.html))
-                        return Judoers.JudoParser(args).Replace("\r", string.Empty).Replace("\n", "<br />");
-                    else
-                        return Judoers.JudoParser(args);
+            if (args.Contains("</lock>")) // lock is extension of judo parser. No need for extra parsing
+                if (dataType.Equals(DataType.html))
+                    return Judoers.JudoParser(args).Replace("\r", string.Empty).Replace("\n", "<br />");
+                else
+                    return Judoers.JudoParser(args);
 
-                string[] InstructionSets = args.Replace('&', ';').Split(';');
-                var results = new Dictionary<string, KeyValuePair<string, string>>();
+            string[] InstructionSets = args.Replace('&', ';').Split(';');
+            var results = new Dictionary<string, KeyValuePair<string, string>>();
 
-                foreach (string Instruction in InstructionSets)
-                    if (Instruction.Trim() != string.Empty) {
-                        var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
-                        if (exe.EndsWith("\n"))
-                            exe = exe.Substring(0, exe.LastIndexOf("\n"));
-                        var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
-                        try {
-                            results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
-                        }
-                        catch {
-                            // Duplicate keys are not allowed.
-                        }
+            foreach (string Instruction in InstructionSets)
+                if (Instruction.Trim() != string.Empty) {
+                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
+                    if (exe.EndsWith("\n"))
+                        exe = exe.Substring(0, exe.LastIndexOf("\n"));
+                    var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
+                    try {
+                        results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
                     }
-
-                switch (dataType) {
-                    case DataType.html:
-                        return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
-                    case DataType.json:
-                        return results.ToJson();
+                    catch {
+                        // Duplicate keys are not allowed.
+                    }
                 }
-                return results.ToDebugString();
-            });
+
+            switch (dataType) {
+                case DataType.html:
+                    return results.ToDebugString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
+                case DataType.json:
+                    return results.ToJson();
+            }
+            return results.ToDebugString();
         }
 
         string Execute(string arg, bool disableSpeech) {
@@ -95,17 +93,16 @@ namespace jaNETFramework
             try {
                 if (arg.StartsWith("%") ||
                     arg.StartsWith("./") ||
-                    arg.StartsWith("judo"))
-
+                    arg.StartsWith("judo")) {
                     return ParsingTools.ParseTokens(arg);
-
+                }
                 else {
                     XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
 
                     if (xList.Count <= 0 && !arg.Contains("*")) {
                         output = Judoers.IntelParser(arg);
                         if (output == string.Empty) {
-                            Logger.Instance.Append(String.Format("obj [ Parser.Execute ]: arg [ {0}, not found. ]", arg));
+                            Logger.Instance.Append(string.Format("obj [ Parser.Execute ]: arg [ {0}, not found. ]", arg));
                             output = arg + ", not found.";
                         }
                     }
@@ -119,11 +116,10 @@ namespace jaNETFramework
                         XmlNodeList xList = method.GetMailHeaders();
 
                         foreach (XmlNode nodeItem in xList) {
-                            Action SendNotification = () => new Net.Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
+                            Process.CallWithTimeout(() => new Net.Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
                                                                                 nodeItem.SelectSingleNode("MailTo").InnerText,
                                                                                 nodeItem.SelectSingleNode("MailSubject").InnerText,
-                                                                                output);
-                            Process.CallWithTimeout(SendNotification, 10000);
+                                                                                output), 10000);
                         }
                     }
                 }
@@ -141,7 +137,7 @@ namespace jaNETFramework
             }
             catch (Exception e) {
                 if (!e.Message.Contains("Parameter name: length")) {
-                    Logger.Instance.Append(String.Format("obj [ Parser.Execute <Exception> ]: Argument: [ {0} ] Exception: [ {1} ]", arg, e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Parser.Execute <Exception> ]: Argument: [ {0} ] Exception: [ {1} ]", arg, e.Message));
                     return e.Message;
                 }
                 return string.Empty;
@@ -157,7 +153,7 @@ namespace jaNETFramework
                 if (OperatingSystem.Version == OperatingSystem.Type.Unix) {
                     if (File.Exists("/usr/bin/festival"))
                         Process.Instance.Start(string.Format("festival -b '(SayText \"{0}\")'", sText.ToString().Replace("_", string.Empty)));
-                        //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
+                    //Process.Start("festival -b '(SayText " + "\"" + sText.ToString().Replace("_", string.Empty) + "\"" + ")'");
                     else
                         Process.Instance.Start("say " + sText.ToString().Replace("_", string.Empty));
                 }
@@ -201,49 +197,16 @@ namespace jaNETFramework
                             else
                                 SerialComm.ActivateSerialPort(string.Empty);
                             Thread.Sleep(50);
-                            output = "Serial port state: " + SerialComm.port.IsOpen;
+                            output = string.Format("Serial port state: {0}", SerialComm.port.IsOpen);
                             break;
                         case "close":
                             SerialComm.DeactivateSerialPort();
                             Thread.Sleep(50);
-                            output = "Serial port state: " + SerialComm.port.IsOpen;
+                            output = string.Format("Serial port state: {0}", SerialComm.port.IsOpen);
                             break;
                         case "send":
                         case "listen":
                         case "monitor":
-                            //try {
-                            //    lock (_serial_locker) {
-                            //        if (SerialComm.port.IsOpen) {
-                            //            if (args[2] == "send") {
-                            //                // Clear all buffers
-                            //                SerialComm.port.DiscardInBuffer();
-                            //                SerialComm.port.DiscardOutBuffer();
-                            //                SerialComm.SerialData = string.Empty;
-                            //                // Send a new argument
-                            //                SerialComm.port.WriteLine(args[3]);
-                            //                //Thread.Sleep(220);
-                            //            }
-                            //            Action getSerialData = () => {
-                            //                while (output == string.Empty) {
-                            //                    output = SerialComm.SerialData;
-                            //                    Thread.Sleep(50);
-                            //                }
-                            //            };
-                            //            if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
-                            //                Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[3]));
-                            //            else if (args.Count() > 4)
-                            //                Process.CallWithTimeout(getSerialData, Convert.ToInt32(args[4]));
-                            //            else
-                            //                Process.CallWithTimeout(getSerialData, 10000);
-                            //        }
-                            //        else
-                            //            output = "Serial port state: " + SerialComm.port.IsOpen;
-                            //    }
-                            //}
-                            //catch {
-                            //    //Suppress
-                            //    //Logger.Instance.Append(string.Format("Serial Exception <JudoParser>: {0}", e.Message));
-                            //}
                             if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
                                 output = SerialComm.WriteToSerialPort(string.Empty, args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[3]));
                             else if (args.Count() > 4)
@@ -268,7 +231,7 @@ namespace jaNETFramework
                         case "state":
                         case "status":
                         default:
-                            output = "Serial port state: " + SerialComm.port.IsOpen;
+                            output = string.Format("Serial port state: {0}", SerialComm.port.IsOpen);
                             break;
                     }
                     break;
@@ -358,7 +321,7 @@ namespace jaNETFramework
                         case "open":
                             Server.TCP.Start();
                             Thread.Sleep(50);
-                            output = "Socket state: " + Server.TCP.ServerState;
+                            output = string.Format("Socket state: {0}", Server.TCP.ServerState);
                             break;
                         case "off":
                         case "disable":
@@ -366,7 +329,7 @@ namespace jaNETFramework
                         case "close":
                             Server.TCP.Stop();
                             Thread.Sleep(50);
-                            output = "Socket state: " + Server.TCP.ServerState;
+                            output = string.Format("Socket state: {0}", Server.TCP.ServerState);
                             break;
                         case "set":
                         case "setup":
@@ -385,7 +348,7 @@ namespace jaNETFramework
                         case "state":
                         case "status":
                         default:
-                            output = "Socket state: " + Server.TCP.ServerState;
+                            output = string.Format("Socket state: {0}", Server.TCP.ServerState);
                             break;
                     }
                     break;
@@ -398,14 +361,14 @@ namespace jaNETFramework
                         case "listen":
                             Server.Web.Start();
                             Thread.Sleep(50);
-                            output = "Web server state: " + Server.Web.httplistener.IsListening;
+                            output = string.Format("Web server state: {0}", Server.Web.httplistener.IsListening);
                             break;
                         case "off":
                         case "disable":
                         case "stop":
                             Server.Web.Stop();
                             Thread.Sleep(50);
-                            output = "Web server state: " + Server.Web.httplistener.IsListening;
+                            output = string.Format("Web server state: {0}", Server.Web.httplistener.IsListening);
                             break;
                         case "login":
                         case "cred":
@@ -433,7 +396,7 @@ namespace jaNETFramework
                         case "state":
                         case "status":
                         default:
-                            output = "Web server state: " + Server.Web.httplistener.IsListening;
+                            output = string.Format("Web server state: {0}", Server.Web.httplistener.IsListening);
                             break;
                     }
                     break;
@@ -765,7 +728,7 @@ namespace jaNETFramework
                 if (Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) < DateTime.Now.Hour ||
                     Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour &&
                     Convert.ToInt32(t.ToHour24().Substring(t.ToHour24().IndexOf(':') + 1)) < DateTime.Now.Minute)
-                    when = String.Format("{0:d/M/yyyy}", DateTime.Now.AddDays(1).Date);
+                    when = string.Format("{0:d/M/yyyy}", DateTime.Now.AddDays(1).Date);
 
                 Judoers.JudoParser("judo schedule add " + tmpSchedule + " " + when + " " + t.ToHour24() + " __SYS_ALARM");
                 output = "Setting alarm for " + t;

@@ -21,7 +21,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace jaNETFramework
@@ -66,13 +65,13 @@ namespace jaNETFramework
                 return string.Empty;
             }
             catch (Exception e) {
-                Logger.Instance.Append(String.Format("obj [ Process.Start <Exception> ]: args [ {0} {1} ]: {2}", sFilePath, sArguments, e.Message));
+                Logger.Instance.Append(string.Format("obj [ Process.Start <Exception> ]: args [ {0} {1} ]: {2}", sFilePath, sArguments, e.Message));
                 return string.Empty;
             }
         }
 
         // True => worked, False => timeout
-        internal static bool CallWithTimeout(Action method, int timeout) {
+        internal static bool CallWithTimeout(Action method, int timeout = 1000) {
             Exception e;
 
             //var ts = new CancellationTokenSource();

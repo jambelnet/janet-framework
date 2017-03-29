@@ -49,7 +49,7 @@ namespace jaNETFramework
             internal const string Daily = "daily";
             internal const string Everyday = "everyday";
             internal const string Workdays = "workdays";
-            internal const string Weekend = "weekend";
+            internal const string Weekends = "weekend";
         }
 
         static readonly object _schedule_locker = new object();
@@ -97,7 +97,7 @@ namespace jaNETFramework
         }
 
         internal static void Init() {
-            Task.Run(() => {
+            new Thread(() => {
                 const string schedulerFilename = ".scheduler";
 
                 if (File.Exists(Methods.Instance.GetApplicationPath() + schedulerFilename)) {
@@ -115,7 +115,7 @@ namespace jaNETFramework
                                 Add(s);
                         }
                 }
-            });
+            }).Start();
         }
 
         static void SaveList() {
@@ -143,9 +143,9 @@ namespace jaNETFramework
                 lock (_schedule_locker)
                     Task.Factory.StartNew(() => ScheduleListener(ss, interval));
 
-                return String.Format("Schedule {0} added", ss.Name);
+                return string.Format("Schedule {0} added", ss.Name);
             }
-            catch { return String.Format("Failed to add {0} schedule", ss.Name); }
+            catch { return string.Format("Failed to add {0} schedule", ss.Name); }
         }
 
         static void ScheduleListener(Schedule oSchedule, int interval) {
@@ -161,7 +161,7 @@ namespace jaNETFramework
                     if ((oSchedule.Date == Period.Repeat || oSchedule.Date == Period.Interval || oSchedule.Date == Period.Timer) ||                // repeated (ms)
                         (oSchedule.Date == Period.Daily || oSchedule.Date == Period.Everyday) && oSchedule.Time == method.GetTime24() ||           // every day
                          oSchedule.Date == Period.Workdays && oSchedule.Time == method.GetTime24() && WorkDays.Contains(DateTime.Now.DayOfWeek) || // workdays
-                         oSchedule.Date == Period.Weekend && oSchedule.Time == method.GetTime24() && Weekend.Contains(DateTime.Now.DayOfWeek) ||   // weekends
+                         oSchedule.Date == Period.Weekends && oSchedule.Time == method.GetTime24() && Weekend.Contains(DateTime.Now.DayOfWeek) ||  // weekends
                          oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()) && oSchedule.Time == method.GetTime24() ||                   // specific day
                          oSchedule.Date == method.GetCalendarDate() && oSchedule.Time == method.GetTime24())                                       // specific date - only once, then deleted
                     {
@@ -174,9 +174,10 @@ namespace jaNETFramework
                             if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer)
                                 _done = true;
 
-                            if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer &&
-                                oSchedule.Date != Period.Daily && oSchedule.Date != Period.Everyday && oSchedule.Date != Period.Weekend &&
-                                oSchedule.Date != Period.Workdays && !oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()))
+                            //if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer &&
+                            //    oSchedule.Date != Period.Daily && oSchedule.Date != Period.Everyday && oSchedule.Date != Period.Weekends &&
+                            //    oSchedule.Date != Period.Workdays && !oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()))
+                            if (oSchedule.Date == method.GetCalendarDate() && oSchedule.Time == method.GetTime24())
                                 ChangeStatus(oSchedule.Name, State.Remove);
                         }
                     }
@@ -231,9 +232,9 @@ namespace jaNETFramework
                 lock (_schedule_locker)
                     Monitor.PulseAll(_schedule_locker);
 
-                return String.Format("Scheduler updated [{0}:{1}]", scheduleName, stat);
+                return string.Format("Scheduler updated [{0}:{1}]", scheduleName, stat);
             }
-            catch { return String.Format("Failed to {0} schedule {1}", stat, scheduleName); }
+            catch { return string.Format("Failed to {0} schedule {1}", stat, scheduleName); }
         }
     }
 }

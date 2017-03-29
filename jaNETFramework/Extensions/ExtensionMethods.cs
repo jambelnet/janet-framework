@@ -32,7 +32,7 @@ namespace jaNETFramework
     public static class ExtensionMethods
     {
         public static string Parse(this string args) {
-            return Parser.Instance.Parse(args, DataType.text, false).Result;
+            return Parser.Instance.Parse(args, DataType.text, false);
         }
 
         internal static string ToJson(this object res) {
@@ -60,7 +60,7 @@ namespace jaNETFramework
         internal static string ToHour24(this string hour) {
             DateTime dt = DateTime.ParseExact(hour, "h:mm tt",
                                               CultureInfo.InvariantCulture);
-            return String.Format("{0:HH:mm}", dt);
+            return string.Format("{0:HH:mm}", dt);
         }
 
         internal static TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {

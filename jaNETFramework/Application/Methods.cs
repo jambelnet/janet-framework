@@ -30,10 +30,10 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.2.9.94";
+        public const string AssemblyVersion = "0.2.9.95";
 
         public string GetCopyright() {
-            String cp = String.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
+            String cp = string.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
 
             if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
                 cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";

@@ -21,7 +21,6 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace jaNETFramework
 {
@@ -32,7 +31,7 @@ namespace jaNETFramework
         internal static class Uptime
         {
             internal static string getAll {
-                get { return String.Format("Days[{0}], Hours[{1}], Minutes[{2}], Seconds[{3}]", 
+                get { return string.Format("Days[{0}], Hours[{1}], Minutes[{2}], Seconds[{3}]", 
                                                 getDays, getHours, getMinutes, getSeconds); }
             }
 
@@ -66,7 +65,6 @@ namespace jaNETFramework
             if (!File.Exists(AppPath + ".htaccess"))
                 new Settings().SaveSettings(".htaccess", "admin\r\nadmin");
 
-            "%checkin%".ToValues();
             Schedule.Init();
             if (!String.IsNullOrEmpty(appset.HostName))
                 Server.Web.Start();
@@ -74,6 +72,8 @@ namespace jaNETFramework
                 Server.TCP.Start();
             if (!String.IsNullOrEmpty(appset.ComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
+
+            "%checkin%".ToValues();
         }
 
         public static void Dispose() {

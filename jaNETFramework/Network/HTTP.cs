@@ -91,7 +91,7 @@ namespace jaNETFramework
                                                 .Item(0).InnerText;
                 }
                 catch (NullReferenceException e) {
-                    Logger.Instance.Append(String.Format("obj [ Server.Web.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
                     return;
                 }
 
@@ -105,24 +105,24 @@ namespace jaNETFramework
                     httplistener.Start();
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(String.Format("obj [ Server.Web.Start <Exception> ]: Exception [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: Exception [ {0} ]", e.Message));
                     return;
                 }
 
                 while (httplistener.IsListening) {
                     try {
                         var ctx = await httplistener.GetContextAsync();
-                        Task.Run(() => ProcessRequestAsync(ctx));
+                        Task.Run(() => ProcessRequestAsync(ctx)); // Do not await
                     }
                     catch (HttpListenerException e) {
-                        Logger.Instance.Append(String.Format("obj [ Server.Web.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
+                        Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
                         //Restart();
                     }
                     catch (InvalidOperationException) {
 
                     }
                     catch (Exception e) {
-                        Logger.Instance.Append(String.Format("obj [ Server.Web.Start <Exception> ]: Generic [ {0} ]", e.Message));
+                        Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: Generic [ {0} ]", e.Message));
                     }
                 }
             }
@@ -158,7 +158,7 @@ namespace jaNETFramework
                                                                .Replace("&mode=text", string.Empty)
                                                                .Replace("&mode=json", string.Empty)
                                                                .Replace("&mode=html", string.Empty)
-                                                               , t, false).Result);
+                                                               , t, false));
                         }
                         else
                             buf = File.ReadAllBytes(mapPath);
@@ -181,7 +181,7 @@ namespace jaNETFramework
                 }
                 catch (Exception e) {
                     if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
-                        Logger.Instance.Append(String.Format("obj [ Server.Web.ProcessRequestAsync <Exception> ]: {0}", e.Message));
+                        Logger.Instance.Append(string.Format("obj [ Server.Web.ProcessRequestAsync <Exception> ]: {0}", e.Message));
                 }
             }
 
