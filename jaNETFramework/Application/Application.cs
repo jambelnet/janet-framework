@@ -399,7 +399,7 @@ namespace jaNETFramework
             li.Add(new InstructionSet() {
                 Id = "partofday",
                 Action = "*partofday",
-                Description = "example: morning, evening, afternoon...",
+                Description = "e.g. morning, evening, afternoon, etc.",
                 ShortDescription = "Acknowledge part of day",
                 Header = "Part of day",
                 Category = "Localization",

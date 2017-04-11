@@ -52,9 +52,8 @@ namespace jaNETFramework
             return new JavaScriptSerializer().Serialize(res);
         }
 
-        //public static string ToDebugString<TKey, TValue>(this IList<KeyValuePair<TKey, TValue>> dictionary)
         internal static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
-            return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToArray());
+            return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToList());
         }
 
         internal static Schedule ToSchedule(this string rawSchedule) {

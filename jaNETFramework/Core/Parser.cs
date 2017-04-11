@@ -61,22 +61,19 @@ namespace jaNETFramework
                 else
                     return Judoers.JudoParser(args);
 
-            string[] InstructionSets = args.Replace('&', ';').Split(';');
+            var InstructionSets = args.Replace('&', ';').Split(';')
+                                                        .Where(s => !String.IsNullOrEmpty(s.Trim()))
+                                                        .Select(s => s.Trim())
+                                                        .Distinct().ToList();
             var results = new Dictionary<string, KeyValuePair<string, string>>();
 
-            foreach (string Instruction in InstructionSets)
-                if (Instruction.Trim() != string.Empty) {
-                    var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
-                    if (exe.EndsWith("\n"))
-                        exe = exe.Substring(0, exe.LastIndexOf("\n"));
-                    var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
-                    try {
-                        results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
-                    }
-                    catch {
-                        // Duplicate keys are not allowed.
-                    }
-                }
+            foreach (string Instruction in InstructionSets) {
+                var exe = Execute(Instruction.Trim(), disableSpeech).Replace("\r", string.Empty);
+                if (exe.EndsWith("\n"))
+                    exe = exe.Substring(0, exe.LastIndexOf("\n"));
+                var key = Instruction.Trim().Replace(" ", "_").Replace("%", string.Empty);
+                results.Add(key, new KeyValuePair<string, string>(Instruction.Trim(), exe));
+            }
 
             switch (dataType) {
                 case DataType.html:
@@ -101,7 +98,6 @@ namespace jaNETFramework
                     XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
 
                     if (xList.Count <= 0 && !arg.Contains("*")) {
-                        output = Judoers.IntelParser(arg);
                         if (output == string.Empty) {
                             Logger.Instance.Append(string.Format("obj [ Parser.Execute ]: arg [ {0}, not found. ]", arg));
                             output = arg + ", not found.";
@@ -711,36 +707,6 @@ namespace jaNETFramework
                         Net.SimplePing.Ping(args[2], Convert.ToInt32(args[3])).ToString();
                     break;
             }
-            return output;
-        }
-
-        // Experimental method
-        internal static string IntelParser(string arg) {
-            string output = string.Empty;
-            var method = Methods.Instance;
-
-            string tmpSchedule = "schedule-" + method.GetDay + method.GetCalendarYear + "_" + method.GetHour + method.GetMinute + DateTime.Now.Second;
-
-            arg = arg.ToLower();
-
-            if (arg.Contains("set alarm at") || arg.Contains("set an alarm for") || arg.Contains("set alarm for")) {
-                string t = arg.Replace("set alarm at", string.Empty).Replace(".", string.Empty)
-                              .Replace("set an alarm for", string.Empty).Replace(".", string.Empty)
-                              .Replace("set alarm for", string.Empty).Replace(".", string.Empty)
-                              .Trim();
-                string when = "%calendardate%";
-
-                if (Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) < DateTime.Now.Hour ||
-                    Convert.ToInt32(t.ToHour24().Substring(0, t.ToHour24().IndexOf(':'))) >= DateTime.Now.Hour &&
-                    Convert.ToInt32(t.ToHour24().Substring(t.ToHour24().IndexOf(':') + 1)) < DateTime.Now.Minute)
-                    when = string.Format("{0:d/M/yyyy}", DateTime.Now.AddDays(1).Date);
-
-                Judoers.JudoParser("judo schedule add " + tmpSchedule + " " + when + " " + t.ToHour24() + " __SYS_ALARM");
-                output = "Setting alarm for " + t;
-            }
-            if (arg.Contains("repeat after me"))
-                Parser.Instance.SayText(arg.Replace("repeat after me", string.Empty).Trim());
-
             return output;
         }
     }
