@@ -23,6 +23,7 @@
                http://www.codehosting.net/blog/BlogEngine/post/Simple-C-Web-Server.aspx 
                http://www.albahari.com/nutshell/cs5ch16.aspx */
 
+using jaNETFramework.AppConfig;
 using System;
 using System.IO;
 using System.Net;
@@ -78,16 +79,16 @@ namespace jaNETFramework
                     return;
 
                 try {
-                    if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.HttpAuthenticationPath).Count > 0)
+                    if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
                         Prefix = "http://" + Helpers.Xml.AppConfigQuery(
-                                                ApplicationSettings.ApplicationStructure.HttpHostNamePath)
+                                                AppStructure.HttpHostNamePath)
                                                 .Item(0).InnerText + ":" +
                                                 Helpers.Xml.AppConfigQuery(
-                                                ApplicationSettings.ApplicationStructure.HttpPortPath)
+                                                AppStructure.HttpPortPath)
                                                 .Item(0).InnerText + "/";
-                    if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.HttpAuthenticationPath).Count > 0)
+                    if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
                         AuthenticationType = Helpers.Xml.AppConfigQuery(
-                                                ApplicationSettings.ApplicationStructure.HttpAuthenticationPath)
+                                                AppStructure.HttpAuthenticationPath)
                                                 .Item(0).InnerText;
                 }
                 catch (NullReferenceException e) {
@@ -131,7 +132,7 @@ namespace jaNETFramework
                 //string[] MIME_Image = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico" };
                 //string[] MIME_Text = { ".html", ".htm", ".xml", ".css", ".js", ".txt" };
                 try {
-                    string mapPath = Methods.Instance.GetApplicationPath() + SimpleUriDecode(ctx.Request.RawUrl.Substring(1));
+                    string mapPath = Methods.Instance.GetApplicationPath + SimpleUriDecode(ctx.Request.RawUrl.Substring(1));
                     byte[] buf = null;
 
                     if (isAuthenticated(ctx)) {
@@ -177,7 +178,7 @@ namespace jaNETFramework
                         await s.WriteAsync(buf, 0, buf.Length);
                 }
                 catch (InvalidOperationException) {
-                    
+
                 }
                 catch (Exception e) {
                     if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))

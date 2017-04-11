@@ -60,7 +60,7 @@ namespace jaNETProgram
 
             while (Parser.ParserState) {
                 try {
-                    Console.Write(Environment.NewLine + Methods.Instance.WhoAmI() + "@jaNET>");
+                    Console.Write(Environment.NewLine + Methods.Instance.WhoAmI + "@jaNET>");
                     Console.ForegroundColor = ConsoleColor.Green;
 
                     string cmdReader = Console.ReadLine();

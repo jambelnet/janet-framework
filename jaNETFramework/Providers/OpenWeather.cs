@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNETFramework.AppConfig;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -113,7 +114,7 @@ namespace jaNETFramework
         internal OpenWeather() {
             Process.CallWithTimeout(() => {
                 try {
-                    string endpoint = Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.WeatherPath).Item(0).InnerText;
+                    string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
                     var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                     TodayConditions = oRootObject.weather[0].main;
                     TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");

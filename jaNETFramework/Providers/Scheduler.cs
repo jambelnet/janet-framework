@@ -100,7 +100,7 @@ namespace jaNETFramework
             new Thread(() => {
                 const string schedulerFilename = ".scheduler";
 
-                if (File.Exists(Methods.Instance.GetApplicationPath() + schedulerFilename)) {
+                if (File.Exists(Methods.Instance.GetApplicationPath + schedulerFilename)) {
                     if (ScheduleList.Count > 0)
                         ScheduleList.Clear();
                     var scheduleSettings = new Settings();
@@ -158,12 +158,12 @@ namespace jaNETFramework
 
             lock (_schedule_locker) {
                 while (oSchedule.Status) {
-                    if ((oSchedule.Date == Period.Repeat || oSchedule.Date == Period.Interval || oSchedule.Date == Period.Timer) ||                // repeated (ms)
-                        (oSchedule.Date == Period.Daily || oSchedule.Date == Period.Everyday) && oSchedule.Time == method.GetTime24() ||           // every day
-                         oSchedule.Date == Period.Workdays && oSchedule.Time == method.GetTime24() && WorkDays.Contains(DateTime.Now.DayOfWeek) || // workdays
-                         oSchedule.Date == Period.Weekends && oSchedule.Time == method.GetTime24() && Weekend.Contains(DateTime.Now.DayOfWeek) ||  // weekends
-                         oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()) && oSchedule.Time == method.GetTime24() ||                   // specific day
-                         oSchedule.Date == method.GetCalendarDate() && oSchedule.Time == method.GetTime24())                                       // specific date - only once, then deleted
+                    if ((oSchedule.Date == Period.Repeat || oSchedule.Date == Period.Interval || oSchedule.Date == Period.Timer) ||                 // repeated (ms)
+                        (oSchedule.Date == Period.Daily || oSchedule.Date == Period.Everyday) && oSchedule.Time == method.GetTime24 ||              // every day
+                         oSchedule.Date == Period.Workdays && oSchedule.Time == method.GetTime24 && WorkDays.Contains(DateTime.Now.DayOfWeek) ||    // workdays
+                         oSchedule.Date == Period.Weekends && oSchedule.Time == method.GetTime24 && Weekend.Contains(DateTime.Now.DayOfWeek) ||     // weekends
+                         oSchedule.Date.ToUpper().Contains(method.GetDay.ToUpper()) && oSchedule.Time == method.GetTime24 ||                        // specific day
+                         oSchedule.Date == method.GetCalendarDate && oSchedule.Time == method.GetTime24)                                            // specific date - only once, then deleted
                     {
                         if (!_done) {
                             if (method.GetInstructionSet(oSchedule.Action).Count > 0)
@@ -177,7 +177,7 @@ namespace jaNETFramework
                             //if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer &&
                             //    oSchedule.Date != Period.Daily && oSchedule.Date != Period.Everyday && oSchedule.Date != Period.Weekends &&
                             //    oSchedule.Date != Period.Workdays && !oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()))
-                            if (oSchedule.Date == method.GetCalendarDate() && oSchedule.Time == method.GetTime24())
+                            if (oSchedule.Date == method.GetCalendarDate && oSchedule.Time == method.GetTime24)
                                 ChangeStatus(oSchedule.Name, State.Remove);
                         }
                     }

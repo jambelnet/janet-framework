@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\AppConfig.cs" />
     <Compile Include="Application\Application.cs" />
     <Compile Include="Core\ParsingTools.cs" />
     <Compile Include="Extensions\Singleton.cs" />
@@ -51,7 +52,6 @@
     <Compile Include="Providers\Evaluator.cs" />
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\Helpers.cs" />
-    <Compile Include="Core\InstructionSet.cs" />
     <Compile Include="Application\Logger.cs" />
     <Compile Include="Application\Methods.cs" />
     <Compile Include="Network\Net.cs" />

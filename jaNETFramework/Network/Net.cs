@@ -20,19 +20,18 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using System;
-using System.Text;
+using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Net.Mail;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace jaNETFramework
 {

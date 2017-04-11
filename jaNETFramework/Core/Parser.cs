@@ -19,13 +19,14 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNETFramework.AppConfig;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Xml;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
+using System.Xml;
 using static jaNETFramework.Server.Web.Request;
 
 namespace jaNETFramework
@@ -112,8 +113,8 @@ namespace jaNETFramework
                 }
 
                 if (method.HasInternetConnection() && !disableSpeech) {
-                    if (!User.Status && output.Trim() != string.Empty && File.Exists(method.GetApplicationPath() + ".smtpsettings")) {
-                        XmlNodeList xList = method.GetMailHeaders();
+                    if (!User.Status && output.Trim() != string.Empty && File.Exists(method.GetApplicationPath + ".smtpsettings")) {
+                        XmlNodeList xList = method.GetMailHeaders;
 
                         foreach (XmlNode nodeItem in xList) {
                             Process.CallWithTimeout(() => new Net.Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
@@ -158,7 +159,7 @@ namespace jaNETFramework
                         Process.Instance.Start("say " + sText.ToString().Replace("_", string.Empty));
                 }
                 else {
-                    String jspeechPath = Methods.Instance.GetApplicationPath() + "jspeech.exe";
+                    String jspeechPath = Methods.Instance.GetApplicationPath + "jspeech.exe";
                     if (File.Exists(jspeechPath))
                         Process.Instance.Start(jspeechPath, sText.ToString().Replace("_", string.Empty));
                 }
@@ -170,8 +171,8 @@ namespace jaNETFramework
     {
         static readonly object _serial_locker = new object();
 
+        // params object[] args
         internal static string JudoParser(string arg) {
-            var appset = new ApplicationSettings();
             var method = Methods.Instance;
 
             string output = string.Empty;
@@ -217,16 +218,14 @@ namespace jaNETFramework
                         case "set":
                         case "setup":
                             if (args.Count() >= 4)
-                                output = method.AddToXML(new InstructionSet(args[3]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.ComPortElement);
+                                output = method.AddToXML(new Comm { ComPort = args[3] },
+                                                            AppStructure.SystemCommRoot);
                             if (args.Count() == 5)
-                                output = method.AddToXML(new InstructionSet(args[4]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.ComBaudRateElement);
+                                output = method.AddToXML(new Comm { BaudRate = args[4] },
+                                                            AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", appset.ComPort, appset.Baud);
+                            output = string.Format("{0}\r\n{1}", new Comm().getComPort, new Comm().getBaudRate);
                             break;
                         case "state":
                         case "status":
@@ -251,33 +250,36 @@ namespace jaNETFramework
                         case "set":
                         case "setup":
                             if (args.Count() == 5)
-                                output = method.AddToXML(new InstructionSet(args[3],   // ID
-                                                                            args[4]),  // Action
-                                                                            ApplicationSettings.ApplicationStructure.SystemInstructionsRoot,
-                                                                            "InstructionSet");
+                                output = method.AddToXML(
+                                            new InstructionSet {
+                                                Id = args[3],
+                                                Action = args[4]
+                                            },
+                                            AppStructure.SystemInstructionsRoot);
                             else
-                                output = method.AddToXML(new InstructionSet(args[3],                                                           // ID
-                                                                            args[4],                                                           // Action
-                                                                            args[5].Replace("\"", string.Empty).Replace("'", string.Empty),    // Category
-                                                                            args[6].Replace("\"", string.Empty).Replace("'", string.Empty),    // Header
-                                                                            args[7].Replace("\"", string.Empty).Replace("'", string.Empty),    // Short Description
-                                                                            args[8].Replace("\"", string.Empty).Replace("'", string.Empty),    // Description
-                                                                            args[9].Replace("\"", string.Empty).Replace("'", string.Empty),    // Thumbnail Url
-                                                                            args[10].Replace("\"", string.Empty).Replace("'", string.Empty)),  // Reference
-                                                                            ApplicationSettings.ApplicationStructure.SystemInstructionsRoot,
-                                                                            "InstructionSet");
+                                output = method.AddToXML(new InstructionSet {
+                                    Id = args[3],                                                                       // ID
+                                    Action = args[4],                                                                   // Action
+                                    Category = args[5].Replace("\"", string.Empty).Replace("'", string.Empty),          // Category
+                                    Header = args[6].Replace("\"", string.Empty).Replace("'", string.Empty),            // Header
+                                    ShortDescription = args[7].Replace("\"", string.Empty).Replace("'", string.Empty),  // Short Description
+                                    Description = args[8].Replace("\"", string.Empty).Replace("'", string.Empty),       // Description
+                                    ThumbnailUrl = args[9].Replace("\"", string.Empty).Replace("'", string.Empty),      // Thumbnail Url
+                                    Reference = args[10].Replace("\"", string.Empty).Replace("'", string.Empty)         // Reference
+                                },
+                                AppStructure.SystemInstructionsRoot);
                             break;
                         case "remove":
                         case "rm":
                         case "delete":
                         case "del":
                         case "kill":
-                            output = method.RemoveFromXML(args[3], ApplicationSettings.ApplicationStructure.SystemInstructionsRoot, "InstructionSet");
+                            output = method.RemoveFromXML(args[3], AppStructure.SystemInstructionsRoot, "InstructionSet");
                             break;
                         case "list":
                         case "ls":
                         default:
-                            XmlNodeList xList = method.GetXmlElementList(ApplicationSettings.ApplicationStructure.SystemInstructionsRoot, "InstructionSet");
+                            XmlNodeList xList = method.GetXmlElementList(AppStructure.SystemInstructionsRoot, "InstructionSet");
                             foreach (XmlNode nodeItem in xList)
                                 output += string.Format("{0}\r\n", nodeItem.OuterXml);
                             break;
@@ -290,22 +292,20 @@ namespace jaNETFramework
                         case "new":
                         case "set":
                         case "setup":
-                            output = method.AddToXML(new InstructionSet(args[3],
-                                                                        args[4]),
-                                                                        ApplicationSettings.ApplicationStructure.SystemEventsRoot,
-                                                                        "event");
+                            output = method.AddToXML(new Event { Id = args[3], Action = args[4] },
+                                                        AppStructure.SystemEventsRoot);
                             break;
                         case "remove":
                         case "rm":
                         case "delete":
                         case "del":
                         case "kill":
-                            output = method.RemoveFromXML(args[3], ApplicationSettings.ApplicationStructure.SystemEventsRoot, "event");
+                            output = method.RemoveFromXML(args[3], AppStructure.SystemEventsRoot, "event");
                             break;
                         case "list":
                         case "ls":
                         default:
-                            XmlNodeList xList = method.GetXmlElementList(ApplicationSettings.ApplicationStructure.SystemEventsRoot, "event");
+                            XmlNodeList xList = method.GetXmlElementList(AppStructure.SystemEventsRoot, "event");
                             foreach (XmlNode nodeItem in xList)
                                 output += string.Format("{0}\r\n", nodeItem.OuterXml);
                             break;
@@ -334,16 +334,14 @@ namespace jaNETFramework
                         case "set":
                         case "setup":
                             if (args.Count() >= 4)
-                                output = method.AddToXML(new InstructionSet(args[3]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.LocalHostElement);
+                                output = method.AddToXML(new Comm { LocalHost = args[3] },
+                                                            AppStructure.SystemCommRoot);
                             if (args.Count() == 5)
-                                output = method.AddToXML(new InstructionSet(args[4]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.LocalPortElement);
+                                output = method.AddToXML(new Comm { LocalPort = args[4] },
+                                                            AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", appset.LocalHost, appset.LocalPort);
+                            output = string.Format("{0}\r\n{1}", new Comm().getLocalHost, new Comm().getLocalPort);
                             break;
                         case "state":
                         case "status":
@@ -378,20 +376,17 @@ namespace jaNETFramework
                         case "set":
                         case "setup":
                             if (args.Count() >= 4)
-                                output = method.AddToXML(new InstructionSet(args[3]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.HttpHostNameElement);
+                                output = method.AddToXML(new Comm { Hostname = args[3] },
+                                                            AppStructure.SystemCommRoot);
                             if (args.Count() >= 5)
-                                output = method.AddToXML(new InstructionSet(args[4]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.HttpPortElement);
+                                output = method.AddToXML(new Comm { HttpPort = args[4] },
+                                                            AppStructure.SystemCommRoot);
                             if (args.Count() == 6)
-                                output = method.AddToXML(new InstructionSet(args[5]),
-                                                                            ApplicationSettings.ApplicationStructure.SystemCommRoot,
-                                                                            ApplicationSettings.ApplicationStructure.HttpAuthenticationElement);
+                                output = method.AddToXML(new Comm { Authentication = args[5] },
+                                                            AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}\r\n{2}", appset.HostName, appset.HttpPort, appset.Authentication);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", new Comm().getHostname, new Comm().getHttpPort, new Comm().getAuthentication);
                             break;
                         case "state":
                         case "status":
@@ -619,10 +614,12 @@ namespace jaNETFramework
                         case "new":
                         case "set":
                         case "setup":
-                            output = method.AddToXML(new InstructionSet(args[3], // ID
-                                                                        "judo json get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5]), //Action
-                                                                        ApplicationSettings.ApplicationStructure.SystemInstructionsRoot,
-                                                                        "InstructionSet");
+                            output = method.AddToXML(
+                                    new InstructionSet {
+                                        Id = args[3],
+                                        Action = "judo json get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5]
+                                    },
+                                    AppStructure.SystemInstructionsRoot);
                             break;
                         case "get":
                         case "response":
@@ -641,19 +638,28 @@ namespace jaNETFramework
                         case "setup":
                             switch (args.Count()) {
                                 case 6:
-                                    output = method.AddToXML(new InstructionSet(args[3], // ID
-                                                             "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5]), //Action
-                                                             ApplicationSettings.ApplicationStructure.SystemInstructionsRoot, "InstructionSet");
+                                    output = method.AddToXML(
+                                        new InstructionSet {
+                                            Id = args[3],
+                                            Action = "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5]
+                                        },
+                                        AppStructure.SystemInstructionsRoot);
                                     break;
                                 case 7:
-                                    output = method.AddToXML(new InstructionSet(args[3], // ID
-                                                             "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6]), //Action
-                                                             ApplicationSettings.ApplicationStructure.SystemInstructionsRoot, "InstructionSet");
+                                    output = method.AddToXML(
+                                        new InstructionSet {
+                                            Id = args[3],
+                                            Action = "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6]
+                                        },
+                                        AppStructure.SystemInstructionsRoot);
                                     break;
                                 case 8:
-                                    output = method.AddToXML(new InstructionSet(args[3], // ID
-                                                             "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6] + " " + args[7]), //Action
-                                                             ApplicationSettings.ApplicationStructure.SystemInstructionsRoot, "InstructionSet");
+                                    output = method.AddToXML(
+                                        new InstructionSet {
+                                            Id = args[3],
+                                            Action = "judo xml get " + Server.Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6] + " " + args[7]
+                                        },
+                                        AppStructure.SystemInstructionsRoot);
                                     break;
                             }
                             break;
@@ -690,12 +696,11 @@ namespace jaNETFramework
                     switch (args[2]) {
                         case "set":
                         case "setup":
-                            output = method.AddToXML(new InstructionSet(args[3]),
-                                                     ApplicationSettings.ApplicationStructure.SystemOthersRoot,
-                                                     ApplicationSettings.ApplicationStructure.Weather);
+                            output = method.AddToXML(new Others { Weather = args[3] },
+                            AppStructure.SystemOthersRoot);
                             break;
                         case "settings":
-                            output = appset.Weather;
+                            output = new Others().getWeather;
                             break;
                     }
                     break;
@@ -714,7 +719,7 @@ namespace jaNETFramework
             string output = string.Empty;
             var method = Methods.Instance;
 
-            string tmpSchedule = "schedule-" + method.GetDay() + method.GetCalendarYear() + "_" + method.GetHour() + method.GetMinute() + DateTime.Now.Second;
+            string tmpSchedule = "schedule-" + method.GetDay + method.GetCalendarYear + "_" + method.GetHour + method.GetMinute + DateTime.Now.Second;
 
             arg = arg.ToLower();
 

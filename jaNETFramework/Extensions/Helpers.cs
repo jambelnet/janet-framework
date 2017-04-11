@@ -98,7 +98,7 @@ namespace jaNETFramework
                 try {
                     var xmlDoc = new XmlDocument();
 
-                    xmlDoc.Load(Methods.Instance.GetApplicationPath() + "AppConfig.xml");
+                    xmlDoc.Load(Methods.Instance.GetApplicationPath + "AppConfig.xml");
 
                     return xmlDoc.SelectNodes(xPathNode);
                 }

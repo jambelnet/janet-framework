@@ -22,15 +22,28 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Web.Script.Serialization;
-using static jaNETFramework.Server.Web.Request;
+using System.Xml.Serialization;
 using static jaNETFramework.SerialComm;
+using static jaNETFramework.Server.Web.Request;
 
 namespace jaNETFramework
 {
     public static class ExtensionMethods
     {
+        internal static T ConvertTo<T>(this object input) {
+            return (T)Convert.ChangeType(input, typeof(T));
+        }
+
+        internal static void SerializeObject(this object obj, string filepath) {
+            var WriteFileStream = new StreamWriter(filepath);
+            var x = new XmlSerializer(obj.GetType());
+            x.Serialize(WriteFileStream, obj); //(Console.Out, obj);
+            WriteFileStream.Close();
+        }
+
         public static string Parse(this string args) {
             return Parser.Instance.Parse(args, DataType.text, false);
         }
@@ -68,7 +81,7 @@ namespace jaNETFramework
 
             switch (type.ToLower()) {
                 case "send":
-                    t= TypeOfSerialMessage.Send;
+                    t = TypeOfSerialMessage.Send;
                     break;
                 case "listen":
                     t = TypeOfSerialMessage.Listen;
@@ -150,7 +163,7 @@ namespace jaNETFramework
             if (context.Contains("%pop3count%"))
                 context = context.Replace("%pop3count%", new Net.Mail().Pop3Check().ToString());
             if (context.Contains("%user%") || context.Contains("%whoami%")) {
-                String whoami = method.WhoAmI();
+                String whoami = method.WhoAmI;
                 context = context.Replace("%user%", whoami)
                                  .Replace("%whoami%", whoami);
             }
@@ -165,27 +178,27 @@ namespace jaNETFramework
                                  .Replace("%checkout%", string.Empty);
             }
             if (context.Contains("%time%"))
-                context = context.Replace("%time%", method.GetTime());
+                context = context.Replace("%time%", method.GetTime);
             if (context.Contains("%time24%"))
-                context = context.Replace("%time24%", method.GetTime24());
+                context = context.Replace("%time24%", method.GetTime24);
             if (context.Contains("%hour%"))
-                context = context.Replace("%hour%", method.GetHour());
+                context = context.Replace("%hour%", method.GetHour);
             if (context.Contains("%minute%"))
-                context = context.Replace("%minute%", method.GetMinute());
+                context = context.Replace("%minute%", method.GetMinute);
             if (context.Contains("%date%"))
-                context = context.Replace("%date%", method.GetDate());
+                context = context.Replace("%date%", method.GetDate);
             if (context.Contains("%calendardate%"))
-                context = context.Replace("%calendardate%", method.GetCalendarDate());
+                context = context.Replace("%calendardate%", method.GetCalendarDate);
             if (context.Contains("%day%"))
-                context = context.Replace("%day%", method.GetDay());
+                context = context.Replace("%day%", method.GetDay);
             if (context.Contains("%calendarday%"))
-                context = context.Replace("%calendarday%", method.GetCalendarDay());
+                context = context.Replace("%calendarday%", method.GetCalendarDay);
             if (context.Contains("%calendarmonth%"))
-                context = context.Replace("%calendarmonth%", method.GetCalendarMonth());
+                context = context.Replace("%calendarmonth%", method.GetCalendarMonth);
             if (context.Contains("%calendaryear%"))
-                context = context.Replace("%calendaryear%", method.GetCalendarYear());
+                context = context.Replace("%calendaryear%", method.GetCalendarYear);
             if (context.Contains("%salute%"))
-                context = context.Replace("%salute%", method.GetSalute());
+                context = context.Replace("%salute%", method.GetSalute);
             if (context.Contains("%daypart%") || context.Contains("%partofday%")) {
                 String daypart = method.GetPartOfDay(false);
                 context = context.Replace("%daypart%", daypart)
@@ -230,18 +243,18 @@ namespace jaNETFramework
                                      .Replace("%userstat%", "absent")
                                      .Replace("%userstatus%", "absent");
             if (context.Contains("%uptime%"))
-                context = context.Replace("%uptime%", Application.Uptime.getAll);
+                context = context.Replace("%uptime%", Application.Uptime.GetAll);
             if (context.Contains("%updays%"))
-                context = context.Replace("%updays%", Application.Uptime.getDays.ToString());
+                context = context.Replace("%updays%", Application.Uptime.GetDays.ToString());
             if (context.Contains("%uphours%"))
-                context = context.Replace("%uphours%", Application.Uptime.getHours.ToString());
+                context = context.Replace("%uphours%", Application.Uptime.GetHours.ToString());
             if (context.Contains("%upminutes%"))
-                context = context.Replace("%upminutes%", Application.Uptime.getMinutes.ToString());
+                context = context.Replace("%upminutes%", Application.Uptime.GetMinutes.ToString());
             if (context.Contains("%upseconds%"))
-                context = context.Replace("%upseconds%", Application.Uptime.getSeconds.ToString());
+                context = context.Replace("%upseconds%", Application.Uptime.GetSeconds.ToString());
             if (context.Contains("%about%") || context.Contains("%copyright%"))
-                context = context.Replace("%about%", method.GetCopyright())
-                                 .Replace("%copyright%", method.GetCopyright());
+                context = context.Replace("%about%", method.GetCopyright)
+                                 .Replace("%copyright%", method.GetCopyright);
 
             // If Event
             if (context.Contains("%~>")) {

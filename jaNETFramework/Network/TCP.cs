@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNETFramework.AppConfig;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -56,18 +57,18 @@ namespace jaNETFramework
                     Int32 port = 5744;
                     String trusted = "127.0.0.1";
 
-                    if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.LocalHostPath).Count > 0)
+                    if (Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Count > 0)
                         localAddr = IPAddress.Parse(
                             Helpers.Xml.AppConfigQuery(
-                            ApplicationSettings.ApplicationStructure.LocalHostPath)
+                            AppStructure.LocalHostPath)
                             .Item(0).InnerText.Replace("localhost", "127.0.0.1"));
-                    if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.LocalPortPath).Count > 0)
+                    if (Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Count > 0)
                         port = Convert.ToInt32(
                             Helpers.Xml.AppConfigQuery(
-                            ApplicationSettings.ApplicationStructure.LocalPortPath)
+                            AppStructure.LocalPortPath)
                             .Item(0).InnerText);
-                    if (Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.TrustedPath).Count > 0)
-                        trusted = Helpers.Xml.AppConfigQuery(ApplicationSettings.ApplicationStructure.TrustedPath)
+                    if (Helpers.Xml.AppConfigQuery(AppStructure.TrustedPath).Count > 0)
+                        trusted = Helpers.Xml.AppConfigQuery(AppStructure.TrustedPath)
                             .Item(0).InnerText.Replace("localhost", "127.0.0.1");
 
                     server = new TcpListener(localAddr, port);

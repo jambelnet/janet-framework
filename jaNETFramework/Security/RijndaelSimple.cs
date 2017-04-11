@@ -9,8 +9,8 @@
 // 
 using System;
 using System.IO;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
 
 /// <summary>
 /// This class uses a symmetric key algorithm (Rijndael/AES) to encrypt and 

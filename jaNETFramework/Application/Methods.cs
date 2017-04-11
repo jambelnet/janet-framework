@@ -19,10 +19,14 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNETFramework.AppConfig;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace jaNETFramework
 {
@@ -30,15 +34,17 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.2.9.95";
+        public const string AssemblyVersion = "0.2.9.97";
 
-        public string GetCopyright() {
-            String cp = string.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
+        public string GetCopyright {
+            get {
+                String cp = string.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
 
-            if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
-                cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";
+                if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
+                    cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";
 
-            return cp;
+                return cp;
+            }
         }
 
         public bool UpdateAvailable(int assemblyVersion) {
@@ -53,24 +59,30 @@ namespace jaNETFramework
             return (currentVersion > assemblyVersion);
         }
 
-        public string GetWinPath() {
-            return Directory.GetCurrentDirectory();
+        public string GetWinPath {
+            get {
+                return Directory.GetCurrentDirectory();
+            }
         }
 
-        public string GetLinuxPath() {
-            return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/"));
+        public string GetLinuxPath {
+            get {
+                return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/"));
+            }
         }
 
-        public string GetApplicationPath() {
-            string Path = string.Empty;
+        public string GetApplicationPath {
+            get {
+                string Path = string.Empty;
 
-            if (OperatingSystem.Version == OperatingSystem.Type.Unix ||
-                OperatingSystem.Version == OperatingSystem.Type.MacOS)
-                Path = GetLinuxPath() + "/";
-            else if (OperatingSystem.Version == OperatingSystem.Type.Windows)
-                Path = GetWinPath() + @"\";
+                if (OperatingSystem.Version == OperatingSystem.Type.Unix ||
+                    OperatingSystem.Version == OperatingSystem.Type.MacOS)
+                    Path = GetLinuxPath + "/";
+                else if (OperatingSystem.Version == OperatingSystem.Type.Windows)
+                    Path = GetWinPath + @"\";
 
-            return Path;
+                return Path;
+            }
         }
 
         public string GetPartOfDay(bool salute) {
@@ -94,68 +106,94 @@ namespace jaNETFramework
             return string.Empty;
         }
 
-        public string GetSalute() {
-            return GetPartOfDay(true);
+        public string GetSalute {
+            get {
+                return GetPartOfDay(true);
+            }
         }
 
-        public string GetTime() {
-            return (string.Format("{0:t}", DateTime.Now));
+        public string GetTime {
+            get {
+                return (string.Format("{0:t}", DateTime.Now));
+            }
         }
 
-        public string GetTime24() {
-            return (string.Format("{0:HH:mm}", DateTime.Now));
+        public string GetTime24 {
+            get {
+                return (string.Format("{0:HH:mm}", DateTime.Now));
+            }
         }
 
-        public string GetHour() {
-            return (string.Format("{0:HH}", DateTime.Now));
+        public string GetHour {
+            get {
+                return (string.Format("{0:HH}", DateTime.Now));
+            }
         }
 
-        public string GetMinute() {
-            return (string.Format("{0:mm}", DateTime.Now));
+        public string GetMinute {
+            get {
+                return (string.Format("{0:mm}", DateTime.Now));
+            }
         }
 
-        public string GetDate() {
-            return (string.Format("{0:M}", DateTime.Now));
+        public string GetDate {
+            get {
+                return (string.Format("{0:M}", DateTime.Now));
+            }
         }
 
-        public string GetCalendarDate() {
-            return (string.Format("{0:d/M/yyyy}", DateTime.Now));
+        public string GetCalendarDate {
+            get {
+                return (string.Format("{0:d/M/yyyy}", DateTime.Now));
+            }
         }
 
-        public string GetDay() {
-            return (DateTime.Now.DayOfWeek.ToString());
+        public string GetDay {
+            get {
+                return (DateTime.Now.DayOfWeek.ToString());
+            }
         }
 
-        public string GetCalendarDay() {
-            return (DateTime.Now.Day.ToString());
+        public string GetCalendarDay {
+            get {
+                return (DateTime.Now.Day.ToString());
+            }
         }
 
-        public string GetCalendarMonth() {
-            return (DateTime.Now.Month.ToString());
+        public string GetCalendarMonth {
+            get {
+                return (DateTime.Now.Month.ToString());
+            }
         }
 
-        public string GetCalendarYear() {
-            return (DateTime.Now.Year.ToString());
+        public string GetCalendarYear {
+            get {
+                return (DateTime.Now.Year.ToString());
+            }
         }
 
-        public string WhoAmI() {
-            return Environment.UserName;
+        public string WhoAmI {
+            get {
+                return Environment.UserName;
+            }
         }
 
         public XmlNodeList GetEvent(string eventID) {
             return Helpers.Xml.AppConfigQuery(
-                ApplicationSettings.ApplicationStructure.SystemEventsRoot +
+                AppStructure.SystemEventsRoot +
                 "/event[@id='" + eventID + "']");
         }
 
         public XmlNodeList GetInstructionSet(string instructionID) {
             return Helpers.Xml.AppConfigQuery(
-                ApplicationSettings.ApplicationStructure.SystemInstructionsRoot +
+                AppStructure.SystemInstructionsRoot +
                 "/InstructionSet[@id='" + instructionID + "']");
         }
 
-        public XmlNodeList GetMailHeaders() {
-            return Helpers.Xml.AppConfigQuery("jaNET/System/Alerts/MailHeaders");
+        public XmlNodeList GetMailHeaders {
+            get {
+                return Helpers.Xml.AppConfigQuery("jaNET/System/Alerts/MailHeaders");
+            }
         }
 
         public XmlNodeList GetXmlElementList(string xPath, string elementName) {
@@ -179,79 +217,61 @@ namespace jaNETFramework
             }
         }
 
-        internal string AddToXML(InstructionSet newElement, string xPath, string elementName) {
+        internal string AddToXML(object newElement, string xPath) {
+            //http://stackoverflow.com/questions/6637679/reflection-get-attribute-name-and-value-on-property
+
+            string path = GetApplicationPath + "AppConfig.xml";
+            string backup = path + ".bak";
+
             try {
-                string path = GetApplicationPath() + "AppConfig.xml";
+                var xdoc = XDocument.Load(path);
 
-                var xmldoc = new XmlDocument();
-                using (XmlReader xmlReader = XmlReader.Create(path))
-                    xmldoc.Load(xmlReader);
+                var props = newElement.GetType().GetProperties().ToList();
+                props.RemoveAll(item => item.GetValue(newElement, null) == null ||
+                                item.GetValue(newElement, null).ToString() == string.Empty ||
+                                item.CustomAttributes.FirstOrDefault().AttributeType.Name == "XmlTextAttribute");
 
-                File.Copy(path, path + ".bak", true);
+                File.Copy(path, backup, true);
                 File.Delete(path);
 
-                XmlNode xmlnode = xmldoc.SelectSingleNode(xPath); //"jaNET/Instructions");
-                // InstructionSet
-                XmlElement NewElement = xmldoc.CreateElement(elementName); //("InstructionSet");
-                // ID
-                XmlAttribute NewAttributeID = xmldoc.CreateAttribute("id");
-                NewAttributeID.Value = newElement.Id;
-                // Category
-                XmlAttribute NewAttributeCateg = xmldoc.CreateAttribute("categ");
-                NewAttributeCateg.Value = newElement.Category;
-                // Header
-                XmlAttribute NewAttributeHeader = xmldoc.CreateAttribute("header");
-                NewAttributeHeader.Value = newElement.Header;
-                // Short Description
-                XmlAttribute NewAttributeShortDescr = xmldoc.CreateAttribute("shortdescr");
-                NewAttributeShortDescr.Value = newElement.ShortDescription;
-                // Description
-                XmlAttribute NewAttributeDescr = xmldoc.CreateAttribute("descr");
-                NewAttributeDescr.Value = newElement.Description;
-                // Thumbnail
-                XmlAttribute NewAttributeImg = xmldoc.CreateAttribute("img");
-                NewAttributeImg.Value = newElement.ThumbnailUrl;
-                // Reference to other Instruction Set
-                XmlAttribute NewAttributeReference = xmldoc.CreateAttribute("ref");
-                NewAttributeReference.Value = newElement.Reference;
-                // Action
-                NewElement.InnerText = newElement.Action;
+                xPath = xPath.Substring(xPath.LastIndexOf('/') + 1);
+                string element = newElement.GetType().CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString();
 
-                if (NewAttributeID.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeID);
-                if (NewAttributeCateg.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeCateg);
-                if (NewAttributeHeader.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeHeader);
-                if (NewAttributeShortDescr.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeShortDescr);
-                if (NewAttributeDescr.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeDescr);
-                if (NewAttributeImg.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeImg);
-                if (NewAttributeReference.Value != string.Empty)
-                    NewElement.SetAttributeNode(NewAttributeReference);
+                if (newElement is InstructionSet || newElement is Event) {
+                    var xattrs = new List<XAttribute>();
 
-                if (NewAttributeID.Value == string.Empty)
-                    xmlnode.SelectSingleNode(elementName).InnerText = NewElement.InnerText;
-                else {
-                    xmlnode.InsertAfter(NewElement, xmlnode.LastChild);
-                    xmldoc.DocumentElement.AppendChild(xmlnode);
+                    props.ForEach(p => xattrs.Add(
+                        new XAttribute(
+                            typeof(InstructionSet).GetProperty(p.Name).GetCustomAttributesData().FirstOrDefault()
+                            .NamedArguments.FirstOrDefault().TypedValue.Value.ToString(),
+                            p.GetValue(newElement))));
+
+                    xdoc.Root.Element(xPath)
+                                .Add(
+                                    new XElement(element,
+                                    xattrs,
+                                    new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null))
+                         ));
                 }
+                else
+                    props.ForEach(a => xdoc.Descendants(a.CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString())
+                                           .Single().Value = a.GetValue(newElement, null).ToString());
 
-                xmldoc.Save(path);
-
+                xdoc.Save(path);
                 return "Element added.";
             }
             catch (Exception e) {
+                // Restore the AppConfig.xml
+                File.Copy(backup, path);
                 return string.Format("{0}\r\nPlease try again.", e.Message);
             }
         }
 
         internal string RemoveFromXML(string elementID, string xPath, string elementName) {
-            try {
-                string path = GetApplicationPath() + "AppConfig.xml";
+            string path = GetApplicationPath + "AppConfig.xml";
+            string backup = path + ".bak";
 
+            try {
                 var xmldoc = new XmlDocument();
                 using (XmlReader xmlReader = XmlReader.Create(path))
                     xmldoc.Load(xmlReader);
@@ -271,6 +291,8 @@ namespace jaNETFramework
                 return "Element removed.";
             }
             catch (Exception e) {
+                // Restore the AppConfig.xml
+                File.Copy(backup, path);
                 return string.Format("{0}\r\nPlease try again.", e.Message);
             }
         }
@@ -479,7 +501,7 @@ namespace jaNETFramework
                                 "     7.2 Close\r\n" +
                                 "         + judo serial close\r\n" +
                                 "     7.3 Send Command\r\n" +
-                                "         + judo serial send [Command]\r\n" +
+                                "         + judo serial send [Command] [Timeout in ms (optional)]\r\n" +
                                 "     7.4 Setup\r\n" +
                                 "         + judo serial set [Port] [Baud]\r\n" +
                                 "         + judo serial setup [Port] [Baud]\r\n" +
@@ -553,7 +575,7 @@ namespace jaNETFramework
                                 "(**) <lock>parser protected document</lock> Lock tags used to bypass parser.\r\n" +
                                 "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, ping, help";
             const
-            string _all =   _inset + "\r\n" +
+            string _all = _inset + "\r\n" +
                             _mail + "\r\n" +
                             _sms + "\r\n" +
                             _schedule + "\r\n" +

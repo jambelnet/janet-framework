@@ -37,7 +37,7 @@ namespace jaNETFramework
 
         internal virtual void Append(string logMessage) {
             lock (_log_locker)
-                using (StreamWriter w = File.AppendText(Methods.Instance.GetApplicationPath() + "log.txt"))
+                using (StreamWriter w = File.AppendText(Methods.Instance.GetApplicationPath + "log.txt"))
                     Append(logMessage, w);
         }
 

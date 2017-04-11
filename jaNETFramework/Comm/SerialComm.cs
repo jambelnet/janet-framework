@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNETFramework.AppConfig;
 using System;
 using System.IO;
 using System.IO.Ports;
@@ -52,14 +53,14 @@ namespace jaNETFramework
                 // Port
                 if (portName == string.Empty)
                     port.PortName = Helpers.Xml.AppConfigQuery(
-                        ApplicationSettings.ApplicationStructure.ComPortPath)
+                        AppStructure.ComPortPath)
                         .Item(0).InnerText;
                 else
                     port.PortName = portName;
                 // Baud
                 port.BaudRate = Convert.ToInt32(
                     Helpers.Xml.AppConfigQuery(
-                    ApplicationSettings.ApplicationStructure.ComBaudRatePath)
+                    AppStructure.ComBaudRatePath)
                     .Item(0).InnerText);
 
                 port.Open();
@@ -90,12 +91,12 @@ namespace jaNETFramework
 
                         if (SerialData != string.Empty &&
                             Helpers.Xml.AppConfigQuery(
-                            ApplicationSettings.ApplicationStructure.SystemEventsRoot +
+                            AppStructure.SystemEventsRoot +
                             "/event[@id='" + SerialData + "']").Count > 0) {
                             Action ParseSerialData = () => {
                                 try {
                                     Helpers.Xml.AppConfigQuery(
-                                    ApplicationSettings.ApplicationStructure.SystemEventsRoot +
+                                    AppStructure.SystemEventsRoot +
                                     "/event[@id='" + SerialData + "']").Item(0).InnerText.Parse();
                                 }
                                 catch {
