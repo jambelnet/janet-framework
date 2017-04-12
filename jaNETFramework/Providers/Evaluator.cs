@@ -101,18 +101,15 @@ namespace jaNETFramework
         static internal string EvaluateCondition(string sValue) {
             sValue = sValue.Replace("\r", " ").Replace("\n", " ");
 
-            MatchCollection mItems = Regex.Matches(sValue, @"\{(.*?)\}");
+            var mItems = Regex.Matches(sValue, @"\{(.*?)\}");
 
             foreach (Match matchString in mItems) {
                 if (matchString.Success) {
-                    string[] args = matchString.ToString().Split(';');
+                    string[] args = matchString.Value.Split(';');
                     if (args[0].Contains("*"))
                         args[0] = ParsingTools.ParseTokens(args[0]);
                     if (args[0].Contains("evalBool")) {
-                        string condition = args[0].Replace("{", string.Empty)
-                                                  .Replace("evalBool", string.Empty)
-                                                  .Replace("(", string.Empty)
-                                                  .Replace(")", string.Empty).ToValues();
+                        string condition = Regex.Replace(args[0], "evalBool|[{}]|[()]", string.Empty).Trim();
 
                         bool e;
 
@@ -121,10 +118,10 @@ namespace jaNETFramework
                             e = vals[0].Replace("\"", string.Empty).Contains(vals[1].Replace("\"", string.Empty));
                         }
                         else
-                            e = Evaluator.EvaluateToBool(condition);
+                            e = EvaluateToBool(condition);
 
-                        sValue = e ? sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true)) :
-                                     sValue.Replace(matchString.ToString(), Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true));
+                        sValue = e ? sValue.Replace(matchString.Value, Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true)) :
+                                     sValue.Replace(matchString.Value, Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true));
                     }
                 }
             }

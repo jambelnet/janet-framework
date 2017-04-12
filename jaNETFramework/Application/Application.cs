@@ -75,11 +75,11 @@ namespace jaNETFramework
 
             var comm = new Comm();
 
-            if (!String.IsNullOrEmpty(comm.getHostname))
+            if (!string.IsNullOrEmpty(comm.getHostname))
                 Server.Web.Start();
-            if (!String.IsNullOrEmpty(comm.getLocalHost))
+            if (!string.IsNullOrEmpty(comm.getLocalHost))
                 Server.TCP.Start();
-            if (!String.IsNullOrEmpty(comm.getComPort))
+            if (!string.IsNullOrEmpty(comm.getComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
 
             "%checkin%".ToValues();
@@ -95,8 +95,8 @@ namespace jaNETFramework
             // 
             root.System.Alerts = new Alerts();
             root.System.Alerts.MailHeaders = new MailHeaders {
-                MailFrom = "noreply@jubito.org",
-                MailTo = "me@xxx.com",
+                MailFrom = "noreply@xxx.org",
+                MailTo = "me@yyy.org",
                 MailSubject = "Alert from Jubito"
             };
             root.System.Comm = new Comm {
@@ -446,13 +446,25 @@ namespace jaNETFramework
                 Action = "*userstatuswidget"
             });
             li.Add(new InstructionSet() {
+                Id = "*eval_check_in_out",
+                Action = "Evaluating your status. *checkinout *sleeper"
+            });
+            li.Add(new InstructionSet() {
                 Id = "eval_check_in_out",
-                Action = "*checkinout",
+                Action = "*eval_check_in_out Your status has been changed.",
                 Description = "Change user status by evaluating current status",
                 ShortDescription = "User check-in/check-out",
                 Header = "Check-in/Check-out",
                 Category = "User",
                 Reference = "userstatuswidget"
+            });
+            li.Add(new InstructionSet() {
+                Id = "*sleeper",
+                Action = "judo sleep 2000"
+            });
+            li.Add(new InstructionSet() {
+                Id = "sleeper",
+                Action = "*sleeper"
             });
             root.Instructions.InstructionSet = li;
 

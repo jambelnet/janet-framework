@@ -31,8 +31,8 @@ namespace jaNETFramework
 
         internal string Start(string sFilePath) {
             if (sFilePath.Trim().Contains(" ")) {
-                String fileName = sFilePath.Substring(0, sFilePath.IndexOf(' '));
-                String arguments = sFilePath.Substring(fileName.Length);
+                string fileName = sFilePath.Substring(0, sFilePath.IndexOf(' '));
+                string arguments = sFilePath.Substring(fileName.Length);
                 return Start(fileName, arguments);
             }
             return Start(sFilePath, string.Empty);

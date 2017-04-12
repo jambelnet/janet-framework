@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using static jaNETFramework.SerialComm;
@@ -57,7 +58,7 @@ namespace jaNETFramework
         }
 
         internal static Schedule ToSchedule(this string rawSchedule) {
-            string[] args = ParsingTools.SplitArguments(rawSchedule);
+            List<String> args = ParsingTools.SplitArguments(rawSchedule);
             var s = new Schedule {
                 Name = args[0],
                 Date = args[1].ToLower().FixScheduleDate(),
@@ -65,7 +66,7 @@ namespace jaNETFramework
                 Action = args[3].Replace("\"", string.Empty)
                                 .Replace("'", string.Empty),
             };
-            s.Status = args.Length > 4 ? s.Status = Convert.ToBoolean(args[4]) : s.Status = Convert.ToBoolean(Schedule.State.Enable);
+            s.Status = args.Count > 4 ? s.Status = Convert.ToBoolean(args[4]) : s.Status = Convert.ToBoolean(Schedule.State.Enable);
             return s;
         }
 
@@ -147,7 +148,7 @@ namespace jaNETFramework
                 context = context.Replace("%unmute%", string.Empty);
             }
             if (context.Contains("%inet%") || context.Contains("%inetcon%")) {
-                String con = method.HasInternetConnection().ToString();
+                string con = method.HasInternetConnection().ToString();
                 context = context.Replace("%inet%", con)
                                  .Replace("%inetcon%", con);
             }
@@ -162,7 +163,7 @@ namespace jaNETFramework
             if (context.Contains("%pop3count%"))
                 context = context.Replace("%pop3count%", new Net.Mail().Pop3Check().ToString());
             if (context.Contains("%user%") || context.Contains("%whoami%")) {
-                String whoami = method.WhoAmI;
+                string whoami = method.WhoAmI;
                 context = context.Replace("%user%", whoami)
                                  .Replace("%whoami%", whoami);
             }
@@ -199,7 +200,7 @@ namespace jaNETFramework
             if (context.Contains("%salute%"))
                 context = context.Replace("%salute%", method.GetSalute);
             if (context.Contains("%daypart%") || context.Contains("%partofday%")) {
-                String daypart = method.GetPartOfDay(false);
+                string daypart = method.GetPartOfDay(false);
                 context = context.Replace("%daypart%", daypart)
                                  .Replace("%partofday%", daypart);
             }
@@ -262,7 +263,8 @@ namespace jaNETFramework
                 context = context.Replace(context, string.Empty);
             }
 
-            return context;
+            //return context;
+            return Regex.Replace(context, @"[^\S\r\n]+", " ");
         }
     }
 }

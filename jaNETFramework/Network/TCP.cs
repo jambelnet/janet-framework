@@ -53,9 +53,9 @@ namespace jaNETFramework
 
             static void ListenForClients() {
                 try {
-                    IPAddress localAddr = IPAddress.Parse("127.0.0.1");
-                    Int32 port = 5744;
-                    String trusted = "127.0.0.1";
+                    var localAddr = IPAddress.Parse("127.0.0.1");
+                    int port = 5744;
+                    string trusted = "127.0.0.1";
 
                     if (Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Count > 0)
                         localAddr = IPAddress.Parse(
@@ -79,7 +79,7 @@ namespace jaNETFramework
 
                     // Buffer for reading data
                     var bytes = new Byte[1024];
-                    String data = null;
+                    string data = null;
 
                     // Enter the listening loop.
                     while (ServerState) {
@@ -97,10 +97,10 @@ namespace jaNETFramework
                             // Translate data bytes to a ASCII string.
                             data += Web.SimpleUriDecode(Encoding.ASCII.GetString(bytes, 0, i));
 
-                            Match mItem = Regex.Match(data, "GET.*HTTP");
+                            var mItem = Regex.Match(data, "GET.*HTTP");
 
                             if (mItem.Success) {
-                                data = string.Format("{0}\r\n", mItem.ToString().Replace("GET /", string.Empty).Replace("HTTP", string.Empty).Trim());
+                                data = string.Format("{0}\r\n", mItem.Value.Replace("GET /", string.Empty).Replace("HTTP", string.Empty).Trim());
                                 if (data.ToLower().Contains("favicon.ico"))
                                     break;
                             }

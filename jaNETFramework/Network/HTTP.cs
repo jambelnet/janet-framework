@@ -28,6 +28,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace jaNETFramework
@@ -154,11 +155,9 @@ namespace jaNETFramework
                             if (mapPath.Contains("&mode=text"))
                                 t = Request.DataType.text;
 
-                            buf = Encoding.UTF8.GetBytes(Parser.Instance.Parse(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal))
-                                                               .Replace("?cmd=", string.Empty)
-                                                               .Replace("&mode=text", string.Empty)
-                                                               .Replace("&mode=json", string.Empty)
-                                                               .Replace("&mode=html", string.Empty)
+                            buf = Encoding.UTF8.GetBytes(Parser.Instance.Parse(
+                                                                Regex.Replace(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal)),
+                                                                @"\?cmd=|&mode=text|&mode=json|&mode=html", string.Empty)
                                                                , t, false));
                         }
                         else
@@ -197,24 +196,6 @@ namespace jaNETFramework
             internal static void Stop() {
                 httplistener.Stop();
             }
-
-            /*internal static void Restart()
-            {
-                httplistener.Stop();
-                Thread.Sleep(500);
-                Start();
-            }*/
-
-            /*static string SendResponse(string request)
-            {
-                var client = new WebClient();
-
-                if (request.Contains("?cmd="))
-                    return Parser.Parse(request.Substring(request.LastIndexOf("?cmd="))
-                                                                 .Replace("?cmd=", string.Empty), true, false);
-
-                return client.DownloadString(request);
-            }*/
 
             static readonly string[,] CharSet = {
                 {" ", "%20"},

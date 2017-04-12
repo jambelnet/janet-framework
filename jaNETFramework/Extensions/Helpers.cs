@@ -30,7 +30,7 @@ namespace jaNETFramework
     static class Helpers
     {
         internal static String getRawData(string uri) {
-            String rawData;
+            string rawData;
 
             using (var wc = new WebClient())
                 rawData = wc.DownloadString(uri);
@@ -57,7 +57,7 @@ namespace jaNETFramework
                 var e = new List<String>();
 
                 foreach (XmlNode n in nodes)
-                    if (!String.IsNullOrEmpty(attribute))
+                    if (!string.IsNullOrEmpty(attribute))
                         e.Add(n.Attributes[attribute].InnerText);
                     else
                         e.Add(n.InnerText);

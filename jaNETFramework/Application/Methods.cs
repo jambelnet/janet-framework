@@ -34,11 +34,11 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.00";
+        public const string AssemblyVersion = "0.3.0.01";
 
         public string GetCopyright {
             get {
-                String cp = string.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
+                string cp = string.Format("jaNET Framework [Version {0}]\r\nCopyright (c) 2010-{1} J@mBeL.net", AssemblyVersion, DateTime.Now.Year);
 
                 if (UpdateAvailable(Convert.ToInt32(AssemblyVersion.Replace(".", string.Empty))))
                     cp += "\r\n\r\nNew update available.\r\nPlease visit http://www.jubito.org/download.html";
@@ -228,7 +228,7 @@ namespace jaNETFramework
 
                 var props = newElement.GetType().GetProperties().ToList();
                 props.RemoveAll(item => item.GetValue(newElement, null) == null ||
-                                item.GetValue(newElement, null).ToString() == string.Empty ||
+                                item.GetValue(newElement, null).ToString().Trim() == string.Empty ||
                                 item.CustomAttributes.FirstOrDefault().AttributeType.Name == "XmlTextAttribute");
 
                 File.Copy(path, backup, true);
@@ -249,9 +249,9 @@ namespace jaNETFramework
                     xdoc.Root.Element(xPath)
                                 .Add(
                                     new XElement(element,
-                                    xattrs,
-                                    new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null))
-                         ));
+                                        xattrs,
+                                        new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null))
+                                    ));
                 }
                 else
                     props.ForEach(a => xdoc.Descendants(a.CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString())

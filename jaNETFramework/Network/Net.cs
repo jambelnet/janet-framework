@@ -225,7 +225,7 @@ namespace jaNETFramework
                             msg2.number, msg2.message);*/
                         if (msg2.Message.Contains("<" + KeyWord + ">")) {
                             //If a command found to mail subject
-                            Match Command = Regex.Match(msg2.Message.Replace("\r\n", " "), @"(<" + KeyWord + ">)(.*?)(?=</" + KeyWord + ">)");
+                            var Command = Regex.Match(msg2.Message.Replace("\r\n", " "), @"(<" + KeyWord + ">)(.*?)(?=</" + KeyWord + ">)");
                             Command.ToString().ToLower().Replace("<" + KeyWord + ">", string.Empty).Parse();
                             obj.Delete(msg2);
                         }

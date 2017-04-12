@@ -21,30 +21,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace jaNETFramework
 {
     class ParsingTools
     {
-        internal static string[] SplitArguments(string arg) {
-            var argList = new List<String>();
-            MatchCollection mItems = Regex.Matches(arg, @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+");
+        internal static List<String> SplitArguments(string arg) {
+            string splitter = @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+"; // Split arguments
+            string replaceConstraints = @"""|'|`|\/\*|\*\/"; // Replace constraints
+            string replaceLocker = @"<lock>|</lock>"; // Replace locker tags
 
-            foreach (Match matchString in mItems)
-                if (!matchString.Value.Contains("</lock>"))
-                    argList.Add(matchString.Value.Replace("/*", string.Empty)
-                                                 .Replace("*/", string.Empty)
-                                                 .Replace("`", string.Empty)
-                                                 .Replace("'", string.Empty)
-                                                 .Replace("\"", string.Empty)
-                                                 .Trim());
-                else
-                    argList.Add(matchString.Value.Replace("<lock>", string.Empty)
-                                                 .Replace("</lock>", string.Empty)
-                                                 .Trim());
+            string pattern = arg.Contains("</lock>") ? replaceLocker : replaceConstraints;
 
-            return argList.ToArray();
+            var ls = new List<String>();
+            var mItems = Regex.Matches(arg, splitter);
+
+            mItems.Cast<Match>().ToList()
+                                .ForEach(matchString => ls.Add(Regex.Replace(matchString.Value.Trim(), pattern, string.Empty)));
+
+            return ls;
         }
 
         internal static string ParseTokens(string sValue) {
@@ -52,13 +49,13 @@ namespace jaNETFramework
                 sValue = sValue.ToValues();
 
             while (sValue.Contains("*")) {
-                MatchCollection mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
+                var mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
 
                 if (mItems.Count > 0)
                     foreach (Match matchString in mItems) {
                         if (matchString.Success) {
-                            string retval = ParseTokens(Methods.Instance.GetInstructionSet(matchString.ToString().Trim()).Item(0).InnerText);
-                            sValue = sValue.Replace(matchString.ToString().Trim(), retval);
+                            sValue = sValue.Replace(matchString.Value.Trim(),
+                                                    ParseTokens(Methods.Instance.GetInstructionSet(matchString.Value.Trim()).Item(0).InnerText));
                         }
                     }
                 else
@@ -70,10 +67,10 @@ namespace jaNETFramework
 
             if (sValue.Contains("./") || sValue.Contains("judo")) {
                 if (sValue.StartsWith("./")) {
-                    MatchCollection mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
+                    var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
 
-                    String fileName = string.Empty;
-                    String arguments = string.Empty;
+                    string fileName = string.Empty;
+                    string arguments = string.Empty;
 
                     if (mItems.Count == 0)
                         fileName = sValue.Replace("./", string.Empty);
