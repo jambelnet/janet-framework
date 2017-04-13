@@ -29,9 +29,9 @@ namespace jaNETFramework
     class ParsingTools
     {
         internal static List<String> SplitArguments(string arg) {
-            string splitter = @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+"; // Split arguments
-            string replaceConstraints = @"""|'|`|\/\*|\*\/"; // Replace constraints
-            string replaceLocker = @"<lock>|</lock>"; // Replace locker tags
+            string splitter = @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+";  // Split arguments
+            string replaceConstraints = @"""|'|`|\/\*|\*\/";                                                // Replace constraints
+            string replaceLocker = @"<lock>|</lock>";                                                       // Replace locker tags
 
             string pattern = arg.Contains("</lock>") ? replaceLocker : replaceConstraints;
 
@@ -45,6 +45,7 @@ namespace jaNETFramework
         }
 
         internal static string ParseTokens(string sValue) {
+            // Built-in functions
             if (sValue.Contains("%"))
                 sValue = sValue.ToValues();
 
@@ -61,32 +62,35 @@ namespace jaNETFramework
                 else
                     break;
             }
-
+            // Evaluation
             if (sValue.Contains("evalBool"))
                 sValue = Evaluator.EvaluateCondition(sValue);
 
-            if (sValue.Contains("./") || sValue.Contains("judo")) {
-                if (sValue.StartsWith("./")) {
-                    var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
+            // Process application
+            if (sValue.StartsWith("./")) {
+                var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
 
-                    string fileName = string.Empty;
-                    string arguments = string.Empty;
-
-                    if (mItems.Count == 0)
-                        fileName = sValue.Replace("./", string.Empty);
-                    else if (mItems.Count == 1)
-                        fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                    if (mItems.Count == 2) {
-                        fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                        arguments = mItems[1].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                    }
-
-                    return Process.Instance.Start(fileName, arguments);
+                string fileName = string.Empty;
+                string arguments = string.Empty;
+                // Applicaton invokation
+                if (mItems.Count == 0)
+                    fileName = sValue.Replace("./", string.Empty);
+                // Applicaton invokation surrounded with quotes
+                else if (mItems.Count == 1)
+                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
+                // Applicaton invokation with arguments
+                if (mItems.Count == 2) {
+                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
+                    arguments = mItems[1].Value.Replace("`", string.Empty).Replace("'", string.Empty);
                 }
-                if (sValue.StartsWith("judo"))
-                    return sValue.Replace(sValue, Judoers.JudoParser(sValue));
-                // + "\r\n"; Causing problem to evaluation - need solution
+
+                return Process.Instance.Start(fileName, arguments);
             }
+            // judo API command
+            if (sValue.StartsWith("judo"))
+                return sValue.Replace(sValue, Judoers.JudoParser(sValue));
+            // + "\r\n"; Causing problem to evaluation - need solution
+
             return sValue;
         }
     }

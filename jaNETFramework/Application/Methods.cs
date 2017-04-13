@@ -34,7 +34,7 @@ namespace jaNETFramework
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.01";
+        public const string AssemblyVersion = "0.3.0.02";
 
         public string GetCopyright {
             get {
