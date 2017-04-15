@@ -31,7 +31,7 @@ using System.Threading;
 
 namespace jaNET.Net.Sockets
 {
-    internal static class TCP
+    static class TCP
     {
         static TcpListener server;
         internal static volatile bool ServerState;

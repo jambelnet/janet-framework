@@ -182,7 +182,7 @@ namespace jaNET.Net
         }
     }
 
-    internal class Mail
+    class Mail
     {
         internal bool Send(string sFrom, string sTo, string sSubject, string sBody) {
             if (!Methods.Instance.HasInternetConnection())
@@ -205,7 +205,8 @@ namespace jaNET.Net
                     smtpClient.EnableSsl = smtpSettings.SSL;
                     if (smtpClient.EnableSsl)
                         ServicePointManager.ServerCertificateValidationCallback =
-                            delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
+                            (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) => true;
+                    //delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
                     smtpClient.Send(mail);
                     return true;
                 }

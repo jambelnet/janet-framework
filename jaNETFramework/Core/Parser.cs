@@ -92,7 +92,7 @@ namespace jaNET.Environment
                 if (arg.StartsWith("%") ||
                     arg.StartsWith("./") ||
                     arg.StartsWith("judo")) {
-                    return ParsingTools.ParseTokens(arg);
+                    return arg.ParseTokens();
                 }
                 else {
                     XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
@@ -105,7 +105,7 @@ namespace jaNET.Environment
                     }
                     else
                         foreach (XmlNode nodeItem in xList)
-                            output += string.Format("{0}\r\n", ParsingTools.ParseTokens(nodeItem.InnerText));
+                            output += string.Format("{0}\r\n", nodeItem.InnerText.ParseTokens());
                 }
 
                 if (method.HasInternetConnection() &&       // Is connected to the Internet
@@ -167,7 +167,7 @@ namespace jaNET.Environment
             var com = new Comm();
             var settings = new Settings();
 
-            var args = arg.Contains("</lock>") ? ParsingTools.SplitArguments(arg) : ParsingTools.SplitArguments(arg.ToValues());
+            var args = arg.Contains("</lock>") ? arg.SplitArguments() : arg.ToValues().SplitArguments();
 
             string output = string.Empty;
 
@@ -387,7 +387,7 @@ namespace jaNET.Environment
                         case "new":
                         case "set":
                         case "setup":
-                            var s = ParsingTools.ParseTokens(arg.Replace("judo schedule add ", string.Empty)).ToSchedule(); // Temporary
+                            var s = arg.ParseTokens().Replace("judo schedule add ", string.Empty).ToSchedule(); // Temporary
 
                             if (s.Date == Schedule.Period.Repeat || s.Date == Schedule.Period.Interval || s.Date == Schedule.Period.Timer)
                                 output = Schedule.Add(s, Convert.ToInt32(s.Time));

@@ -28,12 +28,12 @@ using System.Text.RegularExpressions;
 
 namespace jaNET.Environment
 {
-    class ParsingTools
+    static class ParsingTools
     {
-        internal static List<String> SplitArguments(string arg) {
-            string splitter = @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+";  // Split arguments
-            string constraints = @"""|'|`|\/\*|\*\/";                                                       // Replace constraints
-            string locker = "<lock>|</lock>";                                                               // locker
+        internal static List<String> SplitArguments(this string arg) {
+            const string splitter = @"(<lock>.*?</lock>)|(""[^""]+"")|('[^']+')|(`[^`]+`)|(\/\*.*?\*\/)|[\S+]+";  // Split arguments
+            const string constraints = @"""|'|`|\/\*|\*\/";                                                       // Replace constraints
+            const string locker = "<lock>|</lock>";                                                               // locker
 
             var ls = new List<String>();
             var mItems = Regex.Matches(arg, splitter);
@@ -45,7 +45,7 @@ namespace jaNET.Environment
             return ls;
         }
 
-        internal static string ParseTokens(string sValue) {
+        internal static string ParseTokens(this string sValue) {
             // Process application
             if (sValue.StartsWith("./")) {
                 var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");

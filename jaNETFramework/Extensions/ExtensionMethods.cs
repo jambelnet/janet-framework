@@ -55,12 +55,12 @@ namespace jaNET
             return new JavaScriptSerializer().Serialize(res);
         }
 
-        internal static string ToDictString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
+        internal static string ToDictString<TKey, TValue>(this IEnumerable<KeyValuePair<string, KeyValuePair<TKey, TValue>>> dictionary) {
             return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToList());
         }
 
         internal static Schedule ToSchedule(this string rawSchedule) {
-            List<String> args = ParsingTools.SplitArguments(rawSchedule);
+            List<String> args = rawSchedule.SplitArguments();
             var s = new Schedule {
                 Name = args[0],
                 Date = args[1].ToLower().FixScheduleDate(),

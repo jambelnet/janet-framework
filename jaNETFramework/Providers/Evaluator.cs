@@ -32,28 +32,28 @@ namespace jaNET.Providers
 {
     class Evaluator
     {
-        private Evaluator(EvaluatorItem[] items) {
+        Evaluator(EvaluatorItem[] items) {
             ConstructEvaluator(items);
         }
 
-        private Evaluator(Type returnType, string expression, string name) {
+        Evaluator(Type returnType, string expression, string name) {
             EvaluatorItem[] items = { new EvaluatorItem(returnType, expression, name) };
             ConstructEvaluator(items);
         }
 
-        private Evaluator(EvaluatorItem item) {
+        Evaluator(EvaluatorItem item) {
             EvaluatorItem[] items = { item };
             ConstructEvaluator(items);
         }
 
-        private void ConstructEvaluator(EvaluatorItem[] items) {
+        void ConstructEvaluator(EvaluatorItem[] items) {
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-            CompilerParameters comp = new CompilerParameters();
+            var comp = new CompilerParameters();
             //comp.ReferencedAssemblies.Add("system.dll");
             //comp.GenerateExecutable = false;
             //comp.GenerateInMemory = true;
 
-            StringBuilder code = new StringBuilder();
+            var code = new StringBuilder();
             code.Append("using System; \n");
             code.Append("namespace libJanet { \n");
             code.Append("public class _Evaluator { \n");
@@ -68,7 +68,7 @@ namespace jaNET.Providers
 
             CompilerResults cr = provider.CompileAssemblyFromSource(comp, code.ToString());
             if (cr.Errors.HasErrors) {
-                StringBuilder error = new StringBuilder();
+                var error = new StringBuilder();
                 error.Append("Error Compiling Expression: ");
                 foreach (CompilerError err in cr.Errors) {
                     error.AppendFormat("{0}\n", err.ErrorText);
@@ -80,19 +80,19 @@ namespace jaNET.Providers
         }
 
         #region Private Members
-        private int EvaluateInt(string name) {
+        int EvaluateInt(string name) {
             return (int)Evaluate(name);
         }
 
-        private string EvaluateString(string name) {
+        string EvaluateString(string name) {
             return (string)Evaluate(name);
         }
 
-        private bool EvaluateBool(string name) {
+        bool EvaluateBool(string name) {
             return (bool)Evaluate(name);
         }
 
-        private object Evaluate(string name) {
+        object Evaluate(string name) {
             MethodInfo mi = _Compiled.GetType().GetMethod(name);
             return mi.Invoke(_Compiled, null);
         }
@@ -108,7 +108,7 @@ namespace jaNET.Providers
                 if (matchString.Success) {
                     string[] args = matchString.Value.Split(';');
                     if (args[0].Contains("*"))
-                        args[0] = ParsingTools.ParseTokens(args[0]);
+                        args [0] = args[0].ParseTokens();
                     if (args[0].Contains("evalBool")) {
                         string condition = Regex.Replace(args[0], "evalBool|[{}]|[()]", string.Empty).Trim();
 
@@ -130,22 +130,22 @@ namespace jaNET.Providers
         }
 
         static internal int EvaluateToInteger(string code) {
-            Evaluator eval = new Evaluator(typeof(int), code, staticMethodName);
+            var eval = new Evaluator(typeof(int), code, staticMethodName);
             return (int)eval.Evaluate(staticMethodName);
         }
 
         static internal string EvaluateToString(string code) {
-            Evaluator eval = new Evaluator(typeof(string), code, staticMethodName);
+            var eval = new Evaluator(typeof(string), code, staticMethodName);
             return (string)eval.Evaluate(staticMethodName);
         }
 
         static internal bool EvaluateToBool(string code) {
-            Evaluator eval = new Evaluator(typeof(bool), code, staticMethodName);
+            var eval = new Evaluator(typeof(bool), code, staticMethodName);
             return (bool)eval.Evaluate(staticMethodName);
         }
 
         static internal object EvaluateToObject(string code) {
-            Evaluator eval = new Evaluator(typeof(object), code, staticMethodName);
+            var eval = new Evaluator(typeof(object), code, staticMethodName);
             return eval.Evaluate(staticMethodName);
         }
         #endregion
@@ -153,7 +153,7 @@ namespace jaNET.Providers
         #region Private
         const string staticMethodName = "__foo";
         //Type _CompiledType = null;
-        object _Compiled = null;
+        object _Compiled; // = null;
         #endregion
     }
 

@@ -24,7 +24,7 @@ using System.Xml.Serialization;
 
 namespace jaNET.Environment.AppConfig
 {
-    internal struct AppStructure
+    struct AppStructure
     {
         // Nodes
         internal const string SystemCommRoot = "jaNET/System/Comm";

@@ -173,8 +173,9 @@ namespace jaNET.Providers
                             else
                                 Parser.Instance.SayText(oSchedule.Action);
 
-                            if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer)
-                                _done = true;
+                            _done |= oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer;
+                            /*if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer)
+                                _done = true;*/
 
                             if (oSchedule.Date == method.GetCalendarDate && oSchedule.Time == method.GetTime24)
                                 ChangeStatus(oSchedule.Name, State.Remove);
