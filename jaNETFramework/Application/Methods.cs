@@ -19,7 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-using jaNETFramework.AppConfig;
+using jaNET.Environment.AppConfig;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,13 +28,13 @@ using System.Net;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace jaNETFramework
+namespace jaNET.Environment
 {
     public class Methods
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.02";
+        public const string AssemblyVersion = "0.3.0.03";
 
         public string GetCopyright {
             get {
@@ -67,7 +67,7 @@ namespace jaNETFramework
 
         public string GetLinuxPath {
             get {
-                return Environment.CommandLine.Substring(0, Environment.CommandLine.LastIndexOf("/"));
+                return System.Environment.CommandLine.Substring(0, System.Environment.CommandLine.LastIndexOf("/"));
             }
         }
 
@@ -174,7 +174,7 @@ namespace jaNETFramework
 
         public string WhoAmI {
             get {
-                return Environment.UserName;
+                return System.Environment.UserName;
             }
         }
 
@@ -218,7 +218,7 @@ namespace jaNETFramework
         }
 
         internal string AddToXML(object newElement, string xPath) {
-            //http://stackoverflow.com/questions/6637679/reflection-get-attribute-name-and-value-on-property
+            // http://stackoverflow.com/questions/6637679/reflection-get-attribute-name-and-value-on-property
 
             string path = GetApplicationPath + "AppConfig.xml";
             string backup = path + ".bak";
@@ -250,7 +250,7 @@ namespace jaNETFramework
                                 .Add(
                                     new XElement(element,
                                         xattrs,
-                                        new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null))
+                                        new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null).ToString().Trim())
                                     ));
                 }
                 else
@@ -304,23 +304,23 @@ namespace jaNETFramework
             }
         }
 
-        internal string getHelp(string chapter) {
+        internal string getHelp(string appendix) {
             const
             string _inset = "1.  Instruction Sets & Events\r\n" +
                                 "     1.1 Add New Instruction Set\r\n" +
-                                "         + judo inset add <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
-                                "         + judo inset new <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
-                                "         + judo inset set <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
-                                "         + judo inset setup <lock>[ID]</lock> <lock>[Action]</lock>\r\n" +
+                                "         + judo inset add [ID] <lock>[Action]</lock>\r\n" +
+                                "         + judo inset new [ID] <lock>[Action]</lock>\r\n" +
+                                "         + judo inset set [ID] <lock>[Action]</lock>\r\n" +
+                                "         + judo inset setup [ID] <lock>[Action]</lock>\r\n" +
                                 "         + judo inset add [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short  Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`\r\n" +
                                 "         + judo inset new [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short  Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`\r\n" +
                                 "         + judo inset set [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short  Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`\r\n" +
                                 "         + judo inset setup  [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`\r\n" +
                                 "     1.2 Remove Instruction Set\r\n" +
-                                "         + judo inset remove <lock>[ID]</lock>\r\n" +
-                                "         + judo inset delete <lock>[ID]</lock>\r\n" +
-                                "         + judo inset del <lock>[ID]</lock>\r\n" +
-                                "         + judo inset kill <lock>[ID]</lock>\r\n" +
+                                "         + judo inset remove [ID]\r\n" +
+                                "         + judo inset delete [ID]\r\n" +
+                                "         + judo inset del [ID]\r\n" +
+                                "         + judo inset kill [ID]\r\n" +
                                 "     1.3 List Items\r\n" +
                                 "         + judo inset list\r\n" +
                                 "         + judo inset ls\r\n" +
@@ -516,7 +516,6 @@ namespace jaNETFramework
             const
             string _cloud = "8.  Web Services\r\n" +
                                 "     8.1 Json Setup\r\n" +
-                                //"       Create an instance (Instruction Set) for the response method.\r\n" +
                                 "         + judo json add [ID] [Endpoint] [Node]\r\n" +
                                 "         + judo json new [ID] [Endpoint] [Node]\r\n" +
                                 "         + judo json set [ID] [Endpoint] [Node]\r\n" +
@@ -572,7 +571,7 @@ namespace jaNETFramework
                                 "         + judo help [help keyword]\r\n" +
                                 "         + judo ? [help keyword]\r\n\r\n" +
                                 "(*) Brackets are mandatory when place a sentence as one argument.\r\n" +
-                                "(**) <lock>parser protected document</lock> Lock tags used to bypass parser.\r\n" +
+                                "(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.\r\n" +
                                 "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, ping, help";
             const
             string _all = _inset + "\r\n" +
@@ -588,7 +587,7 @@ namespace jaNETFramework
                             _ping + "\r\n" +
                             _help + "\r\n";
 
-            switch (chapter) {
+            switch (appendix) {
                 case "inset":
                 case "event":
                     return _inset;

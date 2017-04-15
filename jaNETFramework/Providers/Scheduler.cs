@@ -19,6 +19,8 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Environment;
+using jaNET.IO;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -27,7 +29,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace jaNETFramework
+namespace jaNET.Providers
 {
     class Schedule
     {
@@ -70,7 +72,7 @@ namespace jaNETFramework
         }
 
         internal Schedule() {
-            //
+
         }
 
         internal Schedule(string sName, string sDate, string sTime, string sAction, bool bStatus) {
@@ -104,7 +106,7 @@ namespace jaNETFramework
                     if (ScheduleList.Count > 0)
                         ScheduleList.Clear();
                     var scheduleSettings = new Settings();
-                    var Schedules = scheduleSettings.LoadSettings(schedulerFilename);
+                    var Schedules = scheduleSettings.Load(schedulerFilename);
                     foreach (string schedule in Schedules)
                         if (schedule != string.Empty) {
                             var s = schedule.ToSchedule();
@@ -127,7 +129,7 @@ namespace jaNETFramework
             foreach (Schedule schedule in ScheduleList)
                 schedules += string.Format("{0} {1} {2} '{3}' {4}\r\n", schedule.Name, schedule.Date, schedule.Time, schedule.Action, schedule.Status);
 
-            scheduleSettings.SaveSettings(schedulerPath, schedules);
+            scheduleSettings.Save(schedulerPath, schedules);
         }
 
         internal static string Add(Schedule ss) {
@@ -174,9 +176,6 @@ namespace jaNETFramework
                             if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer)
                                 _done = true;
 
-                            //if (oSchedule.Date != Period.Repeat && oSchedule.Date != Period.Interval && oSchedule.Date != Period.Timer &&
-                            //    oSchedule.Date != Period.Daily && oSchedule.Date != Period.Everyday && oSchedule.Date != Period.Weekends &&
-                            //    oSchedule.Date != Period.Workdays && !oSchedule.Date.ToUpper().Contains(method.GetDay().ToUpper()))
                             if (oSchedule.Date == method.GetCalendarDate && oSchedule.Time == method.GetTime24)
                                 ChangeStatus(oSchedule.Name, State.Remove);
                         }

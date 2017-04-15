@@ -23,7 +23,7 @@ using System.Text;
 /// </summary>
 /// 
 
-namespace jaNETFramework
+namespace jaNET.Security
 {
     static class RijndaelSimple
     {

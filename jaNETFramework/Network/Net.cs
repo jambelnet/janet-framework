@@ -19,6 +19,9 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Diagnostics;
+using jaNET.Environment;
+using jaNET.IO;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -33,9 +36,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace jaNETFramework
+namespace jaNET.Net
 {
-    static class Net
+    static class NetInfo
     {
         internal static class SimplePing
         {
@@ -47,10 +50,10 @@ namespace jaNETFramework
                 return Pinger(host, timeout);
             }
 
-            // original post: http://www.java2s.com/Code/CSharp/Network/SimplePing.htm
-            // modified by jambel
+            // Original post: http://www.java2s.com/Code/CSharp/Network/SimplePing.htm
+            // Modified by jambel
             // TCP Ping
-            // original post: http://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
+            // Original post: http://stackoverflow.com/questions/26067342/how-to-implement-psping-tcp-ping-in-c-sharp
             static bool altPing(string endPoint) {
                 try {
                     IPHostEntry hostEntry;
@@ -177,379 +180,373 @@ namespace jaNETFramework
                 return (UInt16)(~chcksm);
             }
         }
+    }
 
-        internal class Mail
-        {
-            internal bool Send(string sFrom, string sTo, string sSubject, string sBody) {
-                if (!Methods.Instance.HasInternetConnection())
-                    return false;
+    internal class Mail
+    {
+        internal bool Send(string sFrom, string sTo, string sSubject, string sBody) {
+            if (!Methods.Instance.HasInternetConnection())
+                return false;
 
-                try {
-                    var smtpSettings = new SmtpSettings();
+            try {
+                var smtpSettings = new SmtpSettings();
 
-                    if (smtpSettings.Host != null) {
-                        var mail = new MailMessage();
+                if (smtpSettings.Host != null) {
+                    var mail = new MailMessage();
 
-                        mail.From = new MailAddress(sFrom);
-                        mail.To.Add(sTo);
-                        mail.Subject = sSubject;
-                        mail.Body = sBody;
+                    mail.From = new MailAddress(sFrom);
+                    mail.To.Add(sTo);
+                    mail.Subject = sSubject;
+                    mail.Body = sBody;
 
-                        var smtpClient = new SmtpClient(smtpSettings.Host);
-                        smtpClient.Port = smtpSettings.Port;
-                        smtpClient.Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password);
-                        smtpClient.EnableSsl = smtpSettings.SSL;
-                        if (smtpClient.EnableSsl)
-                            ServicePointManager.ServerCertificateValidationCallback =
-                                delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
-                        smtpClient.Send(mail);
-                        return true;
-                    }
-                    return false; // Settings not found
+                    var smtpClient = new SmtpClient(smtpSettings.Host);
+                    smtpClient.Port = smtpSettings.Port;
+                    smtpClient.Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password);
+                    smtpClient.EnableSsl = smtpSettings.SSL;
+                    if (smtpClient.EnableSsl)
+                        ServicePointManager.ServerCertificateValidationCallback =
+                            delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
+                    smtpClient.Send(mail);
+                    return true;
                 }
-                catch {
-                    return false;
+                return false; // Settings not found
+            }
+            catch {
+                return false;
+            }
+        }
+
+        internal int Pop3Check() {
+            try {
+                var pop3Settings = new Pop3Settings();
+                var obj = new Pop3();
+                obj.Connect(pop3Settings.Host, pop3Settings.Username, pop3Settings.Password, pop3Settings.Port);
+                string KeyWord = Helpers.Xml.AppConfigQuery("jaNET/System/Comm/MailKeyword").Item(0).InnerText;
+
+                foreach (Pop3Message msg in obj.List()) {
+                    Pop3Message msg2 = obj.Retrieve(msg);
+                    /*Console.WriteLine("Message {0}: {1}",
+                        msg2.number, msg2.message);*/
+                    if (msg2.Message.Contains("<" + KeyWord + ">")) {
+                        //If a command found to mail subject
+                        var Command = Regex.Match(msg2.Message.Replace("\r\n", " "), @"(<" + KeyWord + ">)(.*?)(?=</" + KeyWord + ">)");
+                        Command.ToString().ToLower().Replace("<" + KeyWord + ">", string.Empty).Parse();
+                        obj.Delete(msg2);
+                    }
+                    else {
+                        // For Future Use
+                        /*Match From = Regex.Match(msg2.message, @"(?<=From: )(.*?)(?= <)");
+                        Match Subject = Regex.Match(msg2.message, @"(?<=Subject: )(.*?)(?=\\r\\nDate: )"); //(?<=Subject:</B> )(.*?)(?=</)");
+                        MailList.Add("From " + From.ToString() + ", Subject " + Subject.ToString());*/
+                        //From pattern (?<=From: \\\")(.*?)(?=\\\")
+                        //Subject pattern (?<=Subject: )(.*?)(?=\\r)
+                    }
+                }
+                obj.Disconnect();
+                return obj.List().Count;
+            }
+            catch {
+                return 0;
+            }
+        }
+
+        internal string GmailCheck(bool countOnly) {
+            try {
+                // Change SSL checks so that all checks pass
+                ServicePointManager.ServerCertificateValidationCallback =
+                    new RemoteCertificateValidationCallback(
+                        delegate { return true; }
+                    );
+
+                WebRequest webGmailRequest = WebRequest.Create(@"https://mail.google.com/mail/feed/atom");
+                webGmailRequest.PreAuthenticate = true;
+
+                var gmailSettings = new GmailSettings();
+                string gmailUser = gmailSettings.Username;
+                string gmailPassword = gmailSettings.Password;
+                var loginCredentials = new NetworkCredential(gmailUser, gmailPassword);
+                webGmailRequest.Credentials = loginCredentials;
+
+                WebResponse webGmailResponse = webGmailRequest.GetResponse();
+                Stream strmUnreadMailInfo = webGmailResponse.GetResponseStream();
+
+                var sbUnreadMailInfo = new StringBuilder(); var buffer = new byte[8192]; int byteCount = 0;
+
+                while ((byteCount = strmUnreadMailInfo.Read(buffer, 0, buffer.Length)) > 0)
+                    sbUnreadMailInfo.Append(Encoding.ASCII.GetString(buffer, 0, byteCount));
+
+                var UnreadMailXmlDoc = new XmlDocument();
+                UnreadMailXmlDoc.LoadXml(sbUnreadMailInfo.ToString());
+                XmlNodeList UnreadMailEntries = UnreadMailXmlDoc.GetElementsByTagName("entry");
+
+                if (!countOnly) {
+                    string output = string.Empty;
+                    for (int i = 0; i < UnreadMailEntries.Count; ++i) {
+                        output += string.Format("{0}\r\n", ("Message " + (i + 1)));
+                        output += string.Format("{0}\r\n", ("Subject: " + (UnreadMailEntries[i]["title"]).InnerText));
+                        output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText +
+                                    " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
+                        output += string.Format("{0}\r\n", ("Date: " + DateTime.Parse((UnreadMailEntries[i]["modified"]).InnerText)));
+                    }
+                    output += "Total: " + UnreadMailEntries.Count;
+                    return output;
+                }
+                return UnreadMailEntries.Count.ToString();
+            }
+            catch {
+                return "0";
+            }
+        }
+
+        public class Pop3Exception : ApplicationException
+        {
+            public Pop3Exception(string str)
+                : base(str) {
+            }
+        }
+        public class Pop3Message
+        {
+            public long Number;
+            public long Bytes;
+            public bool Retrieved;
+            public string Message;
+        }
+        public class Pop3 : TcpClient
+        {
+            public void Connect(string server, string username, string password, int port) {
+                try {
+                    string message;
+                    string response;
+
+                    Connect(server, port);
+                    response = Response();
+                    if (response == string.Empty) {
+                        throw new Pop3Exception(response);
+                    }
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+
+                    message = "USER " + username + "\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+
+                    message = "PASS " + password + "\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+                }
+                catch (Exception e) {
+                    Debug.Print(e.Message);
                 }
             }
-
-            internal int Pop3Check() {
+            public void Disconnect() {
                 try {
-                    var pop3Settings = new Pop3Settings();
-                    var obj = new Pop3();
-                    obj.Connect(pop3Settings.Host, pop3Settings.Username, pop3Settings.Password, pop3Settings.Port);
-                    string KeyWord = Helpers.Xml.AppConfigQuery("jaNET/System/Comm/MailKeyword").Item(0).InnerText;
+                    string message;
+                    string response;
+                    message = "QUIT\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+                }
+                catch (Exception e) {
+                    Debug.Print(e.Message);
+                }
+            }
+            public ArrayList List() {
+                try {
+                    string message;
+                    string response;
 
-                    foreach (Pop3Message msg in obj.List()) {
-                        Pop3Message msg2 = obj.Retrieve(msg);
-                        /*Console.WriteLine("Message {0}: {1}",
-                            msg2.number, msg2.message);*/
-                        if (msg2.Message.Contains("<" + KeyWord + ">")) {
-                            //If a command found to mail subject
-                            var Command = Regex.Match(msg2.Message.Replace("\r\n", " "), @"(<" + KeyWord + ">)(.*?)(?=</" + KeyWord + ">)");
-                            Command.ToString().ToLower().Replace("<" + KeyWord + ">", string.Empty).Parse();
-                            obj.Delete(msg2);
+                    var retval = new ArrayList();
+                    message = "LIST\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+
+                    while (true) {
+                        response = Response();
+                        if (response == ".\r\n") {
+                            return retval;
                         }
                         else {
-                            //For Future Use
-                            /*Match From = Regex.Match(msg2.message, @"(?<=From: )(.*?)(?= <)");
-                            Match Subject = Regex.Match(msg2.message, @"(?<=Subject: )(.*?)(?=\\r\\nDate: )"); //(?<=Subject:</B> )(.*?)(?=</)");
-                            MailList.Add("From " + From.ToString() + ", Subject " + Subject.ToString());*/
-                            //From pattern (?<=From: \\\")(.*?)(?=\\\")
-                            //Subject pattern (?<=Subject: )(.*?)(?=\\r)
+                            var msg = new Pop3Message();
+                            char[] seps = { ' ' };
+                            string[] values = response.Split(seps);
+                            msg.Number = Int32.Parse(values[0]);
+                            msg.Bytes = Int32.Parse(values[1]);
+                            msg.Retrieved = false;
+                            retval.Add(msg);
+                            continue;
                         }
                     }
-                    obj.Disconnect();
-                    return obj.List().Count;
                 }
-                catch {
-                    return 0;
+                catch (Exception e) {
+                    Debug.Print(e.Message);
+                    return null;
                 }
             }
-
-            internal string GmailCheck(bool countOnly) {
+            public Pop3Message Retrieve(Pop3Message rhs) {
                 try {
-                    //Change SSL checks so that all checks pass
-                    ServicePointManager.ServerCertificateValidationCallback =
-                        new RemoteCertificateValidationCallback(
-                            delegate { return true; }
-                        );
+                    string message;
+                    string response;
 
-                    WebRequest webGmailRequest = WebRequest.Create(@"https://mail.google.com/mail/feed/atom");
-                    webGmailRequest.PreAuthenticate = true;
+                    var msg = new Pop3Message();
+                    msg.Bytes = rhs.Bytes;
+                    msg.Number = rhs.Number;
 
-                    var gmailSettings = new GmailSettings();
-                    string gmailUser = gmailSettings.Username;
-                    string gmailPassword = gmailSettings.Password;
-                    var loginCredentials = new NetworkCredential(gmailUser, gmailPassword);
-                    webGmailRequest.Credentials = loginCredentials;
-
-                    WebResponse webGmailResponse = webGmailRequest.GetResponse();
-                    Stream strmUnreadMailInfo = webGmailResponse.GetResponseStream();
-
-                    var sbUnreadMailInfo = new StringBuilder(); var buffer = new byte[8192]; int byteCount = 0;
-
-                    while ((byteCount = strmUnreadMailInfo.Read(buffer, 0, buffer.Length)) > 0)
-                        sbUnreadMailInfo.Append(Encoding.ASCII.GetString(buffer, 0, byteCount));
-
-                    var UnreadMailXmlDoc = new XmlDocument();
-                    UnreadMailXmlDoc.LoadXml(sbUnreadMailInfo.ToString());
-                    XmlNodeList UnreadMailEntries = UnreadMailXmlDoc.GetElementsByTagName("entry");
-
-                    if (!countOnly) {
-                        string output = string.Empty;
-                        for (int i = 0; i < UnreadMailEntries.Count; ++i) {
-                            output += string.Format("{0}\r\n", ("Message " + (i + 1)));
-                            output += string.Format("{0}\r\n", ("Subject: " + (UnreadMailEntries[i]["title"]).InnerText));
-                            output += string.Format("{0}\r\n", ("From: " + (UnreadMailEntries[i]["author"])["name"].InnerText +
-                                        " <" + (UnreadMailEntries[i]["author"])["email"].InnerText + ">"));
-                            output += string.Format("{0}\r\n", ("Date: " + DateTime.Parse((UnreadMailEntries[i]["modified"]).InnerText)));
-                        }
-                        output += "Total: " + UnreadMailEntries.Count;
-                        return output;
+                    message = "RETR " + rhs.Number + "\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
                     }
-                    return UnreadMailEntries.Count.ToString();
+
+                    msg.Retrieved = true;
+                    while (true) {
+                        response = Response();
+                        if (response == ".\r\n") {
+                            break;
+                        }
+                        else {
+                            msg.Message += response;
+                        }
+                    }
+                    return msg;
                 }
-                catch {
-                    return "0";
+                catch (Exception e) {
+                    Debug.Print(e.Message);
+                    return null;
                 }
             }
+            public void Delete(Pop3Message rhs) {
+                try {
+                    string message;
+                    string response;
 
-            public class Pop3Exception : ApplicationException
-            {
-                public Pop3Exception(string str)
-                    : base(str) {
+                    message = "DELE " + rhs.Number + "\r\n";
+                    Write(message);
+                    response = Response();
+                    if (response.Substring(0, 3) != "+OK") {
+                        throw new Pop3Exception(response);
+                    }
+                }
+                catch (Exception e) {
+                    Debug.Print(e.Message);
                 }
             }
-            public class Pop3Message
-            {
-                public long Number;
-                public long Bytes;
-                public bool Retrieved;
-                public string Message;
+            void Write(string message) {
+                try {
+                    var en = new ASCIIEncoding();
+
+                    byte[] WriteBuffer = new byte[1024];
+                    WriteBuffer = en.GetBytes(message);
+
+                    NetworkStream stream = GetStream();
+                    stream.Write(WriteBuffer, 0, WriteBuffer.Length);
+
+                    //Debug.WriteLine("WRITE:" + message);
+                }
+                catch (Exception e) {
+                    Debug.Print(e.Message);
+                }
             }
-            public class Pop3 : TcpClient
-            {
-                public void Connect(string server, string username, string password, int port) {
-                    try {
-                        string message;
-                        string response;
-
-                        Connect(server, port);
-                        response = Response();
-                        if (response == string.Empty) {
-                            throw new Pop3Exception(response);
-                        }
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-
-                        message = "USER " + username + "\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-
-                        message = "PASS " + password + "\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                    }
-                }
-                public void Disconnect() {
-                    try {
-                        string message;
-                        string response;
-                        message = "QUIT\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                    }
-                }
-                public ArrayList List() {
-                    try {
-                        string message;
-                        string response;
-
-                        var retval = new ArrayList();
-                        message = "LIST\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-
-                        while (true) {
-                            response = Response();
-                            if (response == ".\r\n") {
-                                return retval;
-                            }
-                            else {
-                                var msg = new Pop3Message();
-                                char[] seps = { ' ' };
-                                string[] values = response.Split(seps);
-                                msg.Number = Int32.Parse(values[0]);
-                                msg.Bytes = Int32.Parse(values[1]);
-                                msg.Retrieved = false;
-                                retval.Add(msg);
-                                continue;
-                            }
-                        }
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                        return null;
-                    }
-                }
-                public Pop3Message Retrieve(Pop3Message rhs) {
-                    try {
-                        string message;
-                        string response;
-
-                        var msg = new Pop3Message();
-                        msg.Bytes = rhs.Bytes;
-                        msg.Number = rhs.Number;
-
-                        message = "RETR " + rhs.Number + "\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-
-                        msg.Retrieved = true;
-                        while (true) {
-                            response = Response();
-                            if (response == ".\r\n") {
-                                break;
-                            }
-                            else {
-                                msg.Message += response;
-                            }
-                        }
-                        return msg;
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                        return null;
-                    }
-                }
-                public void Delete(Pop3Message rhs) {
-                    try {
-                        string message;
-                        string response;
-
-                        message = "DELE " + rhs.Number + "\r\n";
-                        Write(message);
-                        response = Response();
-                        if (response.Substring(0, 3) != "+OK") {
-                            throw new Pop3Exception(response);
-                        }
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                    }
-                }
-                void Write(string message) {
-                    try {
-                        var en = new ASCIIEncoding();
-
-                        byte[] WriteBuffer = new byte[1024];
-                        WriteBuffer = en.GetBytes(message);
-
-                        NetworkStream stream = GetStream();
-                        stream.Write(WriteBuffer, 0, WriteBuffer.Length);
-
-                        //Debug.WriteLine("WRITE:" + message);
-                    }
-                    catch (Exception e) {
-                        //Console.WriteLine(e.Message);
-                        Debug.Print(e.Message);
-                    }
-                }
-                string Response() {
-                    try {
-                        var enc = new ASCIIEncoding();
-                        byte[] serverbuff = new Byte[1024];
-                        NetworkStream stream = GetStream();
-                        int count = 0;
-                        while (true) {
-                            byte[] buff = new Byte[2];
-                            int bytes = stream.Read(buff, 0, 1);
-                            if (bytes == 1) {
-                                serverbuff[count] = buff[0];
-                                count++;
-                                if (buff[0] == '\n') {
-                                    break;
-                                }
-                            }
-                            else {
+            string Response() {
+                try {
+                    var enc = new ASCIIEncoding();
+                    byte[] serverbuff = new Byte[1024];
+                    NetworkStream stream = GetStream();
+                    int count = 0;
+                    while (true) {
+                        byte[] buff = new Byte[2];
+                        int bytes = stream.Read(buff, 0, 1);
+                        if (bytes == 1) {
+                            serverbuff[count] = buff[0];
+                            count++;
+                            if (buff[0] == '\n') {
                                 break;
                             }
                         }
-                        string retval = enc.GetString(serverbuff, 0, count);
-                        //Debug.WriteLine("READ:" + retval);
-                        return retval;
+                        else {
+                            break;
+                        }
                     }
-                    catch (Exception e) {
-                        return e.Message;
-                    }
+                    string retval = enc.GetString(serverbuff, 0, count);
+                    //Debug.WriteLine("READ:" + retval);
+                    return retval;
+                }
+                catch (Exception e) {
+                    return e.Message;
                 }
             }
+        }
 
-            internal class SmtpSettings
-            {
-                //Gmail settings "smtp.gmail.com"
-                //Gmail port 587
-                //Gmail SSL true
+        internal class SmtpSettings
+        {
+            // Gmail settings "smtp.gmail.com"
+            // Gmail port 587
+            // Gmail SSL true
 
-                internal string Host { get; private set; }
-                internal string Username { get; private set; }
-                internal string Password { get; private set; }
-                internal int Port { get; private set; }
-                internal bool SSL { get; private set; }
+            internal string Host { get; private set; }
+            internal string Username { get; private set; }
+            internal string Password { get; private set; }
+            internal int Port { get; private set; }
+            internal bool SSL { get; private set; }
 
-                internal SmtpSettings() {
-                    var smtpSettings = new Settings().LoadSettings(".smtpsettings");
+            internal SmtpSettings() {
+                var smtpSettings = new Settings().Load(".smtpsettings");
 
-                    if (smtpSettings != null) {
-                        Host = smtpSettings[0];
-                        Username = smtpSettings[1];
-                        Password = smtpSettings[2];
-                        Port = Convert.ToInt32(smtpSettings[3]);
-                        SSL = Convert.ToBoolean(smtpSettings[4]);
-                    }
+                if (smtpSettings != null) {
+                    Host = smtpSettings[0];
+                    Username = smtpSettings[1];
+                    Password = smtpSettings[2];
+                    Port = Convert.ToInt32(smtpSettings[3]);
+                    SSL = Convert.ToBoolean(smtpSettings[4]);
                 }
             }
+        }
 
-            internal class Pop3Settings
-            {
-                internal string Host { get; private set; }
-                internal string Username { get; private set; }
-                internal string Password { get; private set; }
-                internal int Port { get; private set; }
-                internal bool SSL { get; private set; }
+        internal class Pop3Settings
+        {
+            internal string Host { get; private set; }
+            internal string Username { get; private set; }
+            internal string Password { get; private set; }
+            internal int Port { get; private set; }
+            internal bool SSL { get; private set; }
 
-                internal Pop3Settings() {
-                    var pop3Settings = new Settings().LoadSettings(".pop3settings");
+            internal Pop3Settings() {
+                var pop3Settings = new Settings().Load(".pop3settings");
 
-                    if (pop3Settings != null) {
-                        Host = pop3Settings[0];
-                        Username = pop3Settings[1];
-                        Password = pop3Settings[2];
-                        Port = Convert.ToInt32(pop3Settings[3]);
-                        SSL = Convert.ToBoolean(pop3Settings[4]);
-                    }
+                if (pop3Settings != null) {
+                    Host = pop3Settings[0];
+                    Username = pop3Settings[1];
+                    Password = pop3Settings[2];
+                    Port = Convert.ToInt32(pop3Settings[3]);
+                    SSL = Convert.ToBoolean(pop3Settings[4]);
                 }
             }
+        }
 
-            internal class GmailSettings
-            {
-                internal string Username { get; private set; }
-                internal string Password { get; private set; }
+        internal class GmailSettings
+        {
+            internal string Username { get; private set; }
+            internal string Password { get; private set; }
 
-                internal GmailSettings() {
-                    var gmailSettings = new Settings().LoadSettings(".gmailsettings");
+            internal GmailSettings() {
+                var gmailSettings = new Settings().Load(".gmailsettings");
 
-                    if (gmailSettings != null) {
-                        Username = gmailSettings[0];
-                        Password = gmailSettings[1];
-                    }
+                if (gmailSettings != null) {
+                    Username = gmailSettings[0];
+                    Password = gmailSettings[1];
                 }
             }
         }
@@ -580,8 +577,18 @@ namespace jaNETFramework
             internal string SmsPassword { get; private set; }
             internal string SmsAPI { get; private set; }
 
+            //internal SmsSettings GetSmsSettings {
+            //    get {
+            //        var smsSettings = new Settings().Load(".smssettings");
+
+            //        if (smsSettings != null) {
+            //            return new SmsSettings { SmsAPI = smsSettings[0], SmsUsername = smsSettings[1], SmsPassword = smsSettings[2] };
+            //        }
+            //        return null;
+            //    }
+            //}
             internal SmsSettings() {
-                var smsSettings = new Settings().LoadSettings(".smssettings");
+                var smsSettings = new Settings().Load(".smssettings");
 
                 if (smsSettings != null) {
                     SmsAPI = smsSettings[0];

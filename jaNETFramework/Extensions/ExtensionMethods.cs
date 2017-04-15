@@ -19,6 +19,10 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Environment;
+using jaNET.IO.Ports;
+using jaNET.Net.Http;
+using jaNET.Providers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,10 +31,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using static jaNETFramework.SerialComm;
-using static jaNETFramework.Server.Web.Request;
 
-namespace jaNETFramework
+namespace jaNET
 {
     public static class ExtensionMethods
     {
@@ -46,14 +48,14 @@ namespace jaNETFramework
         }
 
         public static string Parse(this string args) {
-            return Parser.Instance.Parse(args, DataType.text, false);
+            return Parser.Instance.Parse(args, Web.Request.DataType.text, false);
         }
 
         internal static string ToJson(this object res) {
             return new JavaScriptSerializer().Serialize(res);
         }
 
-        internal static string ToDebugString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
+        internal static string ToDictString<TKey, TValue>(this IDictionary<string, KeyValuePair<TKey, TValue>> dictionary) {
             return string.Join("\r\n", dictionary.Select(kv => kv.Value.Value).ToList());
         }
 
@@ -76,18 +78,18 @@ namespace jaNETFramework
             return string.Format("{0:HH:mm}", dt);
         }
 
-        internal static TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
-            TypeOfSerialMessage t = TypeOfSerialMessage.None;
+        internal static SerialComm.TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
+            SerialComm.TypeOfSerialMessage t = SerialComm.TypeOfSerialMessage.None;
 
             switch (type.ToLower()) {
                 case "send":
-                    t = TypeOfSerialMessage.Send;
+                    t = SerialComm.TypeOfSerialMessage.Send;
                     break;
                 case "listen":
-                    t = TypeOfSerialMessage.Listen;
+                    t = SerialComm.TypeOfSerialMessage.Listen;
                     break;
                 case "monitor":
-                    t = TypeOfSerialMessage.Monitor;
+                    t = SerialComm.TypeOfSerialMessage.Monitor;
                     break;
             }
             return t;
@@ -263,7 +265,6 @@ namespace jaNETFramework
                 context = context.Replace(context, string.Empty);
             }
 
-            //return context;
             return Regex.Replace(context, @"[^\S\r\n]+", " ");
         }
     }

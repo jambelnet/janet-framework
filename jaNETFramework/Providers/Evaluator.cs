@@ -19,15 +19,16 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Environment;
+using jaNET.Net.Http;
 using System;
 //using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using static jaNETFramework.Server.Web.Request;
 
-namespace jaNETFramework
+namespace jaNET.Providers
 {
     class Evaluator
     {
@@ -99,7 +100,7 @@ namespace jaNETFramework
 
         #region Static Members
         static internal string EvaluateCondition(string sValue) {
-            sValue = sValue.Replace("\r", " ").Replace("\n", " ");
+            //sValue = sValue.Replace("\r", " ").Replace("\n", " ");
 
             var mItems = Regex.Matches(sValue, @"\{(.*?)\}");
 
@@ -120,8 +121,8 @@ namespace jaNETFramework
                         else
                             e = EvaluateToBool(condition);
 
-                        sValue = e ? sValue.Replace(matchString.Value, Parser.Instance.Parse(args[1].Replace(" ", ";"), DataType.text, true)) :
-                                     sValue.Replace(matchString.Value, Parser.Instance.Parse(args[2].Replace(" ", ";"), DataType.text, true));
+                        sValue = e ? sValue.Replace(matchString.Value, Parser.Instance.Parse(args[1].Trim().Replace(" ", ";"), Web.Request.DataType.text, true)) :
+                                     sValue.Replace(matchString.Value, Parser.Instance.Parse(args[2].Trim().Replace(" ", ";"), Web.Request.DataType.text, true));
                     }
                 }
             }

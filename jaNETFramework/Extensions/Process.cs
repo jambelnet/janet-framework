@@ -23,7 +23,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace jaNETFramework
+namespace jaNET.Diagnostics
 {
     class Process
     {
@@ -66,7 +66,7 @@ namespace jaNETFramework
             }
             catch (Exception e) {
                 Logger.Instance.Append(string.Format("obj [ Process.Start <Exception> ]: args [ {0} {1} ]: {2}", sFilePath, sArguments, e.Message));
-                return string.Empty;
+                return e.Message;
             }
         }
 

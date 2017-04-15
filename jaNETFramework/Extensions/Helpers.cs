@@ -19,13 +19,14 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Environment;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Web.Script.Serialization;
 using System.Xml;
 
-namespace jaNETFramework
+namespace jaNET
 {
     static class Helpers
     {
@@ -120,7 +121,7 @@ namespace jaNETFramework
                 var steps = node.Split('/');
                 for (var i = 0; i < steps.Length; i++) {
                     int n;
-                    // item = int.TryParse(steps[i], out n) ? item[n] : item[steps[i]];
+                    //item = int.TryParse(steps[i], out n) ? item[n] : item[steps[i]];
                     if (int.TryParse(steps[i], out n))
                         item = item[n];
                     else

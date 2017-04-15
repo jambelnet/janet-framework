@@ -19,13 +19,18 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-using jaNETFramework.AppConfig;
+using jaNET.Environment.AppConfig;
+using jaNET.IO;
+using jaNET.IO.Ports;
+using jaNET.Net.Http;
+using jaNET.Net.Sockets;
+using jaNET.Providers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace jaNETFramework
+namespace jaNET.Environment
 {
     public static class Application
     {
@@ -69,16 +74,16 @@ namespace jaNETFramework
             }
 
             if (!File.Exists(AppPath + ".htaccess"))
-                new Settings().SaveSettings(".htaccess", "admin\r\nadmin");
+                new Settings().Save(".htaccess", "admin\r\nadmin");
 
             Schedule.Init();
 
             var comm = new Comm();
 
             if (!string.IsNullOrEmpty(comm.getHostname))
-                Server.Web.Start();
+                Web.Start();
             if (!string.IsNullOrEmpty(comm.getLocalHost))
-                Server.TCP.Start();
+                TCP.Start();
             if (!string.IsNullOrEmpty(comm.getComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
 
@@ -87,7 +92,7 @@ namespace jaNETFramework
 
         static async Task GenerateDumpAppConfig() {
             // Root
-            var root = new jaNET();
+            var root = new AppConfig.jaNET();
             // Nodes
             root.Instructions = new Instructions();
             root.Events = new Events();
@@ -473,10 +478,10 @@ namespace jaNETFramework
 
         public static void Dispose() {
             SerialComm.DeactivateSerialPort();
-            Server.Web.Stop();
-            Server.TCP.Stop();
+            Web.Stop();
+            TCP.Stop();
             Parser.ParserState = false;
-            Environment.Exit(0);
+            System.Environment.Exit(0);
         }
     }
 }

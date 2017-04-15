@@ -21,9 +21,9 @@
 
 using System;
 
-namespace jaNETFramework
+namespace jaNET
 {
-    // public static <T> Instance { get { return Singleton<T>.Instance; } }
+    // Usage: public static <T> Instance { get { return Singleton<T>.Instance; } }
     internal sealed class Singleton<T> where T : class, new()
     {
         private static readonly Lazy<T> lazy =

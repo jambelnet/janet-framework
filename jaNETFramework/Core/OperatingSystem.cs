@@ -21,7 +21,7 @@
 
 using System;
 
-namespace jaNETFramework
+namespace jaNET.Environment
 {
     struct OperatingSystem
     {
@@ -38,7 +38,7 @@ namespace jaNETFramework
         }
 
         static Type getOSversion() {
-            switch (Environment.OSVersion.Platform) {
+            switch (System.Environment.OSVersion.Platform) {
                 case PlatformID.Unix:
                     return Type.Unix;
                 case PlatformID.Win32NT:

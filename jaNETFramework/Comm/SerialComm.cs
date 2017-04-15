@@ -19,13 +19,14 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-using jaNETFramework.AppConfig;
+using jaNET.Diagnostics;
+using jaNET.Environment.AppConfig;
 using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
 
-namespace jaNETFramework
+namespace jaNET.IO.Ports
 {
     static class SerialComm
     {
@@ -44,8 +45,8 @@ namespace jaNETFramework
 
         internal static void ActivateSerialPort(string portName) {
             try {
-                bool isPOSIX = OperatingSystem.Version == OperatingSystem.Type.Unix
-                            || OperatingSystem.Version == OperatingSystem.Type.MacOS;
+                bool isPOSIX = Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix
+                            || Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
 
                 if (isPOSIX && !File.Exists(port.PortName))
                     return;

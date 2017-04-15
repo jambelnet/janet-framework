@@ -19,7 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-namespace jaNETFramework
+namespace jaNET.Providers
 {
     interface IWeather
     {

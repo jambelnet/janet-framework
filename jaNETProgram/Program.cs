@@ -42,7 +42,8 @@
  * Version: 0.2.9          29 Oct 2015
  * ****************************************************************************************************************************/
 
-using jaNETFramework;
+using jaNET;
+using jaNET.Environment;
 using System;
 using System.Diagnostics;
 using System.Linq;
