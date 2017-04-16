@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.06";
+        public const string AssemblyVersion = "0.3.0.07";
 
         public string GetCopyright {
             get {
@@ -572,20 +572,20 @@ namespace jaNET.Environment
                                 "         + judo ? [help keyword]\r\n\r\n" +
                                 "(*) Brackets are mandatory when place a sentence as one argument.\r\n" +
                                 "(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.\r\n" +
-                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, ping, help";
+                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, weather, ping, help";
             const
             string _all = _inset + "\r\n" +
-                            _mail + "\r\n" +
-                            _sms + "\r\n" +
-                            _schedule + "\r\n" +
-                            _socket + "\r\n" +
-                            _server + "\r\n" +
-                            _serial + "\r\n" +
-                            _cloud + "\r\n" +
-                            _http + "\r\n" +
-                            _weather + "\r\n" +
-                            _ping + "\r\n" +
-                            _help + "\r\n";
+                          _mail + "\r\n" +
+                          _sms + "\r\n" +
+                          _schedule + "\r\n" +
+                          _socket + "\r\n" +
+                          _server + "\r\n" +
+                          _serial + "\r\n" +
+                          _cloud + "\r\n" +
+                          _http + "\r\n" +
+                          _weather + "\r\n" +
+                          _ping + "\r\n" +
+                          _help + "\r\n";
 
             switch (appendix) {
                 case "inset":
