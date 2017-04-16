@@ -134,13 +134,13 @@ namespace jaNET.IO.Ports
                             port.WriteLine(message);
                             Thread.Sleep(50);
                         }
-                        Action getSerialData = () => {
+                        Action GetSerialData = () => {
                             while (output == string.Empty) {
                                 output = SerialData;
                                 Thread.Sleep(50);
                             }
                         };
-                        Process.CallWithTimeout(getSerialData, timeout);
+                        Process.CallWithTimeout(GetSerialData, timeout);
                     }
                 }
                 else

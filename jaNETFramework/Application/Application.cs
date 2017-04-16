@@ -80,11 +80,11 @@ namespace jaNET.Environment
 
             var comm = new Comm();
 
-            if (!string.IsNullOrEmpty(comm.getHostname))
+            if (!string.IsNullOrEmpty(comm.GetHostname))
                 Web.Start();
-            if (!string.IsNullOrEmpty(comm.getLocalHost))
+            if (!string.IsNullOrEmpty(comm.GetLocalHost))
                 TCP.Start();
-            if (!string.IsNullOrEmpty(comm.getComPort))
+            if (!string.IsNullOrEmpty(comm.GetComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
 
             "%checkin%".ToValues();

@@ -213,7 +213,7 @@ namespace jaNET.Environment
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", com.getComPort, com.getBaudRate);
+                            output = string.Format("{0}\r\n{1}", com.GetComPort, com.GetBaudRate);
                             break;
                         case "state":
                         case "status":
@@ -226,9 +226,9 @@ namespace jaNET.Environment
                 case "help":
                 case "?":
                     output = args.Count() > 2 ?
-                        output = method.getHelp(args[2])
+                        output = method.GetHelp(args[2])
                         :
-                        output = method.getHelp("all");
+                        output = method.GetHelp("all");
                     break;
                 // INSTRUCTION SETS
                 case "inset":
@@ -328,7 +328,7 @@ namespace jaNET.Environment
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", com.getLocalHost, com.getLocalPort);
+                            output = string.Format("{0}\r\n{1}", com.GetLocalHost, com.GetLocalPort);
                             break;
                         case "state":
                         case "status":
@@ -371,7 +371,7 @@ namespace jaNET.Environment
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}\r\n{2}", com.getHostname, com.getHttpPort, com.getAuthentication);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", com.GetHostname, com.GetHttpPort, com.GetAuthentication);
                             break;
                         case "state":
                         case "status":
@@ -689,7 +689,7 @@ namespace jaNET.Environment
                             output = method.AddToXML(o, AppStructure.SystemOthersRoot);
                             break;
                         case "settings":
-                            output = o.getWeather;
+                            output = o.GetWeather;
                             break;
                     }
                     break;

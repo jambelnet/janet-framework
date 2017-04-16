@@ -30,7 +30,7 @@ namespace jaNET
 {
     static class Helpers
     {
-        internal static String getRawData(string uri) {
+        internal static String GetRawData(string uri) {
             string rawData;
 
             using (var wc = new WebClient())
@@ -68,7 +68,7 @@ namespace jaNET
 
             internal static XmlNodeList SelectNodeList(string endpoint, string namespacePrefix, string namespaceUri, string node) {
                 var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(getRawData(endpoint));
+                xmlDoc.LoadXml(GetRawData(endpoint));
 
                 var ns = new XmlNamespaceManager(xmlDoc.NameTable);
                 ns.AddNamespace(namespacePrefix, namespaceUri);
@@ -79,7 +79,7 @@ namespace jaNET
             internal static String SelectSingleNode(string endpoint, string node, int nodeIndex) {
                 try {
                     var xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(getRawData(endpoint));
+                    xmlDoc.LoadXml(GetRawData(endpoint));
 
                     return nodeIndex <= 0 ?
                         xmlDoc.SelectNodes(node).Item(0).InnerText
@@ -113,7 +113,7 @@ namespace jaNET
         {
             // Json on line editor: http://codebeautify.org/online-json-editor
             internal String SelectSingleNode(string endpoint, string node) {
-                string json = getRawData(endpoint);
+                string json = GetRawData(endpoint);
 
                 var serializer = new JavaScriptSerializer();
                 dynamic item = serializer.Deserialize<object>(json);
@@ -136,7 +136,7 @@ namespace jaNET
         internal static class Http
         {
             internal static String Get(string requestURI) {
-                return getRawData(requestURI);
+                return GetRawData(requestURI);
             }
         }
     }

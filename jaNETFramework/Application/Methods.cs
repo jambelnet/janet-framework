@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.05";
+        public const string AssemblyVersion = "0.3.0.06";
 
         public string GetCopyright {
             get {
@@ -50,7 +50,7 @@ namespace jaNET.Environment
         public bool UpdateAvailable(int assemblyVersion) {
             int currentVersion;
             try {
-                int.TryParse(Helpers.getRawData("http://www.jubito.org/current-version.txt"), out currentVersion);
+                int.TryParse(Helpers.GetRawData("http://www.jubito.org/current-version.txt"), out currentVersion);
             }
             catch (WebException) {
                 // 404 Not Found
@@ -304,7 +304,7 @@ namespace jaNET.Environment
             }
         }
 
-        internal string getHelp(string appendix) {
+        internal string GetHelp(string appendix) {
             const
             string _inset = "1.  Instruction Sets & Events\r\n" +
                                 "     1.1 Add New Instruction Set\r\n" +

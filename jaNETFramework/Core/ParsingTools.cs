@@ -50,6 +50,7 @@ namespace jaNET.Environment
             if (sValue.Contains("%"))
                 sValue = sValue.ToValues();
 
+            // Pointers/Reflectors
             while (sValue.Contains("*")) {
                 var mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
 

@@ -34,10 +34,10 @@ namespace jaNET.Environment
         }
 
         internal static Type Version {
-            get { return getOSversion(); }
+            get { return GetOSversion(); }
         }
 
-        static Type getOSversion() {
+        static Type GetOSversion() {
             switch (System.Environment.OSVersion.Platform) {
                 case PlatformID.Unix:
                     return Type.Unix;

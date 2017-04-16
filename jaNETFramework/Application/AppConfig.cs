@@ -75,7 +75,7 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Comm")]
     public class Comm
     {
-        internal string getLocalHost {
+        internal string GetLocalHost {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Count > 0)
@@ -85,7 +85,7 @@ namespace jaNET.Environment.AppConfig
                 return ret;
             }
         }
-        internal string getLocalPort {
+        internal string GetLocalPort {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Count > 0)
@@ -96,7 +96,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string getHostname {
+        internal string GetHostname {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Count > 0)
@@ -107,7 +107,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string getHttpPort {
+        internal string GetHttpPort {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Count > 0)
@@ -118,7 +118,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string getAuthentication {
+        internal string GetAuthentication {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
@@ -129,7 +129,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string getComPort {
+        internal string GetComPort {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.ComPortPath).Count > 0)
@@ -140,7 +140,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string getBaudRate {
+        internal string GetBaudRate {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.ComBaudRatePath).Count > 0)
@@ -174,7 +174,7 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Others")]
     public class Others
     {
-        internal string getWeather {
+        internal string GetWeather {
             get {
                 string ret = string.Empty;
                 if (Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Count > 0)

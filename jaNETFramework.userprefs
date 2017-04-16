@@ -1,13 +1,10 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupItem="jaNETProgram/jaNETProgram.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="jaNETFramework/Core/Parser.cs">
-    <Files>
-      <File FileName="jaNETFramework/Core/Parser.cs" Line="159" Column="14" />
-      <File FileName="jaNETFramework/Core/ParsingTools.cs" Line="51" Column="50" />
-    </Files>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/home/john/jambelnet/janet-framework.git/jaNETFramework/Core/Parser.cs" line="68" column="25" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>
