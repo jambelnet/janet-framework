@@ -46,31 +46,6 @@ namespace jaNET.Environment
         }
 
         internal static string ParseTokens(this string sValue) {
-            // Process application
-            if (sValue.StartsWith("./")) {
-                var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
-
-                string fileName = string.Empty;
-                string arguments = string.Empty;
-                // Applicaton invokation
-                if (mItems.Count == 0)
-                    fileName = sValue.Replace("./", string.Empty);
-                // Applicaton invokation surrounded with quotes
-                else if (mItems.Count == 1)
-                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                // Applicaton invokation with arguments
-                if (mItems.Count == 2) {
-                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                    arguments = mItems[1].Value.Replace("`", string.Empty).Replace("'", string.Empty);
-                }
-
-                return Process.Instance.Start(fileName, arguments);
-            }
-
-            // judo API command
-            if (sValue.StartsWith("judo"))
-                return sValue.Replace(sValue, Judoers.JudoParser(sValue));
-
             // Built-in functions
             if (sValue.Contains("%"))
                 sValue = sValue.ToValues();
@@ -92,6 +67,31 @@ namespace jaNET.Environment
             // Evaluation
             if (sValue.Contains("evalBool"))
                 sValue = Evaluator.EvaluateCondition(sValue);
+
+            // judo API command
+            if (sValue.StartsWith("judo"))
+                return sValue.Replace(sValue, Judoers.JudoParser(sValue));
+
+            // Process application
+            if (sValue.StartsWith("./")) {
+                var mItems = Regex.Matches(sValue, @"('[^']+')|(`[^`]+`)");
+
+                string fileName = string.Empty;
+                string arguments = string.Empty;
+                // Applicaton invokation
+                if (mItems.Count == 0)
+                    fileName = sValue.Replace("./", string.Empty);
+                // Applicaton invokation surrounded with quotes
+                else if (mItems.Count == 1)
+                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
+                // Applicaton invokation with arguments
+                if (mItems.Count == 2) {
+                    fileName = mItems[0].Value.Replace("`", string.Empty).Replace("'", string.Empty);
+                    arguments = mItems[1].Value.Replace("`", string.Empty).Replace("'", string.Empty);
+                }
+
+                return Process.Instance.Start(fileName, arguments);
+            }
 
             return sValue.Trim();
         }
