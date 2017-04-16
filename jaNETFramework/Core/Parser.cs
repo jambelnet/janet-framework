@@ -387,7 +387,7 @@ namespace jaNET.Environment
                         case "new":
                         case "set":
                         case "setup":
-                            var s = arg.ParseTokens().Replace("judo schedule add ", string.Empty).ToSchedule(); // Temporary
+                            var s = arg.Replace("judo schedule add ", string.Empty).ToSchedule(); // Temporary
 
                             if (s.Date == Schedule.Period.Repeat || s.Date == Schedule.Period.Interval || s.Date == Schedule.Period.Timer)
                                 output = Schedule.Add(s, Convert.ToInt32(s.Time));
