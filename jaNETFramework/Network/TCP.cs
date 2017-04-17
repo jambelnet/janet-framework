@@ -95,7 +95,7 @@ namespace jaNET.Net.Sockets
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0) {
                         byte[] response = null;
                         // Translate data bytes to a ASCII string.
-                        data += Web.SimpleUriDecode(Encoding.ASCII.GetString(bytes, 0, i));
+                        data += WebServer.SimpleUriDecode(Encoding.ASCII.GetString(bytes, 0, i));
 
                         var mItem = Regex.Match(data, "GET.*HTTP");
 

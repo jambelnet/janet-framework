@@ -19,7 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>.
     
- * Version Release Dates
+ * Stable Release Dates
  * Version: 0.1.0          24 Apr 2010
  * Version: 0.1.1          21 Nov 2010
  * Version: 0.1.2          28 Nov 2010
@@ -40,7 +40,7 @@
  * Version: 0.2.7          15 Mar 2015
  * Version: 0.2.8          20 Apr 2015
  * Version: 0.2.9          29 Oct 2015
- * Version: 0.3.+          10 Apr 2017
+ * Version: 0.3.9          17 Apr 2017
  * ****************************************************************************************************************************/
 
 using jaNET;

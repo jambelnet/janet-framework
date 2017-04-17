@@ -36,7 +36,7 @@ using System.Threading.Tasks;
 
 namespace jaNET.Net.Http
 {
-    static class Web
+    static class WebServer
     {
         internal struct Request
         {

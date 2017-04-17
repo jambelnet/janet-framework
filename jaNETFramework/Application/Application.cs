@@ -81,7 +81,7 @@ namespace jaNET.Environment
             var comm = new Comm();
 
             if (!string.IsNullOrEmpty(comm.GetHostname))
-                Web.Start();
+                WebServer.Start();
             if (!string.IsNullOrEmpty(comm.GetLocalHost))
                 TCP.Start();
             if (!string.IsNullOrEmpty(comm.GetComPort))
@@ -110,7 +110,7 @@ namespace jaNET.Environment
                 LocalPort = "5744",
                 Hostname = "localhost",
                 HttpPort = "8080",
-                Authentication = "basic",
+                Authentication = "none",
                 ComPort = "/dev/ttyACM0",
                 BaudRate = "9600"
             };
@@ -478,7 +478,7 @@ namespace jaNET.Environment
 
         public static void Dispose() {
             SerialComm.DeactivateSerialPort();
-            Web.Stop();
+            WebServer.Stop();
             TCP.Stop();
             Parser.ParserState = false;
             System.Environment.Exit(0);

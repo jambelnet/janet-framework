@@ -108,7 +108,7 @@ namespace jaNET.Providers
                 if (matchString.Success) {
                     string[] args = matchString.Value.Split(';');
                     if (args[0].Contains("*"))
-                        args [0] = args[0].ParseTokens();
+                        args[0] = args[0].ParseTokens();
                     if (args[0].Contains("evalBool")) {
                         string condition = Regex.Replace(args[0], "evalBool|[{}]|[()]", string.Empty).Trim();
 
@@ -121,8 +121,8 @@ namespace jaNET.Providers
                         else
                             e = EvaluateToBool(condition);
 
-                        sValue = e ? sValue.Replace(matchString.Value, Parser.Instance.Parse(args[1].Trim().Replace(" ", ";"), Web.Request.DataType.text, true)) :
-                                     sValue.Replace(matchString.Value, Parser.Instance.Parse(args[2].Trim().Replace(" ", ";"), Web.Request.DataType.text, true));
+                        sValue = e ? sValue.Replace(matchString.Value, Parser.Instance.Parse(args[1].Trim().Replace(" ", ";"), WebServer.Request.DataType.text, true)) :
+                                     sValue.Replace(matchString.Value, Parser.Instance.Parse(args[2].Trim().Replace(" ", ";"), WebServer.Request.DataType.text, true));
                     }
                 }
             }

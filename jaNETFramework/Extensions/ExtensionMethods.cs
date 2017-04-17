@@ -48,7 +48,7 @@ namespace jaNET
         }
 
         public static string Parse(this string args) {
-            return Parser.Instance.Parse(args, Web.Request.DataType.text, false);
+            return Parser.Instance.Parse(args, WebServer.Request.DataType.text, false);
         }
 
         internal static string ToJson(this object res) {

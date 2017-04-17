@@ -40,30 +40,34 @@ namespace jaNET.Environment
 {
     public class Parser
     {
-        internal static Parser Instance { get { return Singleton<Parser>.Instance; } }
+        public static Parser Instance { get { return Singleton<Parser>.Instance; } }
 
         static volatile bool _parserState = true;
 
         public static bool ParserState {
-            get { return _parserState; }
-            internal set { _parserState = value; }
+            get {
+                return _parserState;
+            }
+            internal set {
+                _parserState = value;
+            }
         }
 
         internal static volatile bool Mute;
         static readonly object _speech_locker = new object();
 
         public string Parse(string args) {
-            return Parse(args, Web.Request.DataType.text, false);
+            return Parse(args, WebServer.Request.DataType.text, false);
         }
 
-        internal string Parse(string args, Web.Request.DataType dataType, bool disableSpeech) {
+        internal string Parse(string args, WebServer.Request.DataType dataType, bool disableSpeech) {
             if (args.Contains("{mute}") || args.Contains("{widget}")) {
                 args = Regex.Replace(args, "{mute}|{widget}", string.Empty);
                 disableSpeech = true;
             }
 
             if (args.Contains("</lock>")) // Lock is used to protect an Action content and should not be normally parsed
-                return dataType.Equals(Web.Request.DataType.html) ? Judoers.JudoParser(args).Replace("\n", "<br />") : Judoers.JudoParser(args);
+                return dataType.Equals(WebServer.Request.DataType.html) ? Judoers.JudoParser(args).Replace("\n", "<br />") : Judoers.JudoParser(args);
 
             var instructionSets = args.Replace('&', ';').Split(';')
                                       .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -76,9 +80,9 @@ namespace jaNET.Environment
                                                                new KeyValuePair<string, string>(instruction, Execute(instruction, disableSpeech))));
 
             switch (dataType) {
-                case Web.Request.DataType.html:
+                case WebServer.Request.DataType.html:
                     return results.ToDictString().Replace("<", "&lt;").Replace(">", "&gt;").Replace("\n", "<br />");
-                case Web.Request.DataType.json:
+                case WebServer.Request.DataType.json:
                     return results.ToJson();
             }
             return results.ToDictString();
@@ -344,16 +348,16 @@ namespace jaNET.Environment
                         case "enable":
                         case "start":
                         case "listen":
-                            Web.Start();
+                            WebServer.Start();
                             Thread.Sleep(50);
-                            output = string.Format("Web server state: {0}", Web.httplistener.IsListening);
+                            output = string.Format("Web server state: {0}", WebServer.httplistener.IsListening);
                             break;
                         case "off":
                         case "disable":
                         case "stop":
-                            Web.Stop();
+                            WebServer.Stop();
                             Thread.Sleep(50);
-                            output = string.Format("Web server state: {0}", Web.httplistener.IsListening);
+                            output = string.Format("Web server state: {0}", WebServer.httplistener.IsListening);
                             break;
                         case "login":
                         case "cred":
@@ -376,7 +380,7 @@ namespace jaNET.Environment
                         case "state":
                         case "status":
                         default:
-                            output = string.Format("Web server state: {0}", Web.httplistener.IsListening);
+                            output = string.Format("Web server state: {0}", WebServer.httplistener.IsListening);
                             break;
                     }
                     break;
@@ -387,7 +391,7 @@ namespace jaNET.Environment
                         case "new":
                         case "set":
                         case "setup":
-                            var s = arg.Replace("judo schedule add ", string.Empty).ToSchedule(); // Temporary
+                            var s = arg.Replace("judo schedule add ", string.Empty).ToSchedule();
 
                             if (s.Date == Schedule.Period.Repeat || s.Date == Schedule.Period.Interval || s.Date == Schedule.Period.Timer)
                                 output = Schedule.Add(s, Convert.ToInt32(s.Time));
@@ -602,7 +606,7 @@ namespace jaNET.Environment
                             var li = new List<InstructionSet>();
                             li.Add(new InstructionSet {
                                 Id = "*" + args[3],
-                                Action = "judo json get " + Web.SimpleUriEncode(args[4]) + " " + args[5]
+                                Action = "judo json get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5]
                             });
                             li.Add(new InstructionSet {
                                 Id = args[3],
@@ -614,7 +618,7 @@ namespace jaNET.Environment
                         case "response":
                         case "consume":
                         case "extract":
-                            output = new Helpers.Json().SelectSingleNode(Web.SimpleUriDecode(args[3]), args[4]);
+                            output = new Helpers.Json().SelectSingleNode(WebServer.SimpleUriDecode(args[3]), args[4]);
                             break;
                     }
                     break;
@@ -630,21 +634,21 @@ namespace jaNET.Environment
                                 case 6:
                                     li.Add(new InstructionSet {
                                         Id = "*" + args[3],
-                                        Action = "judo xml get " + Web.SimpleUriEncode(args[4]) + " " + args[5]
+                                        Action = "judo xml get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5]
                                     });
                                     li.Add(new InstructionSet { Id = args[3], Action = "*" + args[3] });
                                     break;
                                 case 7:
                                     li.Add(new InstructionSet {
                                         Id = "*" + args[3],
-                                        Action = "judo xml get " + Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6]
+                                        Action = "judo xml get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6]
                                     });
                                     li.Add(new InstructionSet { Id = args[3], Action = "*" + args[3] });
                                     break;
                                 case 8:
                                     li.Add(new InstructionSet {
                                         Id = "*" + args[3],
-                                        Action = "judo xml get " + Web.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6] + " " + args[7]
+                                        Action = "judo xml get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5] + " " + args[6] + " " + args[7]
                                     });
                                     li.Add(new InstructionSet { Id = args[3], Action = "*" + args[3] });
                                     break;
@@ -657,15 +661,15 @@ namespace jaNET.Environment
                         case "extract":
                             switch (args.Count()) {
                                 case 5:
-                                    output = Helpers.Xml.SelectSingleNode(Web.SimpleUriDecode(args[3]), args[4]);
+                                    output = Helpers.Xml.SelectSingleNode(WebServer.SimpleUriDecode(args[3]), args[4]);
                                     break;
                                 case 6:
                                     output = args[4].Contains("=") ?
-                                        Helpers.Xml.SelectNodes(Web.SimpleUriDecode(args[3]), args[4], args[5])[0] :
-                                        Helpers.Xml.SelectSingleNode(Web.SimpleUriDecode(args[3]), args[4], Convert.ToInt32(args[5]));
+                                        Helpers.Xml.SelectNodes(WebServer.SimpleUriDecode(args[3]), args[4], args[5])[0] :
+                                        Helpers.Xml.SelectSingleNode(WebServer.SimpleUriDecode(args[3]), args[4], Convert.ToInt32(args[5]));
                                     break;
                                 case 7:
-                                    output = Helpers.Xml.SelectNodes(Web.SimpleUriDecode(args[3]), args[4], args[5])[Convert.ToInt32(args[6])];
+                                    output = Helpers.Xml.SelectNodes(WebServer.SimpleUriDecode(args[3]), args[4], args[5])[Convert.ToInt32(args[6])];
                                     break;
                             }
                             break;
@@ -675,7 +679,7 @@ namespace jaNET.Environment
                 case "http":
                     switch (args[2]) {
                         case "get":
-                            output = Helpers.Http.Get(Web.SimpleUriDecode(args[3]));
+                            output = Helpers.Http.Get(WebServer.SimpleUriDecode(args[3]));
                             break;
                     }
                     break;

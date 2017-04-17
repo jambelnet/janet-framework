@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.07";
+        public const string AssemblyVersion = "0.3.0.09";
 
         public string GetCopyright {
             get {
@@ -516,35 +516,35 @@ namespace jaNET.Environment
             const
             string _cloud = "8.  Web Services\r\n" +
                                 "     8.1 Json Setup\r\n" +
-                                "         + judo json add [ID] [Endpoint] [Node]\r\n" +
-                                "         + judo json new [ID] [Endpoint] [Node]\r\n" +
-                                "         + judo json set [ID] [Endpoint] [Node]\r\n" +
-                                "         + judo json setup [ID] [Endpoint] [Node]\r\n" +
+                                "         + judo json add [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json new [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json set [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json setup [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
                                 "     8.2 Json Response\r\n" +
-                                "         + judo json get [Endpoint] [Node]\r\n" +
-                                "         + judo json response [Endpoint] [Node]\r\n" +
-                                "         + judo json consume [Endpoint] [Node]\r\n" +
-                                "         + judo json extract [Endpoint] [Node]\r\n" +
+                                "         + judo json get <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json response <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json consume <lock>[Endpoint]</lock> [Node]\r\n" +
+                                "         + judo json extract <lock>[Endpoint]</lock> [Node]\r\n" +
                                 "     8.3 Xml Setup [ Simple ]\r\n" +
-                                "         + judo xml add [ID] [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml new [ID] [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml set [ID] [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml setup [ID] [Endpoint] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml add [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml new [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml set [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml setup [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
                                 "     8.4 Xml Setup [ Namespace Prefix & Uri ]\r\n" +
-                                "         + judo xml add [ID] [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml new [ID] [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml set [ID] [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml setup [ID] [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml add [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml new [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml set [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml setup [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
                                 "     8.5 Xml Response [ Simple ]\r\n" +
-                                "         + judo xml get [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml response [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml consume [Endpoint] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml extract [Endpoint] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml get <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml response <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml consume <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml extract <lock>[Endpoint]</lock> [Node] [Attribute (optional)]\r\n" +
                                 "     8.6 Xml Response [ Namespace Prefix & Uri ]\r\n" +
-                                "         + judo xml get [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml response [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml consume [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
-                                "         + judo xml extract [Endpoint] [Ns+Uri] [Node] [Attribute (optional)]";
+                                "         + judo xml get <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml response <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml consume <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
+                                "         + judo xml extract <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]";
             const
             string _http = "9.  Http\r\n" +
                                 "     9.1 Get\r\n" +
@@ -552,8 +552,8 @@ namespace jaNET.Environment
             const
             string _weather = "10. Weather\r\n" +
                                 "     10.1 Setup\r\n" +
-                                "         + judo weather set <lock>[Weather Endpoint]</lock>\r\n" +
-                                "         + judo weather setup <lock>[Weather Endpoint]</lock>\r\n" +
+                                "         + judo weather set <lock>[Endpoint]</lock>\r\n" +
+                                "         + judo weather setup <lock>[Endpoint]</lock>\r\n" +
                                 "     10.2 Settings\r\n" +
                                 "         + judo weather settings";
             const
