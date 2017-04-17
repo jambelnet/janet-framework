@@ -109,10 +109,10 @@ namespace jaNET.IO.Ports
                     }
                     catch (Exception e) {
                         if (e is TimeoutException) {
-                            //Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener, Timeout>: {0}", e.Message));
+                            
                         }
                         else {
-                            //Logger.Instance.Append(string.Format("Serial Exception <SerialPortListener>: {0}", e.Message));
+                            
                         }
                     }
                 }

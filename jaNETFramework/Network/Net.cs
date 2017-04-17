@@ -129,7 +129,7 @@ namespace jaNET.Net
                     return false;
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(string.Format("obj [ Net.SimplePing.Pinger <Exception> ]: {0}", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ NetInfo.SimplePing.Pinger <Exception> ]: {0}", e.Message));
                     return false;
                 }
             }

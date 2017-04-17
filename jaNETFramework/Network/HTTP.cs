@@ -94,7 +94,7 @@ namespace jaNET.Net.Http
                                             .Item(0).InnerText;
             }
             catch (NullReferenceException e) {
-                Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
+                Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace jaNET.Net.Http
                 httplistener.Start();
             }
             catch (Exception e) {
-                Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: Exception [ {0} ]", e.Message));
+                Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: Exception [ {0} ]", e.Message));
                 return;
             }
 
@@ -118,13 +118,13 @@ namespace jaNET.Net.Http
                     Task.Run(() => ProcessRequestAsync(ctx)); // Do not await
                 }
                 catch (HttpListenerException e) {
-                    Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
                 }
                 catch (InvalidOperationException) {
 
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(string.Format("obj [ Server.Web.Start <Exception> ]: Generic [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: Generic [ {0} ]", e.Message));
                 }
             }
         }
@@ -180,8 +180,8 @@ namespace jaNET.Net.Http
 
             }
             catch (Exception e) {
-                if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
-                    Logger.Instance.Append(string.Format("obj [ Server.Web.ProcessRequestAsync <Exception> ]: {0}\r\n{1}", e.Message, mapPath));
+                //if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
+                Logger.Instance.Append(string.Format("obj [ Server.WebServer.ProcessRequestAsync <Exception> ]: {0}", e.Message));
             }
         }
 

@@ -67,11 +67,8 @@ namespace jaNET.Environment
 
             string AppPath = Methods.Instance.GetApplicationPath;
 
-            if (!File.Exists(AppPath + "AppConfig.xml")) {
+            if (!File.Exists(AppPath + "AppConfig.xml"))
                 await GenerateDumpAppConfig();
-                //Logger.Instance.Append("obj [ Global.Application.Initialize <AppConfig.xml> ]: File not found.");
-                //return;
-            }
 
             if (!File.Exists(AppPath + ".htaccess"))
                 new Settings().Save(".htaccess", "admin\r\nadmin");

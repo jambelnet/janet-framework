@@ -1,14 +1,6 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupItem="jaNETProgram/jaNETProgram.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="jaNETFramework/Core/Parser.cs">
-    <Files>
-      <File FileName="jaNETFramework/Providers/Evaluator.cs" Line="143" Column="38" />
-      <File FileName="jaNETFramework/Application/Methods.cs" Line="244" Column="34" />
-      <File FileName="jaNETFramework/Comm/SerialComm.cs" Line="128" Column="29" />
-      <File FileName="jaNETFramework/Extensions/ExtensionMethods.cs" Line="81" Column="93" />
-      <File FileName="jaNETFramework/Core/Parser.cs" Line="203" Column="90" />
-    </Files>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
