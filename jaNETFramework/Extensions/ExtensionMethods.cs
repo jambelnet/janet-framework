@@ -131,10 +131,9 @@ namespace jaNET
             IWeather weather = new OpenWeather();
 
             if (context.Contains("%exit%") || context.Contains("%quit%")) {
-                SerialComm.DeactivateSerialPort();
-                Parser.ParserState = false;
-                context = context.Replace("%exit%", string.Empty)
-                                 .Replace("%quit%", string.Empty);
+                Application.Dispose();
+                //context = context.Replace("%exit%", string.Empty)
+                //                 .Replace("%quit%", string.Empty);
             }
             if (context.Contains("%clear%") || context.Contains("%cls%")) {
                 Console.Clear();

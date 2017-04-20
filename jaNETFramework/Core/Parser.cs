@@ -114,9 +114,13 @@ namespace jaNET.Environment
                         output = arg + ", not found.";
                     }
                 }
-                else
-                    foreach (XmlNode nodeItem in xList)
-                        output += string.Format("{0}\r\n", nodeItem.InnerText.ParseTokens());
+                else {
+                    int pos = 0;
+                    foreach (XmlNode nodeItem in xList) {
+                        output += string.Format("{0}\r\n", nodeItem.InnerText.ParseTokens(pos));
+                        pos++;
+                    }
+                }
             }
 
             if (method.HasInternetConnection() &&       // Is connected to the Internet

@@ -45,7 +45,7 @@ namespace jaNET.Environment
             return ls;
         }
 
-        internal static string ParseTokens(this string sValue) {
+        internal static string ParseTokens(this string sValue, int pos = 0) {
             // Built-in functions
             if (sValue.Contains("%"))
                 sValue = sValue.ToValues();
@@ -58,7 +58,7 @@ namespace jaNET.Environment
                     foreach (Match matchString in mItems) {
                         if (matchString.Success) {
                             string ms = matchString.Value.Trim();
-                            sValue = sValue.Replace(ms, ParseTokens(Methods.Instance.GetInstructionSet(ms).Item(0).InnerText));
+                            sValue = sValue.Replace(ms, ParseTokens(Methods.Instance.GetInstructionSet(ms).Item(pos).InnerText));
                         }
                     }
                 else
