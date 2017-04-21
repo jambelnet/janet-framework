@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Diagnostics;
+using jaNET.Extensions;
 using jaNET.Providers;
 using System;
 using System.Collections.Generic;
@@ -36,11 +37,12 @@ namespace jaNET.Environment
             const string locker = "<lock>|</lock>";                                                               // locker
 
             var ls = new List<String>();
-            var mItems = Regex.Matches(arg, splitter);
 
-            mItems.Cast<Match>().ToList()
-                                .ForEach(matchString =>
-                                ls.Add(Regex.Replace(matchString.Value.Trim(), matchString.Value.Trim().Contains("</lock>") ? locker : constraints, string.Empty)));
+            Regex.Matches(arg, splitter)
+                .Cast<Match>()
+                .ToList()
+                .Select(ms => ms.Value.Trim()).ToList()
+                .ForEach(ms => ls.Add(Regex.Replace(ms, ms.Contains("</lock>") ? locker : constraints, string.Empty)));
 
             return ls;
         }
@@ -52,17 +54,10 @@ namespace jaNET.Environment
 
             // Pointers/Reflectors/Delegates
             while (sValue.Contains("*")) {
-                var mItems = Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+");
-
-                if (mItems.Count > 0)
-                    foreach (Match matchString in mItems) {
-                        if (matchString.Success) {
-                            string ms = matchString.Value.Trim();
-                            sValue = sValue.Replace(ms, ParseTokens(Methods.Instance.GetInstructionSet(ms).Item(pos).InnerText));
-                        }
-                    }
-                else
-                    break;
+                Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+")
+                    .Cast<Match>().ToList()
+                    .Select(ms => ms.Value.Trim()).ToList()
+                    .ForEach(ms => sValue = sValue.Replace(ms, Methods.Instance.GetInstructionSet(ms).Item(pos).InnerText.ParseTokens()));
             }
 
             // Evaluation
@@ -94,7 +89,7 @@ namespace jaNET.Environment
                 return Process.Instance.Start(fileName, arguments);
             }
 
-            return sValue.Trim();
+            return sValue;
         }
     }
 }

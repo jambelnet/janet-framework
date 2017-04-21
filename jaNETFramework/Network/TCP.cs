@@ -21,6 +21,7 @@
 
 using jaNET.Diagnostics;
 using jaNET.Environment.AppConfig;
+using jaNET.Extensions;
 using jaNET.Net.Http;
 using System;
 using System.Net;

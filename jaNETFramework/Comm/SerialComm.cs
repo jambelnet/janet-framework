@@ -21,6 +21,7 @@
 
 using jaNET.Diagnostics;
 using jaNET.Environment.AppConfig;
+using jaNET.Extensions;
 using System;
 using System.IO;
 using System.IO.Ports;

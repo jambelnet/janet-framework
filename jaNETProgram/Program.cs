@@ -43,8 +43,8 @@
  * Version: 0.3.9          17 Apr 2017
  * ****************************************************************************************************************************/
 
-using jaNET;
 using jaNET.Environment;
+using jaNET.Extensions;
 using System;
 using System.Diagnostics;
 using System.Linq;

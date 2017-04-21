@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment.AppConfig;
+using jaNET.Extensions;
 using jaNET.IO;
 using jaNET.IO.Ports;
 using jaNET.Net.Http;

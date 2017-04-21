@@ -32,7 +32,7 @@ using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
-namespace jaNET
+namespace jaNET.Extensions
 {
     public static class ExtensionMethods
     {

@@ -21,6 +21,7 @@
 
 using jaNET.Diagnostics;
 using jaNET.Environment;
+using jaNET.Extensions;
 using jaNET.IO;
 using System;
 using System.Collections;
