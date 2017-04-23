@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment.AppConfig;
+using jaNET.Environment.Core;
 using jaNET.Extensions;
 using jaNET.IO;
 using jaNET.IO.Ports;
@@ -109,6 +110,7 @@ namespace jaNET.Environment
                 Hostname = "localhost",
                 HttpPort = "8080",
                 Authentication = "none",
+                MapPath = Methods.Instance.GetApplicationPath + "www",
                 ComPort = "/dev/ttyACM0",
                 BaudRate = "9600"
             };

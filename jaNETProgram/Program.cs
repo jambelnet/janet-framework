@@ -44,6 +44,7 @@
  * ****************************************************************************************************************************/
 
 using jaNET.Environment;
+using jaNET.Environment.Core;
 using jaNET.Extensions;
 using System;
 using System.Diagnostics;

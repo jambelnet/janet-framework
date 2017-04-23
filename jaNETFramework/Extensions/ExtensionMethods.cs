@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment;
+using jaNET.Environment.Core;
 using jaNET.IO.Ports;
 using jaNET.Net.Http;
 using jaNET.Providers;
@@ -256,6 +257,9 @@ namespace jaNET.Extensions
             if (context.Contains("%about%") || context.Contains("%copyright%"))
                 context = context.Replace("%about%", method.GetCopyright)
                                  .Replace("%copyright%", method.GetCopyright);
+            if (context.Contains("%apppath%") || context.Contains("%applicationpath%"))
+                context = context.Replace("%apppath%", method.GetApplicationPath)
+                                 .Replace("%applicationpath%", method.GetApplicationPath);
 
             // If Event
             if (context.Contains("%~>")) {

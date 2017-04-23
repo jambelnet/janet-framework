@@ -40,6 +40,7 @@ namespace jaNET.Environment.AppConfig
         internal const string HttpHostNameElement = "Hostname";
         internal const string HttpPortElement = "httpPort";
         internal const string HttpAuthenticationElement = "Authentication";
+        internal const string HttpMapPathElement = "MapPath";
 
         internal const string Weather = "Weather";
 
@@ -51,6 +52,7 @@ namespace jaNET.Environment.AppConfig
         internal const string HttpHostNamePath = SystemCommRoot + "/" + HttpHostNameElement;
         internal const string HttpPortPath = SystemCommRoot + "/" + HttpPortElement;
         internal const string HttpAuthenticationPath = SystemCommRoot + "/" + HttpAuthenticationElement;
+        internal const string HttpMapPath = SystemCommRoot + "/" + HttpMapPathElement;
         internal const string WeatherPath = SystemOthersRoot + "/" + Weather;
     }
 
@@ -129,6 +131,17 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
+        internal string GetMapPath {
+            get {
+                string ret = string.Empty;
+                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpMapPath).Count > 0)
+                    ret = Helpers.Xml.AppConfigQuery(
+                        AppStructure.HttpMapPath)
+                        .Item(0).InnerText;
+                return ret;
+            }
+        }
+
         internal string GetComPort {
             get {
                 string ret = string.Empty;
@@ -163,6 +176,8 @@ namespace jaNET.Environment.AppConfig
         public string HttpPort { get; set; }
         [XmlElement(ElementName = "Authentication")]
         public string Authentication { get; set; }
+        [XmlElement(ElementName = "MapPath")]
+        public string MapPath { get; set; }
         [XmlElement(ElementName = "ComPort")]
         public string ComPort { get; set; }
         [XmlElement(ElementName = "BaudRate")]

@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Application\AppConfig.cs" />
     <Compile Include="Application\Application.cs" />
+    <Compile Include="Core\JudoParser.cs" />
     <Compile Include="Core\ParsingTools.cs" />
     <Compile Include="Extensions\Singleton.cs" />
     <Compile Include="Network\TCP.cs" />

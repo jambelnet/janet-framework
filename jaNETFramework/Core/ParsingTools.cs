@@ -22,6 +22,7 @@
 using jaNET.Diagnostics;
 using jaNET.Extensions;
 using jaNET.Providers;
+using jaNETFramework.Environment.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace jaNET.Environment
 
             // judo API command
             if (sValue.StartsWith("judo"))
-                return sValue.Replace(sValue, Judoers.JudoParser(sValue));
+                return sValue.Replace(sValue, JudoParser.Parse(sValue));
 
             // Process application
             if (sValue.StartsWith("./")) {

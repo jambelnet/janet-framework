@@ -26,6 +26,7 @@
 using jaNET.Diagnostics;
 using jaNET.Environment;
 using jaNET.Environment.AppConfig;
+using jaNET.Environment.Core;
 using jaNET.IO;
 using System;
 using System.IO;
@@ -132,6 +133,7 @@ namespace jaNET.Net.Http
         static async Task ProcessRequestAsync(HttpListenerContext ctx) {
             //string[] MIME_Image = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico" };
             //string[] MIME_Text = { ".html", ".htm", ".xml", ".css", ".js", ".txt" };
+            //var com = new Comm();
             string mapPath = Methods.Instance.GetApplicationPath + SimpleUriDecode(ctx.Request.RawUrl.Substring(1));
             byte[] buf = null;
 
@@ -164,24 +166,42 @@ namespace jaNET.Net.Http
                         buf = File.ReadAllBytes(mapPath);
                 }
                 else {
-                    ctx.Response.StatusCode = 401;
+                    //ctx.Response.StatusCode = 401;
                     if (Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix)
                         ctx.Response.AddHeader("WWW-Authenticate", "Basic Realm=\"Authentication Required\""); // Show login dialog
-                    buf = Encoding.UTF8.GetBytes("<html><head><title>401 Authorization Required</title></head>" +
-                    "<body><h1>Authorization Required</h1>This server could not verify that you are authorized to access the document requested. Either you supplied the wrong credentials (e.g., bad password), or your browser doesn't understand how to supply the credentials required.<hr>" +
-                    "</body></html>");
-                }
 
-                ctx.Response.ContentLength64 = buf.Length;
-                using (Stream s = ctx.Response.OutputStream)
-                    await s.WriteAsync(buf, 0, buf.Length);
+                    throw new UnauthorizedAccessException();
+                }
             }
             catch (InvalidOperationException) {
 
             }
+            catch (UnauthorizedAccessException) {
+                ctx.Response.StatusCode = 401;
+                buf = Encoding.UTF8.GetBytes(
+                    "<html><head><title>401 Authorization Required</title></head>" +
+                    "<body>" +
+                    "<h1>Authorization Required</h1>" +
+                    "This server could not verify that you are authorized to access the document requested.<br />" +
+                    "Either you supplied the wrong credentials (e.g., bad password), or your browser doesn't understand how to supply the credentials required." +
+                    "<hr></body></html>");
+            }
             catch (Exception e) {
                 //if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
+                ctx.Response.StatusCode = 404;
+                buf = Encoding.UTF8.GetBytes(
+                    "<html><head><title>404 Not Found</title></head>" +
+                    "<body>" +
+                    "<h1>Not Found</h1>" +
+                    "The requested URL could not be found. Are you missing the www root?<br />" +
+                    "e.g. <a href=http://localhost:8080/www/>http://localhost:8080/www/</a>" +
+                    "<hr></body></html>");
                 Logger.Instance.Append(string.Format("obj [ Server.WebServer.ProcessRequestAsync <Exception> ]: {0}", e.Message));
+            }
+            finally {
+                ctx.Response.ContentLength64 = buf.Length;
+                using (Stream s = ctx.Response.OutputStream)
+                    await s.WriteAsync(buf, 0, buf.Length);
             }
         }
 

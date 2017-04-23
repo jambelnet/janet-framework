@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment;
+using jaNET.Environment.Core;
 using jaNET.Net.Http;
 using System;
 //using System.CodeDom;
