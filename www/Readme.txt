@@ -1,1 +1,2 @@
-﻿//
+﻿www directory is a front-end implementation and used by Jubito.
+Copy and paste it in the bin/debug or bin/release of the jaNET Program to have a complete web UI that implements the framework. Once you run the application, open a web browser and type http://localhost:8080/www/
