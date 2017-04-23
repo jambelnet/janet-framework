@@ -133,141 +133,153 @@ namespace jaNET.Extensions
 
             if (context.Contains("%exit%") || context.Contains("%quit%")) {
                 Application.Dispose();
-                //context = context.Replace("%exit%", string.Empty)
-                //                 .Replace("%quit%", string.Empty);
             }
             if (context.Contains("%clear%") || context.Contains("%cls%")) {
                 Console.Clear();
-                context = context.Replace("%clear%", string.Empty)
-                                 .Replace("%cls%", string.Empty);
+                context = Regex.Replace(context, "%clear%|%cls%", string.Empty);
             }
             if (context.Contains("%mute%")) {
                 Parser.Mute = true;
-                context = context.Replace("%mute%", string.Empty);
+                context = Regex.Replace(context, "%mute%", string.Empty);
             }
             if (context.Contains("%unmute%")) {
                 Parser.Mute = false;
-                context = context.Replace("%unmute%", string.Empty);
+                context = Regex.Replace(context, "%unmute%", string.Empty);
             }
             if (context.Contains("%inet%") || context.Contains("%inetcon%")) {
-                string con = method.HasInternetConnection().ToString();
-                context = context.Replace("%inet%", con)
-                                 .Replace("%inetcon%", con);
+                context = Regex.Replace(context, "%inet%|%inetcon%", method.HasInternetConnection().ToString());
             }
-            if (context.Contains("%gmailcount%") || context.Contains("%gcount%"))
-                context = context.Replace("%gmailcount%", new Net.Mail().GmailCheck(true))
-                                 .Replace("%gcount%", new Net.Mail().GmailCheck(true));
-            if (context.Contains("%gmailreader%") || context.Contains("%gmailheaders%") || context.Contains("%greader%") || context.Contains("%gheaders%"))
-                context = context.Replace("%gmailreader%", new Net.Mail().GmailCheck(false))
-                                 .Replace("%gmailheaders%", new Net.Mail().GmailCheck(false))
-                                 .Replace("%greader%", new Net.Mail().GmailCheck(false))
-                                 .Replace("%gheaders%", new Net.Mail().GmailCheck(false));
-            if (context.Contains("%pop3count%"))
-                context = context.Replace("%pop3count%", new Net.Mail().Pop3Check().ToString());
+            if (context.Contains("%gmailcount%") || context.Contains("%gcount%")) {
+                context = Regex.Replace(context, "%gmailcount%|%gcount%", new Net.Mail().GmailCheck(true));
+            }
+            if (context.Contains("%gmailreader%") || context.Contains("%gmailheaders%") || context.Contains("%greader%") || context.Contains("%gheaders%")) {
+                context = Regex.Replace(context, "%gmailreader%|%gmailheaders%|%greader%|%gheaders%", new Net.Mail().GmailCheck(false));
+            }
+            if (context.Contains("%pop3count%")) {
+                Regex.Replace(context, "%pop3count%", new Net.Mail().Pop3Check().ToString());
+            }
             if (context.Contains("%user%") || context.Contains("%whoami%")) {
-                string whoami = method.WhoAmI;
-                context = context.Replace("%user%", whoami)
-                                 .Replace("%whoami%", whoami);
+                context = Regex.Replace(context, "%user%|%whoami%", method.WhoAmI);
             }
             if (context.Contains("%checkin%") || context.Contains("%usercheckin%")) {
                 User.Status = true;
-                context = context.Replace("%usercheckin%", string.Empty)
-                                 .Replace("%checkin%", string.Empty);
+                context = Regex.Replace(context, "%checkin%|%usercheckin%", string.Empty);
             }
             if (context.Contains("%checkout%") || context.Contains("%usercheckout%")) {
                 User.Status = false;
-                context = context.Replace("%usercheckout%", string.Empty)
-                                 .Replace("%checkout%", string.Empty);
+                context = Regex.Replace(context, "%checkout%|%usercheckout%", string.Empty);
             }
-            if (context.Contains("%time%"))
-                context = context.Replace("%time%", method.GetTime);
-            if (context.Contains("%time24%"))
-                context = context.Replace("%time24%", method.GetTime24);
-            if (context.Contains("%hour%"))
-                context = context.Replace("%hour%", method.GetHour);
-            if (context.Contains("%minute%"))
-                context = context.Replace("%minute%", method.GetMinute);
-            if (context.Contains("%date%"))
-                context = context.Replace("%date%", method.GetDate);
-            if (context.Contains("%calendardate%"))
-                context = context.Replace("%calendardate%", method.GetCalendarDate);
-            if (context.Contains("%day%"))
-                context = context.Replace("%day%", method.GetDay);
-            if (context.Contains("%calendarday%"))
-                context = context.Replace("%calendarday%", method.GetCalendarDay);
-            if (context.Contains("%calendarmonth%"))
-                context = context.Replace("%calendarmonth%", method.GetCalendarMonth);
-            if (context.Contains("%calendaryear%"))
-                context = context.Replace("%calendaryear%", method.GetCalendarYear);
-            if (context.Contains("%salute%"))
-                context = context.Replace("%salute%", method.GetSalute);
+            if (context.Contains("%time%")) {
+                context = Regex.Replace(context, "%time%", method.GetTime);
+            }
+            if (context.Contains("%time24%")) {
+                context = Regex.Replace(context, "%time24%", method.GetTime24);
+            }
+            if (context.Contains("%hour%")) {
+                context = Regex.Replace(context, "%hour%", method.GetHour);
+            }
+            if (context.Contains("%minute%")) {
+                context = Regex.Replace(context, "%minute%", method.GetMinute);
+            }
+            if (context.Contains("%date%")) {
+                context = Regex.Replace(context, "%date%", method.GetDate);
+            }
+            if (context.Contains("%calendardate%")) {
+                context = Regex.Replace(context, "%calendardate%", method.GetCalendarDate);
+            }
+            if (context.Contains("%day%")) {
+                context = Regex.Replace(context, "%day%", method.GetDay);
+            }
+            if (context.Contains("%calendarday%")) {
+                context = Regex.Replace(context, "%calendarday%", method.GetCalendarDay);
+            }
+            if (context.Contains("%calendarmonth%")) {
+                context = Regex.Replace(context, "%calendarmonth%", method.GetCalendarMonth);
+            }
+            if (context.Contains("%calendaryear%")) {
+                context = Regex.Replace(context, "%calendaryear%", method.GetCalendarYear);
+            }
+            if (context.Contains("%salute%")) {
+                context = Regex.Replace(context, "%salute%", method.GetSalute);
+            }
             if (context.Contains("%daypart%") || context.Contains("%partofday%")) {
-                string daypart = method.GetPartOfDay(false);
-                context = context.Replace("%daypart%", daypart)
-                                 .Replace("%partofday%", daypart);
+                context = Regex.Replace(context, "%daypart%|%partofday%", method.GetPartOfDay(false));
             }
-            if (context.Contains("%todayday%"))
-                context = context.Replace("%todayday%", weather.TodayDay);
-            if (context.Contains("%todayconditions%"))
-                context = context.Replace("%todayconditions%", weather.TodayConditions);
-            if (context.Contains("%todaylow%"))
-                context = context.Replace("%todaylow%", weather.TodayLow);
-            if (context.Contains("%todayhigh%"))
-                context = context.Replace("%todayhigh%", weather.TodayHigh);
-            if (context.Contains("%currenttemperature%") || context.Contains("%currenttemp%") || context.Contains("%todaytemp%") || context.Contains("%todaytemperature%"))
-                context = context.Replace("%currenttemperature%", weather.CurrentTemp)
-                                 .Replace("%currenttemp%", weather.CurrentTemp)
-                                 .Replace("%todaytemp%", weather.CurrentTemp)
-                                 .Replace("%todaytemperature%", weather.CurrentTemp);
-            if (context.Contains("%currenthumidity%"))
-                context = context.Replace("%currenthumidity%", weather.CurrentHumidity);
-            if (context.Contains("%currentpressure%"))
-                context = context.Replace("%currentpressure%", weather.CurrentPressure);
-            if (context.Contains("%currentcity%"))
-                context = context.Replace("%currentcity%", weather.CurrentCity);
-            if (context.Contains("%weathericon%"))
-                context = context.Replace("%weathericon%", weather.WeatherIcon);
-            if (context.Contains("%tomorrowday%"))
-                context = context.Replace("%tomorrowday%", weather.TomorrowDay);
-            if (context.Contains("%tomorrowconditions%"))
-                context = context.Replace("%tomorrowconditions%", weather.TomorrowConditions);
-            if (context.Contains("%tomorrowlow%"))
-                context = context.Replace("%tomorrowlow%", weather.TomorrowLow);
-            if (context.Contains("%tomorrowhigh%"))
-                context = context.Replace("%tomorrowhigh%", weather.TomorrowHigh);
-            if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%"))
+            if (context.Contains("%todayday%")) {
+                context = Regex.Replace(context, "%todayday%", weather.TodayDay);
+            }
+            if (context.Contains("%todayconditions%")) {
+                context = Regex.Replace(context, "%todayconditions%", weather.TodayConditions);
+            }
+            if (context.Contains("%todaylow%")) {
+                context = Regex.Replace(context, "%todaylow%", weather.TodayLow);
+            }
+            if (context.Contains("%todayhigh%")) {
+                context = Regex.Replace(context, "%todayhigh%", weather.TodayHigh);
+            }
+            if (context.Contains("%currenttemperature%") || context.Contains("%currenttemp%") ||
+                context.Contains("%todaytemp%") || context.Contains("%todaytemperature%")) {
+                context = Regex.Replace(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%", weather.CurrentTemp);
+            }
+            if (context.Contains("%currenthumidity%")) {
+                context = Regex.Replace(context, "%currenthumidity%", weather.CurrentHumidity);
+            }
+            if (context.Contains("%currentpressure%")) {
+                context = Regex.Replace(context, "%currentpressure%", weather.CurrentPressure);
+            }
+            if (context.Contains("%currentcity%")) {
+                context = Regex.Replace(context, "%currentcity%", weather.CurrentCity);
+            }
+            if (context.Contains("%weathericon%")) {
+                context = Regex.Replace(context, "%weathericon%", weather.WeatherIcon);
+            }
+            if (context.Contains("%tomorrowday%")) {
+                context = Regex.Replace(context, "%tomorrowday%", weather.TomorrowDay);
+            }
+            if (context.Contains("%tomorrowconditions%")) {
+                context = Regex.Replace(context, "%tomorrowconditions%", weather.TomorrowConditions);
+            }
+            if (context.Contains("%tomorrowlow%")) {
+                context = Regex.Replace(context, "%tomorrowlow%", weather.TomorrowLow);
+            }
+            if (context.Contains("%tomorrowhigh%")) {
+                context = Regex.Replace(context, "%tomorrowhigh%", weather.TomorrowHigh);
+            }
+            if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%")) {
+                string us;
                 if (User.Status)
-                    context = context.Replace("%whereami%", "present")
-                                     .Replace("%userstat%", "present")
-                                     .Replace("%userstatus%", "present");
+                    us = "present";
                 else
-                    context = context.Replace("%whereami%", "absent")
-                                     .Replace("%userstat%", "absent")
-                                     .Replace("%userstatus%", "absent");
-            if (context.Contains("%uptime%"))
-                context = context.Replace("%uptime%", Application.Uptime.GetAll);
-            if (context.Contains("%updays%"))
-                context = context.Replace("%updays%", Application.Uptime.GetDays.ToString());
-            if (context.Contains("%uphours%"))
-                context = context.Replace("%uphours%", Application.Uptime.GetHours.ToString());
-            if (context.Contains("%upminutes%"))
-                context = context.Replace("%upminutes%", Application.Uptime.GetMinutes.ToString());
-            if (context.Contains("%upseconds%"))
-                context = context.Replace("%upseconds%", Application.Uptime.GetSeconds.ToString());
-            if (context.Contains("%about%") || context.Contains("%copyright%"))
-                context = context.Replace("%about%", method.GetCopyright)
-                                 .Replace("%copyright%", method.GetCopyright);
-            if (context.Contains("%apppath%") || context.Contains("%applicationpath%"))
-                context = context.Replace("%apppath%", method.GetApplicationPath)
-                                 .Replace("%applicationpath%", method.GetApplicationPath);
-
+                    us = "absent";
+                context = Regex.Replace(context, "%whereami%|%userstat%|%userstatus%", us);
+            }
+            if (context.Contains("%uptime%")) {
+                context = Regex.Replace(context, "%uptime%", Application.Uptime.GetAll);
+            }
+            if (context.Contains("%updays%")) {
+                context = Regex.Replace(context, "%updays%", Application.Uptime.GetDays.ToString());
+            }
+            if (context.Contains("%uphours%")) {
+                context = Regex.Replace(context, "%uphours%", Application.Uptime.GetHours.ToString());
+            }
+            if (context.Contains("%upminutes%")) {
+                context = Regex.Replace(context, "%upminutes%", Application.Uptime.GetMinutes.ToString());
+            }
+            if (context.Contains("%upseconds%")) {
+                context = Regex.Replace(context, "%upseconds%", Application.Uptime.GetSeconds.ToString());
+            }
+            if (context.Contains("%about%") || context.Contains("%copyright%")) {
+                context = Regex.Replace(context, "%about%|%copyright%", method.GetCopyright);
+            }
+            if (context.Contains("%apppath%") || context.Contains("%applicationpath%")) {
+                context = Regex.Replace(context, "%apppath%|%applicationpath%", method.GetApplicationPath);
+            }
             // If Event
             if (context.Contains("%~>")) {
                 method.GetEvent(context.Replace("%~>", string.Empty)
                                        .Replace("%", string.Empty)).Item(0).InnerText.Parse();
                 context = context.Replace(context, string.Empty);
             }
-
             return Regex.Replace(context, @"[^\S\r\n]+", " ");
         }
     }
