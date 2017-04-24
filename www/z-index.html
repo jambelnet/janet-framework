@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<title>Jubito</title>
+
+	<meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=9" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="shortcut icon" href="favicon.ico" />
+	<link rel="stylesheet" href="themes/default.min.css" />
+	<link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile.structure-1.4.2.min.css" />
+
+	<script src="js/jubito.razberry.js"></script>
+	<script src="js/jquery-1.10.2.min.js"></script>
+	<script src="js/jquery.mobile-1.4.2.min.js"></script>
+
+	<script type="application/javascript">
+		$(document).on("pageinit", "#z-wave_main", function () {
+			getData();
+			setInterval(function () {
+				getData();
+			}, 1500);
+		});
+	</script>
+</head>
+
+<body>
+	<div data-role="page" id="z-wave_main">
+		<div data-theme="a" data-role="header">
+			<a data-role="button" data-inline="true" data-transition="slide" href="index.html" data-icon="back" data-iconpos="left">
+					Home
+				</a>
+			<h3>Z-Wave Devices</h3>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-inset="true" id="devices"></ul>
+		</div>
+		<div data-role="footer" data-position="fixed">
+			<div data-role="navbar">
+				<ul>
+					<li>
+						<a data-icon="plus" href="javascript:NetworkNodes('add')">Inclusion</a>
+					</li>
+					<li>
+						<a data-icon="minus" href="javascript:NetworkNodes('remove')">Exclusion</a>
+					</li>
+					<li>
+						<a data-icon="refresh" href="javascript:getData()">Refresh</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
