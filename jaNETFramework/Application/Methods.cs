@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.15";
+        public const string AssemblyVersion = "0.3.0.20";
 
         public string GetCopyright {
             get {

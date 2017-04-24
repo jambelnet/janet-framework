@@ -136,15 +136,18 @@ namespace jaNET.Extensions
             }
             if (context.Contains("%clear%") || context.Contains("%cls%")) {
                 Console.Clear();
-                context = Regex.Replace(context, "%clear%|%cls%", string.Empty);
             }
             if (context.Contains("%mute%")) {
                 Parser.Mute = true;
-                context = Regex.Replace(context, "%mute%", string.Empty);
             }
             if (context.Contains("%unmute%")) {
                 Parser.Mute = false;
-                context = Regex.Replace(context, "%unmute%", string.Empty);
+            }
+            if (context.Contains("%checkin%") || context.Contains("%usercheckin%")) {
+                User.Status = true;
+            }
+            if (context.Contains("%checkout%") || context.Contains("%usercheckout%")) {
+                User.Status = false;
             }
             if (context.Contains("%inet%") || context.Contains("%inetcon%")) {
                 context = Regex.Replace(context, "%inet%|%inetcon%", method.HasInternetConnection().ToString());
@@ -152,22 +155,14 @@ namespace jaNET.Extensions
             if (context.Contains("%gmailcount%") || context.Contains("%gcount%")) {
                 context = Regex.Replace(context, "%gmailcount%|%gcount%", new Net.Mail().GmailCheck(true));
             }
-            if (context.Contains("%gmailreader%") || context.Contains("%gmailheaders%") || context.Contains("%greader%") || context.Contains("%gheaders%")) {
+            if (Regex.IsMatch(context, "%gmailreader%|%gmailheaders%|%greader%|%gheaders%")) {
                 context = Regex.Replace(context, "%gmailreader%|%gmailheaders%|%greader%|%gheaders%", new Net.Mail().GmailCheck(false));
             }
             if (context.Contains("%pop3count%")) {
-                Regex.Replace(context, "%pop3count%", new Net.Mail().Pop3Check().ToString());
+                context = Regex.Replace(context, "%pop3count%", new Net.Mail().Pop3Check().ToString());
             }
             if (context.Contains("%user%") || context.Contains("%whoami%")) {
                 context = Regex.Replace(context, "%user%|%whoami%", method.WhoAmI);
-            }
-            if (context.Contains("%checkin%") || context.Contains("%usercheckin%")) {
-                User.Status = true;
-                context = Regex.Replace(context, "%checkin%|%usercheckin%", string.Empty);
-            }
-            if (context.Contains("%checkout%") || context.Contains("%usercheckout%")) {
-                User.Status = false;
-                context = Regex.Replace(context, "%checkout%|%usercheckout%", string.Empty);
             }
             if (context.Contains("%time%")) {
                 context = Regex.Replace(context, "%time%", method.GetTime);
@@ -217,8 +212,7 @@ namespace jaNET.Extensions
             if (context.Contains("%todayhigh%")) {
                 context = Regex.Replace(context, "%todayhigh%", weather.TodayHigh);
             }
-            if (context.Contains("%currenttemperature%") || context.Contains("%currenttemp%") ||
-                context.Contains("%todaytemp%") || context.Contains("%todaytemperature%")) {
+            if (Regex.IsMatch(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%")) {
                 context = Regex.Replace(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%", weather.CurrentTemp);
             }
             if (context.Contains("%currenthumidity%")) {
@@ -274,13 +268,14 @@ namespace jaNET.Extensions
             if (context.Contains("%apppath%") || context.Contains("%applicationpath%")) {
                 context = Regex.Replace(context, "%apppath%|%applicationpath%", method.GetApplicationPath);
             }
+            context = Regex.Replace(context, "%clear%|%cls%|%mute%|%unmute%|%checkin%|%usercheckin%|%checkout%|%usercheckout%", string.Empty);
             // If Event
             if (context.Contains("%~>")) {
                 method.GetEvent(context.Replace("%~>", string.Empty)
                                        .Replace("%", string.Empty)).Item(0).InnerText.Parse();
                 context = context.Replace(context, string.Empty);
             }
-            return Regex.Replace(context, @"[^\S\r\n]+", " ");
+            return context;
         }
     }
 }
