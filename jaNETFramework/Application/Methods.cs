@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.20";
+        public const string AssemblyVersion = "0.3.0.25";
 
         public string GetCopyright {
             get {
@@ -60,15 +60,11 @@ namespace jaNET.Environment
         }
 
         public string GetWinPath {
-            get {
-                return Directory.GetCurrentDirectory();
-            }
+            get { return Directory.GetCurrentDirectory(); }
         }
 
         public string GetLinuxPath {
-            get {
-                return System.Environment.CommandLine.Substring(0, System.Environment.CommandLine.LastIndexOf("/"));
-            }
+            get { return System.Environment.CommandLine.Substring(0, System.Environment.CommandLine.LastIndexOf("/")); }
         }
 
         public string GetApplicationPath {
@@ -107,75 +103,51 @@ namespace jaNET.Environment
         }
 
         public string GetSalute {
-            get {
-                return GetPartOfDay(true);
-            }
+            get { return GetPartOfDay(true); }
         }
 
         public string GetTime {
-            get {
-                return (string.Format("{0:t}", DateTime.Now));
-            }
+            get { return (string.Format("{0:t}", DateTime.Now)); }
         }
 
         public string GetTime24 {
-            get {
-                return (string.Format("{0:HH:mm}", DateTime.Now));
-            }
+            get { return (string.Format("{0:HH:mm}", DateTime.Now)); }
         }
 
         public string GetHour {
-            get {
-                return (string.Format("{0:HH}", DateTime.Now));
-            }
+            get { return (string.Format("{0:HH}", DateTime.Now)); }
         }
 
         public string GetMinute {
-            get {
-                return (string.Format("{0:mm}", DateTime.Now));
-            }
+            get { return (string.Format("{0:mm}", DateTime.Now)); }
         }
 
         public string GetDate {
-            get {
-                return (string.Format("{0:M}", DateTime.Now));
-            }
+            get { return (string.Format("{0:M}", DateTime.Now)); }
         }
 
         public string GetCalendarDate {
-            get {
-                return (string.Format("{0:d/M/yyyy}", DateTime.Now));
-            }
+            get { return (string.Format("{0:d/M/yyyy}", DateTime.Now)); }
         }
 
         public string GetDay {
-            get {
-                return (DateTime.Now.DayOfWeek.ToString());
-            }
+            get { return (DateTime.Now.DayOfWeek.ToString()); }
         }
 
         public string GetCalendarDay {
-            get {
-                return (DateTime.Now.Day.ToString());
-            }
+            get { return (DateTime.Now.Day.ToString()); }
         }
 
         public string GetCalendarMonth {
-            get {
-                return (DateTime.Now.Month.ToString());
-            }
+            get { return (DateTime.Now.Month.ToString()); }
         }
 
         public string GetCalendarYear {
-            get {
-                return (DateTime.Now.Year.ToString());
-            }
+            get { return (DateTime.Now.Year.ToString()); }
         }
 
         public string WhoAmI {
-            get {
-                return System.Environment.UserName;
-            }
+            get { return System.Environment.UserName; }
         }
 
         public XmlNodeList GetEvent(string eventID) {
@@ -191,9 +163,7 @@ namespace jaNET.Environment
         }
 
         public XmlNodeList GetMailHeaders {
-            get {
-                return Helpers.Xml.AppConfigQuery("jaNET/System/Alerts/MailHeaders");
-            }
+            get { return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeaders); }
         }
 
         public XmlNodeList GetXmlElementList(string xPath, string elementName) {
@@ -246,12 +216,11 @@ namespace jaNET.Environment
                             .NamedArguments.FirstOrDefault().TypedValue.Value.ToString(),
                             p.GetValue(newElement))));
 
-                    xdoc.Root.Element(xPath)
-                                .Add(
-                                    new XElement(element,
-                                        xattrs,
-                                        new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null).ToString().Trim())
-                                    ));
+                    xdoc.Root.Element(xPath).Add(
+                        new XElement(element,
+                            xattrs,
+                            new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null).ToString().Trim())
+                        ));
                 }
                 else
                     props.ForEach(a => xdoc.Descendants(a.CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString())

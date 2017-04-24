@@ -74,8 +74,7 @@ namespace jaNET.Extensions
         }
 
         internal static string ToHour24(this string hour) {
-            DateTime dt = DateTime.ParseExact(hour, "h:mm tt",
-                                              CultureInfo.InvariantCulture);
+            DateTime dt = DateTime.ParseExact(hour, "h:mm tt", CultureInfo.InvariantCulture);
             return string.Format("{0:HH:mm}", dt);
         }
 

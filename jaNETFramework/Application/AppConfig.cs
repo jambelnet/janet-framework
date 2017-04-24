@@ -31,7 +31,8 @@ namespace jaNET.Environment.AppConfig
         internal const string SystemInstructionsRoot = "jaNET/Instructions";
         internal const string SystemEventsRoot = "jaNET/Events";
         internal const string SystemOthersRoot = "jaNET/System/Others";
-
+        internal const string SystemAlertsMailHeaders = "jaNET/System/Alerts/MailHeaders";
+        // Elements
         internal const string ComPortElement = "ComPort";
         internal const string ComBaudRateElement = "BaudRate";
         internal const string LocalHostElement = "localHost";
@@ -41,9 +42,8 @@ namespace jaNET.Environment.AppConfig
         internal const string HttpPortElement = "httpPort";
         internal const string HttpAuthenticationElement = "Authentication";
         internal const string HttpMapPathElement = "MapPath";
-
         internal const string Weather = "Weather";
-
+        // Routes
         internal const string ComPortPath = SystemCommRoot + "/" + ComPortElement;
         internal const string ComBaudRatePath = SystemCommRoot + "/" + ComBaudRateElement;
         internal const string LocalHostPath = SystemCommRoot + "/" + LocalHostElement;
@@ -79,88 +79,88 @@ namespace jaNET.Environment.AppConfig
     {
         internal string GetLocalHost {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.LocalHostPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
         internal string GetLocalPort {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.LocalPortPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetHostname {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.HttpHostNamePath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetHttpPort {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.HttpPortPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetAuthentication {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.HttpAuthenticationPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetMapPath {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpMapPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.HttpMapPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpMapPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetComPort {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.ComPortPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.ComPortPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.ComPortPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
         internal string GetBaudRate {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.ComBaudRatePath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.ComBaudRatePath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.ComBaudRatePath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 
@@ -191,12 +191,12 @@ namespace jaNET.Environment.AppConfig
     {
         internal string GetWeather {
             get {
-                string ret = string.Empty;
-                if (Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Count > 0)
-                    ret = Helpers.Xml.AppConfigQuery(
-                        AppStructure.WeatherPath)
-                        .Item(0).InnerText;
-                return ret;
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
             }
         }
 

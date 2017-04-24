@@ -42,16 +42,19 @@ namespace jaNET.Environment
 
         static bool doEventCheck(bool status) {
             var method = Methods.Instance;
-            if (status) {
-                // Throw oncheckin event if exists
-                if (method.GetEvent("oncheckin").Count > 0)
-                    method.GetEvent("oncheckin").Item(0).InnerText.Parse();
+            try {
+                if (status) {
+                    // Fire oncheckin event if exists
+                    if (method.GetEvent("oncheckin").Count > 0)
+                        method.GetEvent("oncheckin").Item(0).InnerText.Parse();
+                }
+                else {
+                    // Fire oncheckout event if exists
+                    if (method.GetEvent("oncheckout").Count > 0)
+                        method.GetEvent("oncheckout").Item(0).InnerText.Parse();
+                }
             }
-            else {
-                // Throw oncheckout event if exists
-                if (method.GetEvent("oncheckout").Count > 0)
-                    method.GetEvent("oncheckout").Item(0).InnerText.Parse();
-            }
+            catch { }
             return status;
         }
     }

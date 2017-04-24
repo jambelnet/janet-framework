@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Diagnostics;
 using jaNET.Environment;
 using System;
 using System.Collections.Generic;
@@ -82,8 +83,7 @@ namespace jaNET
                     xmlDoc.LoadXml(GetRawData(endpoint));
 
                     return nodeIndex <= 0 ?
-                        xmlDoc.SelectNodes(node).Item(0).InnerText
-                    :
+                        xmlDoc.SelectNodes(node).Item(0).InnerText :
                         xmlDoc.SelectNodes(node).Item(nodeIndex).InnerText;
                 }
                 catch {
@@ -103,7 +103,8 @@ namespace jaNET
 
                     return xmlDoc.SelectNodes(xPathNode);
                 }
-                catch {
+                catch (Exception e) {
+                    Logger.Instance.Append(string.Format("obj [ Helpers.Xml <Exception> ]: args [ {0} ]: {1}", e.Message, "Malformed AppConfig.xml or not found."));
                     return null;
                 }
             }

@@ -110,10 +110,10 @@ namespace jaNET.IO.Ports
                     }
                     catch (Exception e) {
                         if (e is TimeoutException) {
-                            
+
                         }
                         else {
-                            
+
                         }
                     }
                 }
