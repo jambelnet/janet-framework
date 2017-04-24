@@ -7,20 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jaNETFramework", "jaNETFram
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jaNETProgram", "jaNETProgram\jaNETProgram.csproj", "{E49779C9-0E4F-418E-BDD0-52A2D8789776}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "www", "www\", "{6ECAC157-69A7-4DF4-8FBD-0BC3A53CBABC}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "www(1)", "www\", "{6ECAC157-69A7-4DF4-8FBD-0BC3A53CBABC}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.2"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_63512"
 		Debug.AspNetCompiler.PhysicalPath = "www\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_63512\"
-		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.Updateable = "false"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.VirtualPath = "/localhost_63512"
 		Release.AspNetCompiler.PhysicalPath = "www\"
 		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_63512\"
-		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.Updateable = "false"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
