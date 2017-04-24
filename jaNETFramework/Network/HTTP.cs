@@ -95,7 +95,7 @@ namespace jaNET.Net.Http
                                             .Item(0).InnerText;
             }
             catch (NullReferenceException e) {
-                Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
+                Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace jaNET.Net.Http
                 httplistener.Start();
             }
             catch (Exception e) {
-                Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: Exception [ {0} ]", e.Message));
+                Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ]: Exception [ {0} ]", e.Message));
                 return;
             }
 
@@ -119,13 +119,13 @@ namespace jaNET.Net.Http
                     Task.Run(() => ProcessRequestAsync(ctx)); // Do not await
                 }
                 catch (HttpListenerException e) {
-                    Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ]: HttpListenerException [ {0} ]", e.Message));
                 }
                 catch (InvalidOperationException) {
 
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(string.Format("obj [ Server.WebServer.Start <Exception> ]: Generic [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ]: Generic [ {0} ]", e.Message));
                 }
             }
         }
@@ -196,7 +196,7 @@ namespace jaNET.Net.Http
                     "The requested URL could not be found. Are you missing the www root?<br />" +
                     "e.g. <a href=http://localhost:8080/www/>http://localhost:8080/www/</a>" +
                     "<hr></body></html>");
-                Logger.Instance.Append(string.Format("obj [ Server.WebServer.ProcessRequestAsync <Exception> ]: {0}", e.Message));
+                Logger.Instance.Append(string.Format("obj [ WebServer.ProcessRequestAsync <Exception> ]: {0}", e.Message));
             }
             finally {
                 ctx.Response.ContentLength64 = buf.Length;

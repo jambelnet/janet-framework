@@ -76,8 +76,8 @@ namespace jaNET.Environment.Core
                 instructionSets.ForEach(instruction => results.Add(instruction.Replace(" ", "_").Replace("%", string.Empty),
                                                                    // Remove blank spaces of judo command and %% of functions to generate a friendly and readable key
                                                                    new KeyValuePair<string, string>(instruction,
-                                                                        // Remove extra white spaces
-                                                                        Regex.Replace(Execute(instruction, disableSpeech), @"[^\S\r\n]+", " "))));
+                                                                   // Remove extra white spaces
+                                                                   Regex.Replace(Execute(instruction, disableSpeech), @"[^\S\r\n]+", " "))));
 
                 switch (dataType) {
                     case WebServer.Request.DataType.html:
