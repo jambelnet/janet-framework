@@ -41,7 +41,6 @@ namespace jaNET.Environment.AppConfig
         internal const string HttpHostNameElement = "Hostname";
         internal const string HttpPortElement = "httpPort";
         internal const string HttpAuthenticationElement = "Authentication";
-        internal const string HttpMapPathElement = "MapPath";
         internal const string Weather = "Weather";
         // Routes
         internal const string ComPortPath = SystemCommRoot + "/" + ComPortElement;
@@ -52,13 +51,23 @@ namespace jaNET.Environment.AppConfig
         internal const string HttpHostNamePath = SystemCommRoot + "/" + HttpHostNameElement;
         internal const string HttpPortPath = SystemCommRoot + "/" + HttpPortElement;
         internal const string HttpAuthenticationPath = SystemCommRoot + "/" + HttpAuthenticationElement;
-        internal const string HttpMapPath = SystemCommRoot + "/" + HttpMapPathElement;
         internal const string WeatherPath = SystemOthersRoot + "/" + Weather;
     }
 
     [XmlRoot(ElementName = "MailHeaders")]
     public class MailHeaders
     {
+        internal static string GetMailHeaders {
+            get {
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeaders).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
+            }
+        }
+
         [XmlElement(ElementName = "MailFrom")]
         public string MailFrom { get; set; }
         [XmlElement(ElementName = "MailTo")]
@@ -77,7 +86,7 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Comm")]
     public class Comm
     {
-        internal string GetLocalHost {
+        internal static string GetLocalHost {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Item(0).InnerText;
@@ -87,7 +96,7 @@ namespace jaNET.Environment.AppConfig
                 }
             }
         }
-        internal string GetLocalPort {
+        internal static string GetLocalPort {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Item(0).InnerText;
@@ -98,7 +107,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string GetHostname {
+        internal static string GetHostname {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText;
@@ -109,7 +118,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string GetHttpPort {
+        internal static string GetHttpPort {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText;
@@ -120,7 +129,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string GetAuthentication {
+        internal static string GetAuthentication {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Item(0).InnerText;
@@ -131,18 +140,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string GetMapPath {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpMapPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
-        }
-
-        internal string GetComPort {
+        internal static string GetComPort {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.ComPortPath).Item(0).InnerText;
@@ -153,7 +151,7 @@ namespace jaNET.Environment.AppConfig
             }
         }
 
-        internal string GetBaudRate {
+        internal static string GetBaudRate {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.ComBaudRatePath).Item(0).InnerText;
@@ -176,8 +174,6 @@ namespace jaNET.Environment.AppConfig
         public string HttpPort { get; set; }
         [XmlElement(ElementName = "Authentication")]
         public string Authentication { get; set; }
-        [XmlElement(ElementName = "MapPath")]
-        public string MapPath { get; set; }
         [XmlElement(ElementName = "ComPort")]
         public string ComPort { get; set; }
         [XmlElement(ElementName = "BaudRate")]
@@ -189,7 +185,7 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Others")]
     public class Others
     {
-        internal string GetWeather {
+        internal static string GetWeather {
             get {
                 try {
                     return Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;

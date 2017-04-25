@@ -399,6 +399,17 @@ var pageObj = {
         $('input#pop3Port').val('');
         window.history.back();
     },
+    mailheaderSettings: function () {
+        if ($('input#mailFrom').val() != '' && $('input#mailTo').val() != '' && $('input#mailSubject').val() != '') {
+            $.get('?cmd=judo mailheaders set `' + $('input#mailFrom').val() + '` `' + $('input#mailTo').val() + '` `' + $('input#mailSubject').val() + '`', function (data) {
+                pageObj.response3Popup(data);
+            }, 'html');
+        }
+        $('input#mailFrom').val('');
+        $('input#mailTo').val('');
+        $('input#mailSubject').val('');
+        window.history.back();
+    },
     smsSettings: function () {
         if ($('input#smsAPI').val() != '' && $('input#smsUsername').val() != '' && $('input#smsPassword').val() != '') {
             $.get('?cmd=judo sms set ' + $('input#smsAPI').val() + ' ' + $('input#smsUsername').val() + ' ' + encodeURIComponent($('input#smsPassword').val()), function (data) {

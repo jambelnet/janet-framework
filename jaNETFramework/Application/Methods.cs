@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.30";
+        public const string AssemblyVersion = "0.3.0.32";
 
         public string GetCopyright {
             get {
@@ -195,8 +195,8 @@ namespace jaNET.Environment
 
             try {
                 var xdoc = XDocument.Load(path);
-
-                var props = newElement.GetType().GetProperties().ToList();
+                var type = newElement.GetType();
+                var props = type.GetProperties().ToList();
                 props.RemoveAll(item => item.GetValue(newElement, null) == null ||
                                 item.GetValue(newElement, null).ToString().Trim() == string.Empty ||
                                 item.CustomAttributes.FirstOrDefault().AttributeType.Name == "XmlTextAttribute");
@@ -205,7 +205,7 @@ namespace jaNET.Environment
                 File.Delete(path);
 
                 xPath = xPath.Substring(xPath.LastIndexOf('/') + 1);
-                string element = newElement.GetType().CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString();
+                string element = type.CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString();
 
                 if (newElement is InstructionSet || newElement is Event) {
                     var xattrs = new List<XAttribute>();
@@ -219,7 +219,7 @@ namespace jaNET.Environment
                     xdoc.Root.Element(xPath).Add(
                         new XElement(element,
                             xattrs,
-                            new XText((string)newElement.GetType().GetProperty("Action").GetValue(newElement, null).ToString().Trim())
+                            new XText((string)type.GetProperty("Action").GetValue(newElement, null).ToString().Trim())
                         ));
                 }
                 else
@@ -275,7 +275,7 @@ namespace jaNET.Environment
 
         internal string GetHelp(string appendix) {
             const
-            string _inset = "1.  Instruction Sets & Events\r\n" +
+            string _inset = "1. Instruction Sets & Events\r\n" +
                                 "     1.1 Add New Instruction Set\r\n" +
                                 "         + judo inset add [ID] <lock>[Action]</lock>\r\n" +
                                 "         + judo inset new [ID] <lock>[Action]</lock>\r\n" +
@@ -310,7 +310,7 @@ namespace jaNET.Environment
                                 "         + judo event list\r\n" +
                                 "         + judo event ls";
             const
-            string _mail = "2.  Mail\r\n" +
+            string _mail = "2. Mail\r\n" +
                                 "     2.1 Smtp Settings\r\n" +
                                 "         + judo smtp add [Host] [Username] [Password] [Port] [Ssl]\r\n" +
                                 "         + judo smtp setup [Host] [Username] [Password] [Port] [Ssl]\r\n" +
@@ -326,10 +326,14 @@ namespace jaNET.Environment
                                 "         + judo gmail setup [Username] [Password]\r\n" +
                                 "         + judo gmail set [Username] [Password]\r\n" +
                                 "         + judo gmail settings\r\n" +
-                                "     2.4 Send\r\n" +
+                                "     2.4 Mail Header Settings\r\n" +
+                                "         + judo mailheaders set `[From]` `[To]` `[Subject]`\r\n" +
+                                "         + judo mailheaders setup `[From]` `[To]` `[Subject]`\r\n" +
+                                "         + judo mailheaders settings\r\n" + 
+                                "     2.5 Send\r\n" +
                                 "         + judo mail send [From Address] [To Address] `[Subject]` `[Message]`";
             const
-            string _sms = "3.  SMS\r\n" +
+            string _sms = "3. SMS\r\n" +
                                 "     3.1 Settings\r\n" +
                                 "         + judo sms add [Api Id] [Username] [Password]\r\n" +
                                 "         + judo sms setup [Api Id] [Username] [Password]\r\n" +
@@ -338,7 +342,7 @@ namespace jaNET.Environment
                                 "     3.2 Send\r\n" +
                                 "         + judo sms send [Phone Number] [Message]";
             const
-            string _schedule = "4.  Scheduler\r\n" +
+            string _schedule = "4. Scheduler\r\n" +
                                 "     4.1 New Schedule\r\n" +
                                 "         + judo schedule add [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
                                 "         + judo schedule new [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]\r\n" +
@@ -379,14 +383,14 @@ namespace jaNET.Environment
                                 "         + judo schedule activate-all\r\n" +
                                 "         + judo schedule start-all\r\n" +
                                 "         + judo schedule on-all\r\n" +
-                                "     4.8 List Actives [ Names ]\r\n" +
+                                "     4.8 Active List [ Names ]\r\n" +
                                 "         + judo schedule active\r\n" +
                                 "         + judo schedule actives\r\n" +
                                 "         + judo schedule active-list\r\n" +
                                 "         + judo schedule active-ls\r\n" +
                                 "         + judo schedule list-actives\r\n" +
                                 "         + judo schedule ls-actives\r\n" +
-                                "     4.9 List Inactives [ Names ]\r\n" +
+                                "     4.9 Inactive List [ Names ]\r\n" +
                                 "         + judo schedule inactive\r\n" +
                                 "         + judo schedule inactives\r\n" +
                                 "         + judo schedule inactive-list\r\n" +
@@ -399,28 +403,28 @@ namespace jaNET.Environment
                                 "         + judo schedule name-ls\r\n" +
                                 "         + judo schedule list-names\r\n" +
                                 "         + judo schedule ls-names\r\n" +
-                                "     4.11 List Actives [ Details ]\r\n" +
+                                "     4.11 Active List [ with Details ]\r\n" +
                                 "         + judo schedule active-details\r\n" +
                                 "         + judo schedule actives-details\r\n" +
                                 "         + judo schedule active-list-details\r\n" +
                                 "         + judo schedule active-ls-details\r\n" +
                                 "         + judo schedule list-actives-details\r\n" +
                                 "         + judo schedule ls-actives-details\r\n" +
-                                "     4.12 List Inactives [ Details ]\r\n" +
+                                "     4.12 Inactive List [ with Details ]\r\n" +
                                 "         + judo schedule inactive-details\r\n" +
                                 "         + judo schedule inactives-details\r\n" +
                                 "         + judo schedule inactive-list-details\r\n" +
                                 "         + judo schedule inactive-ls-details\r\n" +
                                 "         + judo schedule list-inactives-details\r\n" +
                                 "         + judo schedule ls-inactives-details\r\n" +
-                                "     4.13 List All [ Details ]\r\n" +
+                                "     4.13 List All [ with Details ]\r\n" +
                                 "         + judo schedule details [Name (optional)]\r\n" +
                                 "         + judo schedule list [Name (optional)]\r\n" +
                                 "         + judo schedule ls [Name (optional)]\r\n" +
                                 "         + judo schedule status [Name (optional)]\r\n" +
                                 "         + judo schedule state [Name (optional)]";
             const
-            string _socket = "5.  Socket Communication\r\n" +
+            string _socket = "5. Socket Communication\r\n" +
                                 "     5.1 Start Service\r\n" +
                                 "         + judo socket start\r\n" +
                                 "         + judo socket enable\r\n" +
@@ -441,7 +445,7 @@ namespace jaNET.Environment
                                 "         + judo socket status\r\n" +
                                 "         + judo socket state";
             const
-            string _server = "6.  Web Server\r\n" +
+            string _server = "6. Web Server\r\n" +
                                 "     6.1 Start\r\n" +
                                 "         + judo server start\r\n" +
                                 "         + judo server enable\r\n" +
@@ -464,7 +468,7 @@ namespace jaNET.Environment
                                 "         + judo server status\r\n" +
                                 "         + judo server state";
             const
-            string _serial = "7.  Serial Port\r\n" +
+            string _serial = "7. Serial Port\r\n" +
                                 "     7.1 Open\r\n" +
                                 "         + judo serial open [Port (optional)]\r\n" +
                                 "     7.2 Close\r\n" +
@@ -483,7 +487,7 @@ namespace jaNET.Environment
                                 "         + judo serial listen [Timeout in ms (optional)]\r\n" +
                                 "         + judo serial monitor [Timeout in ms (optional)]";
             const
-            string _cloud = "8.  Web Services\r\n" +
+            string _cloud = "8. Web Services\r\n" +
                                 "     8.1 Json Setup\r\n" +
                                 "         + judo json add [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
                                 "         + judo json new [ID] <lock>[Endpoint]</lock> [Node]\r\n" +
@@ -515,7 +519,7 @@ namespace jaNET.Environment
                                 "         + judo xml consume <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]\r\n" +
                                 "         + judo xml extract <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]";
             const
-            string _http = "9.  Http\r\n" +
+            string _http = "9. Http\r\n" +
                                 "     9.1 Get\r\n" +
                                 "         + judo http get [Request-URI]";
             const

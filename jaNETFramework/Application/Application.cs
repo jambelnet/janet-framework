@@ -77,13 +77,11 @@ namespace jaNET.Environment
 
             Schedule.Init();
 
-            var comm = new Comm();
-
-            if (!string.IsNullOrEmpty(comm.GetHostname))
+            if (!string.IsNullOrEmpty(Comm.GetHostname))
                 WebServer.Start();
-            if (!string.IsNullOrEmpty(comm.GetLocalHost))
+            if (!string.IsNullOrEmpty(Comm.GetLocalHost))
                 TCP.Start();
-            if (!string.IsNullOrEmpty(comm.GetComPort))
+            if (!string.IsNullOrEmpty(Comm.GetComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
 
             "%checkin%".ToValues();
@@ -110,7 +108,6 @@ namespace jaNET.Environment
                 Hostname = "localhost",
                 HttpPort = "8080",
                 Authentication = "none",
-                MapPath = Methods.Instance.GetApplicationPath + "www",
                 ComPort = "/dev/ttyACM0",
                 BaudRate = "9600"
             };

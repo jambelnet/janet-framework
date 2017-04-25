@@ -275,9 +275,9 @@
                         <li data-role="list-divider" role="heading">
                             VIEW
                         </li>
-                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('list')" data-rel="dialog" ata-transition="pop" data-inline="true">All</a></li>
-                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('active-list-details')" data-rel="dialog" ata-transition="pop" data-inline="true">Active List</a></li>
-                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('inactive-list-details')" data-rel="dialog" ata-transition="pop" data-inline="true">Inactive List</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('list')" data-rel="dialog" data-transition="pop" data-inline="true">All</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('active-list-details')" data-rel="dialog" data-transition="pop" data-inline="true">Active List</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.scheduleAction('inactive-list-details')" data-rel="dialog" data-transition="pop" data-inline="true">Inactive List</a></li>
                     </ul>
                 </div>
                 <div data-role="collapsible">
@@ -330,12 +330,14 @@
                         <li data-role="list-divider" role="heading">
                             E-MAIL
                         </li>
-                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('gmail')" data-rel="dialog" ata-transition="pop">View GMail Settings</a></li>
-                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('smtp')" data-rel="dialog" ata-transition="pop">View SMTP Settings</a></li>
-                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('pop3')" data-rel="dialog" ata-transition="pop">View POP3 Settings</a></li>
-                        <li data-theme="b"><a href="#gmailSettings" data-rel="dialog" ata-transition="pop" data-inline="true">Setup GMail</a></li>
-                        <li data-theme="b"><a href="#smtpSettings" data-rel="dialog" ata-transition="pop" data-inline="true">Setup SMTP</a></li>
-                        <li data-theme="b"><a href="#pop3Settings" data-rel="dialog" ata-transition="pop" data-inline="true">Setup POP3</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('gmail')" data-rel="dialog" data-transition="pop">View GMail Settings</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('smtp')" data-rel="dialog" data-transition="pop">View SMTP Settings</a></li>
+                        <li data-theme="b"><a href="javascript:pageObj.viewSettings('pop3')" data-rel="dialog" data-transition="pop">View POP3 Settings</a></li>
+						<li data-theme="b"><a href="javascript:pageObj.viewSettings('mailheaders')" data-rel="dialog" data-transition="pop">View Mail Header Settings</a></li>
+                        <li data-theme="b"><a href="#gmailSettings" data-rel="dialog" data-transition="pop" data-inline="true">Setup GMail</a></li>
+                        <li data-theme="b"><a href="#smtpSettings" data-rel="dialog" data-transition="pop" data-inline="true">Setup SMTP</a></li>
+                        <li data-theme="b"><a href="#pop3Settings" data-rel="dialog" data-transition="pop" data-inline="true">Setup POP3</a></li>
+						<li data-theme="b"><a href="#mailheaderSettings" data-rel="dialog" data-transition="pop" data-inline="true">Setup Mail Headers</a></li>
                         <li data-role="list-divider" role="heading">
                             SMS
                         </li>
@@ -529,6 +531,22 @@
         </div>
     </div>
     <!-- END DIALOG POP3 SETTINGS -->
+    <!-- START DIALOG MAILHEADER SETTINGS -->
+    <div data-role="page" id="mailheaderSettings" data-theme="a">
+        <div data-role="header">
+            <h1>Mail Header Settings</h1>
+        </div>
+        <div class="ui-content" role="main">
+            <label for="mailFrom">Mail From</label>
+            <input name="mailFrom" id="mailFrom" placeholder="noreply@xxx.org" value="" type="text" />
+            <label for="mailTo">Mail To</label>
+            <input name="mailTo" id="mailTo" placeholder="me@yyy.org" value="" type="text" />
+            <label for="mailSubject">Subject</label>
+            <input name="mailSubject" id="mailSubject" placeholder="Alert from Jubito" value="" type="text" />
+            <a data-role="button" data-inline="false" data-transition="fade" href="javascript:pageObj.mailheaderSettings()">Save</a>
+        </div>
+    </div>
+    <!-- END DIALOG MAILHEADER SETTINGS -->
     <!-- START DIALOG ADD SCHEDULE -->
     <div data-role="page" id="addSchedule" data-theme="a">
         <div data-role="header">

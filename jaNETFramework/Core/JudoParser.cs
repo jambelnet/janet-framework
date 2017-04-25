@@ -49,12 +49,13 @@ namespace jaNETFramework.Environment.Core
             string output = string.Empty;
 
             switch (args[1]) {
-                // TIMER
+                #region Timer
                 case "timer":
                 case "sleep":
                     Thread.Sleep(Convert.ToInt32(args[2]));
                     break;
-                // SERIAL
+                #endregion
+                #region Serial
                 case "serial":
                     SerialComm.SerialData = string.Empty;
                     switch (args[2]) {
@@ -90,7 +91,7 @@ namespace jaNETFramework.Environment.Core
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", com.GetComPort, com.GetBaudRate);
+                            output = string.Format("{0}\r\n{1}", Comm.GetComPort, Comm.GetBaudRate);
                             break;
                         case "state":
                         case "status":
@@ -99,15 +100,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // HELP
-                case "help":
-                case "?":
-                    output = args.Count() > 2 ?
-                        output = method.GetHelp(args[2])
-                        :
-                        output = method.GetHelp("all");
-                    break;
-                // INSTRUCTION SETS
+                #endregion
+                #region Instruction Sets
                 case "inset":
                     switch (args[2]) {
                         case "add":
@@ -150,7 +144,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // EVENTS
+                #endregion
+                #region Events
                 case "event":
                     switch (args[2]) {
                         case "add":
@@ -176,7 +171,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // SOCKET LISTENING MODE
+                #endregion
+                #region TCP Socket
                 case "socket":
                     switch (args[2]) {
                         case "on":
@@ -205,7 +201,7 @@ namespace jaNETFramework.Environment.Core
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", com.GetLocalHost, com.GetLocalPort);
+                            output = string.Format("{0}\r\n{1}", Comm.GetLocalHost, Comm.GetLocalPort);
                             break;
                         case "state":
                         case "status":
@@ -214,7 +210,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // WEB SERVER MODE
+                #endregion
+                #region Webserver
                 case "server":
                     switch (args[2]) {
                         case "on":
@@ -248,7 +245,7 @@ namespace jaNETFramework.Environment.Core
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}\r\n{2}", com.GetHostname, com.GetHttpPort, com.GetAuthentication);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", Comm.GetHostname, Comm.GetHttpPort, Comm.GetAuthentication);
                             break;
                         case "state":
                         case "status":
@@ -257,7 +254,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // SCHEDULER
+                #endregion
+                #region Scheduler
                 case "schedule":
                     switch (args[2]) {
                         case "add":
@@ -395,10 +393,12 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // SMTP
+                #endregion
+                #region Smtp
                 case "smtp":
                     switch (args[2]) {
                         case "add":
+                        case "new":
                         case "setup":
                         case "set":
                             output = settings.Save(".smtpsettings",
@@ -412,10 +412,12 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // POP3
+                #endregion
+                #region Pop3
                 case "pop3":
                     switch (args[2]) {
                         case "add":
+                        case "new":
                         case "setup":
                         case "set":
                             output = settings.Save(".pop3settings",
@@ -429,10 +431,12 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // GMAIL
+                #endregion
+                #region Gmail
                 case "gmail":
                     switch (args[2]) {
                         case "add":
+                        case "new":
                         case "setup":
                         case "set":
                             output = settings.Save(".gmailsettings", string.Format("{0}\r\n{1}", args[3], args[4]));
@@ -443,7 +447,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // MAIL
+                #endregion
+                #region Mail
                 case "mail":
                     switch (args[2]) {
                         case "send":
@@ -452,10 +457,28 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // SMS
+                #endregion
+                #region Mail Headers
+                case "mailheaders":
+                case "mailheader":
+                    switch (args[2]) {
+                        case "add":
+                        case "new":
+                        case "set":
+                        case "setup":
+                            output = method.AddToXML(new MailHeaders { MailFrom = args[3], MailTo = args[4], MailSubject = args[5] }, AppStructure.SystemAlertsMailHeaders);
+                            break;
+                        case "settings":
+                            output = MailHeaders.GetMailHeaders.Replace(" ", "\r\n");
+                            break;
+                    }
+                    break;
+                #endregion
+                #region Sms
                 case "sms":
                     switch (args[2]) {
                         case "add":
+                        case "new":
                         case "setup":
                         case "set":
                             output = settings.Save(".smssettings", string.Format("{0}\r\n{1}\r\n{2}", args[3], args[4], args[5]));
@@ -469,7 +492,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // WEB API
+                #endregion
+                #region Web Api
                 case "json":
                     switch (args[2]) {
                         case "add":
@@ -495,7 +519,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // WEB SERVICE
+                #endregion
+                #region Web Service
                 case "xml":
                     switch (args[2]) {
                         case "add":
@@ -548,7 +573,8 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // HTTP
+                #endregion
+                #region Http
                 case "http":
                     switch (args[2]) {
                         case "get":
@@ -556,26 +582,35 @@ namespace jaNETFramework.Environment.Core
                             break;
                     }
                     break;
-                // WEATHER
+                #endregion
+                #region Weather
                 case "weather":
-                    var o = new Others();
                     switch (args[2]) {
+                        case "add":
+                        case "new":
                         case "set":
                         case "setup":
-                            o.Weather = args[3];
-                            output = method.AddToXML(o, AppStructure.SystemOthersRoot);
+                            output = method.AddToXML(new Others { Weather = args[3] }, AppStructure.SystemOthersRoot);
                             break;
                         case "settings":
-                            output = o.GetWeather;
+                            output = Others.GetWeather;
                             break;
                     }
                     break;
-                // PINGER
+                #endregion
+                #region Pinger
                 case "ping":
                     output = args.Count() == 3 ?
                         NetInfo.SimplePing.Ping(args[2]).ToString() :
                         NetInfo.SimplePing.Ping(args[2], Convert.ToInt32(args[3])).ToString();
                     break;
+                #endregion
+                #region Help
+                case "help":
+                case "?":
+                    output = args.Count() > 2 ? output = method.GetHelp(args[2]) : output = method.GetHelp("all");
+                    break;
+                    #endregion
             }
             return output;
         }
