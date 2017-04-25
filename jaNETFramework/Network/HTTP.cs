@@ -71,7 +71,7 @@ namespace jaNET.Net.Http
         internal static readonly HttpListener httplistener = new HttpListener();
 
         internal static async void Start() {
-            string Prefix = "http://*:8080/";
+            string Prefix = "http://localhost:8080/";
             string AuthenticationType = "none";
 
             if (!HttpListener.IsSupported)
@@ -82,21 +82,14 @@ namespace jaNET.Net.Http
                 return;
 
             try {
-                //if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
-                Prefix = "http://" + Helpers.Xml.AppConfigQuery(
-                                        AppStructure.HttpHostNamePath)
-                                        .Item(0).InnerText + ":" +
-                                        Helpers.Xml.AppConfigQuery(
-                                        AppStructure.HttpPortPath)
-                                        .Item(0).InnerText + "/";
-                //if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
-                AuthenticationType = Helpers.Xml.AppConfigQuery(
-                                        AppStructure.HttpAuthenticationPath)
-                                        .Item(0).InnerText;
+                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Count > 0 && (Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Count > 0))
+                    Prefix = "http://" + Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText + ":" +
+                                         Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText + "/";
+                if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
+                    AuthenticationType = Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Item(0).InnerText;
             }
             catch (NullReferenceException e) {
                 Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ]: NullReferenceException [ {0} ]", e.Message));
-                return;
             }
 
             try {

@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Diagnostics;
 using jaNET.Environment.AppConfig;
 using System;
 using System.Collections.Generic;
@@ -126,7 +127,7 @@ namespace jaNET.Providers
                     WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
                 }
                 catch (Exception e) {
-                    Debug.Print(e.Message);
+                    Logger.Instance.Append(string.Format("obj [ OpenWeather.OpenWeather <Exception> ]: [ {0} ]", e.Message));
                 }
             }, 10000);
         }
