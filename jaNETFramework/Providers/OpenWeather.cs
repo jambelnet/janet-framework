@@ -127,7 +127,7 @@ namespace jaNET.Providers
                     WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(string.Format("obj [ OpenWeather.OpenWeather <Exception> ]: [ {0} ]", e.Message));
+                    Logger.Instance.Append(string.Format("obj [ OpenWeather.OpenWeather <Exception> ] Exception Message: [ {0} ]", e.Message));
                 }
             }, 10000);
         }

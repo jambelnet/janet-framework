@@ -65,7 +65,7 @@ namespace jaNET.Diagnostics
                 return string.Empty;
             }
             catch (Exception e) {
-                Logger.Instance.Append(string.Format("obj [ Process.Start <Exception> ]: args [ {0} {1} ]: {2}", sFilePath, sArguments, e.Message));
+                Logger.Instance.Append(string.Format("obj [ Process.Start <Exception> ] Arguments: [ {0} {1} ] Exception Message: [ {2} ]", sFilePath, sArguments, e.Message));
                 return e.Message;
             }
         }

@@ -89,7 +89,7 @@ namespace jaNET.Environment.Core
             }
             catch (Exception e) {
                 if (!e.Message.Contains("Parameter name: length")) {
-                    Logger.Instance.Append(string.Format("obj [ Parser.Parse <Exception> ]: Argument: [ {0} ] Exception: [ {1} ]", args, e.Message));
+                    Logger.Instance.Append(string.Format("obj [ Parser.Parse <Exception> ] Argument: [ {0} ] Exception Message: [ {1} ]", args, e.Message));
                 }
                 return e.Message;
             }
@@ -109,7 +109,7 @@ namespace jaNET.Environment.Core
 
                 if (xList.Count <= 0 && !arg.Contains("*")) {
                     if (output == string.Empty) {
-                        Logger.Instance.Append(string.Format("obj [ Parser.Execute ]: arg [ {0}, not found. ]", arg));
+                        Logger.Instance.Append(string.Format("obj [ Parser.Execute ] Argument: [ {0}, not found. ]", arg));
                         output = arg + ", not found.";
                     }
                 }

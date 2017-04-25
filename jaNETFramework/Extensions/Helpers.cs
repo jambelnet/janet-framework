@@ -104,7 +104,7 @@ namespace jaNET
                     return xmlDoc.SelectNodes(xPathNode);
                 }
                 catch (Exception e) {
-                    Logger.Instance.Append(string.Format("obj [ Helpers.Xml <Exception> ]: args [ {0} ]: {1}", e.Message, "Malformed AppConfig.xml or not found."));
+                    Logger.Instance.Append(string.Format("obj [ Helpers.Xml.AppConfigQuery <Exception> ] Arguments: [ {0} ] Exception Message: [ {1} ]", xPathNode + ". Malformed AppConfig.xml or not found.", e.Message));
                     return null;
                 }
             }
