@@ -77,7 +77,7 @@ namespace jaNET
                 return xmlDoc.SelectNodes(node, ns);
             }
 
-            internal static String SelectSingleNode(string endpoint, string node, int nodeIndex) {
+            internal static String SelectSingleNode(string endpoint, string node, int nodeIndex = 0) {
                 try {
                     var xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(GetRawData(endpoint));
@@ -89,10 +89,6 @@ namespace jaNET
                 catch {
                     return null;
                 }
-            }
-
-            internal static String SelectSingleNode(string endpoint, string node) {
-                return SelectSingleNode(endpoint, node, 0);
             }
 
             internal static XmlNodeList AppConfigQuery(string xPathNode) {

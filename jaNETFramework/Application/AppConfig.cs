@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using System.Collections.Generic;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace jaNET.Environment.AppConfig
@@ -27,40 +28,72 @@ namespace jaNET.Environment.AppConfig
     struct AppStructure
     {
         // Nodes
-        internal const string SystemCommRoot = "jaNET/System/Comm";
         internal const string SystemInstructionsRoot = "jaNET/Instructions";
         internal const string SystemEventsRoot = "jaNET/Events";
+        internal const string SystemCommRoot = "jaNET/System/Comm";
         internal const string SystemOthersRoot = "jaNET/System/Others";
-        internal const string SystemAlertsMailHeaders = "jaNET/System/Alerts/MailHeaders";
+        internal const string SystemAlertsMailHeadersRoot = "jaNET/System/Alerts/MailHeaders";
         // Elements
-        internal const string ComPortElement = "ComPort";
-        internal const string ComBaudRateElement = "BaudRate";
         internal const string LocalHostElement = "localHost";
         internal const string LocalPortElement = "localPort";
         internal const string TrustedElement = "Trusted";
         internal const string HttpHostNameElement = "Hostname";
         internal const string HttpPortElement = "httpPort";
         internal const string HttpAuthenticationElement = "Authentication";
-        internal const string Weather = "Weather";
+        internal const string ComPortElement = "ComPort";
+        internal const string ComBaudRateElement = "BaudRate";
+        internal const string MailFromElement = "MailFrom";
+        internal const string MailToElement = "MailTo";
+        internal const string MailSubjectElement = "MailSubject";
+        internal const string WeatherElement = "Weather";
         // Routes
-        internal const string ComPortPath = SystemCommRoot + "/" + ComPortElement;
-        internal const string ComBaudRatePath = SystemCommRoot + "/" + ComBaudRateElement;
         internal const string LocalHostPath = SystemCommRoot + "/" + LocalHostElement;
         internal const string LocalPortPath = SystemCommRoot + "/" + LocalPortElement;
         internal const string TrustedPath = SystemCommRoot + "/" + TrustedElement;
         internal const string HttpHostNamePath = SystemCommRoot + "/" + HttpHostNameElement;
         internal const string HttpPortPath = SystemCommRoot + "/" + HttpPortElement;
         internal const string HttpAuthenticationPath = SystemCommRoot + "/" + HttpAuthenticationElement;
-        internal const string WeatherPath = SystemOthersRoot + "/" + Weather;
+        internal const string ComPortPath = SystemCommRoot + "/" + ComPortElement;
+        internal const string ComBaudRatePath = SystemCommRoot + "/" + ComBaudRateElement;
+        internal const string MailFromPath = SystemAlertsMailHeadersRoot + "/" + MailFromElement;
+        internal const string MailToPath = SystemAlertsMailHeadersRoot + "/" + MailToElement;
+        internal const string MailSubjectPath = SystemAlertsMailHeadersRoot + "/" + MailSubjectElement;
+        internal const string WeatherPath = SystemOthersRoot + "/" + WeatherElement;
     }
 
     [XmlRoot(ElementName = "MailHeaders")]
     public class MailHeaders
     {
-        internal static string GetMailHeaders {
+        public static XmlNodeList GetMailHeaders {
+            get { return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeadersRoot); }
+        }
+
+        internal static string GetMailHeaderFrom {
             get {
                 try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeaders).Item(0).InnerText;
+                    return Helpers.Xml.AppConfigQuery(AppStructure.MailFromPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
+            }
+        }
+
+        internal static string GetMailHeaderTo {
+            get {
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.MailToPath).Item(0).InnerText;
+                }
+                catch {
+                    return string.Empty;
+                }
+            }
+        }
+
+        internal static string GetMailHeaderSubject {
+            get {
+                try {
+                    return Helpers.Xml.AppConfigQuery(AppStructure.MailSubjectPath).Item(0).InnerText;
                 }
                 catch {
                     return string.Empty;
@@ -214,6 +247,12 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "event")]
     public class Event
     {
+        public static XmlNodeList GetEvent(string eventID) {
+            return Helpers.Xml.AppConfigQuery(
+                AppStructure.SystemEventsRoot +
+                "/event[@id='" + eventID + "']");
+        }
+
         [XmlAttribute(AttributeName = "id")]
         public string Id { get; set; }
         [XmlText]
@@ -230,6 +269,12 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "InstructionSet")]
     public class InstructionSet
     {
+        public static XmlNodeList GetInstructionSet(string instructionID) {
+            return Helpers.Xml.AppConfigQuery(
+                AppStructure.SystemInstructionsRoot +
+                "/InstructionSet[@id='" + instructionID + "']");
+        }
+
         [XmlAttribute(AttributeName = "id")]
         public string Id { get; set; }
         [XmlAttribute(AttributeName = "img")]

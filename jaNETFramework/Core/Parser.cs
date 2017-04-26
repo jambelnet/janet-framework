@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Diagnostics;
+using jaNET.Environment.AppConfig;
 using jaNET.Extensions;
 using jaNET.Net;
 using jaNET.Net.Http;
@@ -105,7 +106,7 @@ namespace jaNET.Environment.Core
                 return arg.ParseTokens();
             }
             else {
-                XmlNodeList xList = method.GetInstructionSet(arg.Replace("*", string.Empty));
+                XmlNodeList xList = InstructionSet.GetInstructionSet(arg.Replace("*", string.Empty));
 
                 if (xList.Count <= 0 && !arg.Contains("*")) {
                     if (output == string.Empty) {
@@ -126,14 +127,17 @@ namespace jaNET.Environment.Core
                 !User.Status && !disableSpeech &&       // Is not a widget
                 !string.IsNullOrWhiteSpace(output)      // Has something to send
                 && File.Exists(method.GetApplicationPath + ".smtpsettings")) {
-                XmlNodeList xList = method.GetMailHeaders;
 
-                foreach (XmlNode nodeItem in xList) {
-                    Process.CallWithTimeout(() => new Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
-                                                                  nodeItem.SelectSingleNode("MailTo").InnerText,
-                                                                  nodeItem.SelectSingleNode("MailSubject").InnerText,
-                                                                  output), 10000);
-                }
+                //foreach (XmlNode nodeItem in MailHeaders.GetMailHeaders) {
+                //    Process.CallWithTimeout(() => new Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
+                //                                                  nodeItem.SelectSingleNode("MailTo").InnerText,
+                //                                                  nodeItem.SelectSingleNode("MailSubject").InnerText,
+                //                                                  output), 10000);
+                //}
+                Process.CallWithTimeout(() => new Mail().Send(MailHeaders.GetMailHeaderFrom,
+                                                              MailHeaders.GetMailHeaderTo,
+                                                              MailHeaders.GetMailHeaderSubject,
+                                                              output), 10000);
             }
 
             if (!string.IsNullOrWhiteSpace(output) && !Mute && !disableSpeech) {

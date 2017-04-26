@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment;
+using jaNET.Environment.AppConfig;
 using jaNET.Environment.Core;
 using jaNET.Extensions;
 using jaNET.IO;
@@ -170,7 +171,7 @@ namespace jaNET.Providers
                          oSchedule.Date == method.GetCalendarDate && oSchedule.Time == method.GetTime24)                                            // specific date - only once, then deleted
                     {
                         if (!_done) {
-                            if (method.GetInstructionSet(oSchedule.Action).Count > 0)
+                            if (InstructionSet.GetInstructionSet(oSchedule.Action).Count > 0)
                                 oSchedule.Action.Parse();
                             else
                                 Parser.Instance.SayText(oSchedule.Action);

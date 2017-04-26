@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Diagnostics;
+using jaNET.Environment.AppConfig;
 using jaNET.Extensions;
 using jaNET.Providers;
 using jaNETFramework.Environment.Core;
@@ -58,7 +59,7 @@ namespace jaNET.Environment
                 Regex.Matches(sValue, @"[*][a-zA-Z0-9_-]+")
                     .Cast<Match>().ToList()
                     .Select(ms => ms.Value.Trim()).ToList()
-                    .ForEach(ms => sValue = sValue.Replace(ms, Methods.Instance.GetInstructionSet(ms).Item(pos).InnerText.ParseTokens()));
+                    .ForEach(ms => sValue = sValue.Replace(ms, InstructionSet.GetInstructionSet(ms).Item(pos).InnerText.ParseTokens()));
             }
 
             // Evaluation

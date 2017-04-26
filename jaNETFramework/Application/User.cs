@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using jaNET.Environment.AppConfig;
 using jaNET.Extensions;
 
 namespace jaNET.Environment
@@ -41,17 +42,16 @@ namespace jaNET.Environment
         }
 
         static bool doEventCheck(bool status) {
-            var method = Methods.Instance;
             try {
                 if (status) {
                     // Fire oncheckin event if exists
-                    if (method.GetEvent("oncheckin").Count > 0)
-                        method.GetEvent("oncheckin").Item(0).InnerText.Parse();
+                    if (Event.GetEvent("oncheckin").Count > 0)
+                        Event.GetEvent("oncheckin").Item(0).InnerText.Parse();
                 }
                 else {
                     // Fire oncheckout event if exists
-                    if (method.GetEvent("oncheckout").Count > 0)
-                        method.GetEvent("oncheckout").Item(0).InnerText.Parse();
+                    if (Event.GetEvent("oncheckout").Count > 0)
+                        Event.GetEvent("oncheckout").Item(0).InnerText.Parse();
                 }
             }
             catch { }

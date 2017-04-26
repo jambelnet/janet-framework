@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.34";
+        public const string AssemblyVersion = "0.3.0.35";
 
         public string GetCopyright {
             get {
@@ -148,22 +148,6 @@ namespace jaNET.Environment
 
         public string WhoAmI {
             get { return System.Environment.UserName; }
-        }
-
-        public XmlNodeList GetEvent(string eventID) {
-            return Helpers.Xml.AppConfigQuery(
-                AppStructure.SystemEventsRoot +
-                "/event[@id='" + eventID + "']");
-        }
-
-        public XmlNodeList GetInstructionSet(string instructionID) {
-            return Helpers.Xml.AppConfigQuery(
-                AppStructure.SystemInstructionsRoot +
-                "/InstructionSet[@id='" + instructionID + "']");
-        }
-
-        public XmlNodeList GetMailHeaders {
-            get { return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeaders); }
         }
 
         public XmlNodeList GetXmlElementList(string xPath, string elementName) {
@@ -329,7 +313,7 @@ namespace jaNET.Environment
                                 "     2.4 Mail Header Settings\r\n" +
                                 "         + judo mailheaders set `[From]` `[To]` `[Subject]`\r\n" +
                                 "         + judo mailheaders setup `[From]` `[To]` `[Subject]`\r\n" +
-                                "         + judo mailheaders settings\r\n" + 
+                                "         + judo mailheaders settings\r\n" +
                                 "     2.5 Send\r\n" +
                                 "         + judo mail send [From Address] [To Address] `[Subject]` `[Message]`";
             const

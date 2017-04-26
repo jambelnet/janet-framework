@@ -466,10 +466,10 @@ namespace jaNETFramework.Environment.Core
                         case "new":
                         case "set":
                         case "setup":
-                            output = method.AddToXML(new MailHeaders { MailFrom = args[3], MailTo = args[4], MailSubject = args[5] }, AppStructure.SystemAlertsMailHeaders);
+                            output = method.AddToXML(new MailHeaders { MailFrom = args[3], MailTo = args[4], MailSubject = args[5] }, AppStructure.SystemAlertsMailHeadersRoot);
                             break;
                         case "settings":
-                            output = MailHeaders.GetMailHeaders.Replace(" ", "\r\n");
+                            output = string.Format("{0}\r\n{1}\r\n{2}", MailHeaders.GetMailHeaderFrom, MailHeaders.GetMailHeaderTo, MailHeaders.GetMailHeaderSubject);
                             break;
                     }
                     break;

@@ -20,6 +20,7 @@
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
 using jaNET.Environment;
+using jaNET.Environment.AppConfig;
 using jaNET.Environment.Core;
 using jaNET.IO.Ports;
 using jaNET.Net.Http;
@@ -270,7 +271,7 @@ namespace jaNET.Extensions
             context = Regex.Replace(context, "%clear%|%cls%|%mute%|%unmute%|%checkin%|%usercheckin%|%checkout%|%usercheckout%", string.Empty);
             // If Event
             if (context.Contains("%~>")) {
-                method.GetEvent(context.Replace("%~>", string.Empty)
+                Event.GetEvent(context.Replace("%~>", string.Empty)
                                        .Replace("%", string.Empty)).Item(0).InnerText.Parse();
                 context = context.Replace(context, string.Empty);
             }
