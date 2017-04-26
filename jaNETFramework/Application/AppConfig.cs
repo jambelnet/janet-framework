@@ -69,36 +69,15 @@ namespace jaNET.Environment.AppConfig
         }
 
         internal static string GetMailHeaderFrom {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.MailFromPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.MailFromPath); }
         }
 
         internal static string GetMailHeaderTo {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.MailToPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.MailToPath); }
         }
 
         internal static string GetMailHeaderSubject {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.MailSubjectPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.MailSubjectPath); }
         }
 
         [XmlElement(ElementName = "MailFrom")]
@@ -119,80 +98,35 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Comm")]
     public class Comm
     {
+        internal static string GetTrusted {
+            get { return jaNET.GetElement(AppStructure.TrustedPath); }
+        }
+
         internal static string GetLocalHost {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.LocalHostPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.LocalHostPath); }
         }
         internal static string GetLocalPort {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.LocalPortPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.LocalPortPath); }
         }
 
         internal static string GetHostname {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.HttpHostNamePath); }
         }
 
         internal static string GetHttpPort {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.HttpPortPath); }
         }
 
         internal static string GetAuthentication {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.HttpAuthenticationPath); }
         }
 
         internal static string GetComPort {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.ComPortPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.ComPortPath); }
         }
 
         internal static string GetBaudRate {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.ComBaudRatePath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.ComBaudRatePath); }
         }
 
         [XmlElement(ElementName = "Trusted")]
@@ -219,14 +153,7 @@ namespace jaNET.Environment.AppConfig
     public class Others
     {
         internal static string GetWeather {
-            get {
-                try {
-                    return Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
-                }
-                catch {
-                    return string.Empty;
-                }
-            }
+            get { return jaNET.GetElement(AppStructure.WeatherPath); }
         }
 
         [XmlElement(ElementName = "Weather")]
@@ -303,6 +230,15 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "jaNET")]
     public class jaNET
     {
+        internal static string GetElement(string elementPath) {
+            try {
+                return Helpers.Xml.AppConfigQuery(elementPath).Item(0).InnerText;
+            }
+            catch {
+                return string.Empty;
+            }
+        }
+
         [XmlElement(ElementName = "System")]
         public System System { get; set; }
         [XmlElement(ElementName = "Events")]

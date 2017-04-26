@@ -172,6 +172,21 @@ namespace jaNETFramework.Environment.Core
                     }
                     break;
                 #endregion
+                #region Trusted
+                case "trusted":
+                    switch (args[2]) {
+                        case "add":
+                        case "new":
+                        case "set":
+                        case "setup":
+                            output = method.AddToXML(new Comm { Trusted = args[3]  }, AppStructure.SystemCommRoot);
+                            break;
+                        case "settings":
+                            output = string.Format("{0}", Comm.GetTrusted);
+                            break;
+                    }
+                    break;
+                #endregion
                 #region TCP Socket
                 case "socket":
                     switch (args[2]) {
