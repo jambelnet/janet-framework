@@ -307,6 +307,9 @@
                             <a href="#socketSettings" data-rel="dialog" data-transition="pop">Setup Host/Port</a>
                         </li>
                         <li data-theme="b">
+                            <a href="#trustedSettings" data-rel="dialog" data-transition="pop">View/Setup Trusted</a>
+                        </li>
+                        <li data-theme="b">
                             <select name="sliderSocket" id="sliderSocket" data-role="flipswitch" onchange="javascript:pageObj.socketStatus()">
                                 <option value="off">Off</option>
                                 <option value="on">On</option>
@@ -421,6 +424,18 @@
         </div>
     </div>
     <!-- END DIALOG SOCKET SETTINGS -->
+    <!-- START DIALOG TRUSTED SETTINGS -->
+    <div data-role="page" id="trustedSettings" data-theme="a">
+        <div data-role="header">
+            <h1>Trusted Settings</h1>
+        </div>
+        <div class="ui-content" role="main">
+            <label for="trusted">Trusted</label>
+            <input name="trusted" id="trusted" placeholder="" value="" type="text" />
+            <a data-role="button" data-inline="false" data-transition="fade" href="javascript:pageObj.trustedSettings()">Save</a>
+        </div>
+    </div>
+    <!-- END DIALOG TRUSTED SETTINGS -->
     <!-- START DIALOG SERIAL SETTINGS -->
     <div data-role="page" id="serialSettings" data-theme="a">
         <div data-role="header">

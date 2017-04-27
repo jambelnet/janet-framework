@@ -96,6 +96,9 @@ var pageObj = {
         // enum built-in functions and populate dropdown
         pageObj.enumBuiltinFuncs();
 
+        // init trusted clients
+        pageObj.getTrustedSettings()
+
         // get home screen values
         pageObj.getData();
         pageObj.setHomeInterval();
@@ -449,6 +452,21 @@ var pageObj = {
         }
         $('input#socketHost').val('');
         $('input#socketPort').val('');
+        window.history.back();
+    },
+    getTrustedSettings: function () {
+        $.get('?cmd=judo trusted settings', function (data) {
+            $('input#trusted').val(data);
+        }, 'html');
+    },
+    trustedSettings: function () {
+        if ($('input#trusted').val() != '') {
+            $.get('?cmd=judo trusted set <lock>' + $('input#trusted').val() + '</lock>', function (data) {
+                pageObj.response3Popup(data);
+            }, 'html');
+        }
+        //$('input#trusted').val('');
+        pageObj.getTrustedSettings();
         window.history.back();
     },
     serialSettings: function () {
