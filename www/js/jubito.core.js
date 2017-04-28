@@ -461,7 +461,7 @@ var pageObj = {
     },
     trustedSettings: function () {
         if ($('input#trusted').val() != '') {
-            $.get('?cmd=judo trusted set <lock>' + $('input#trusted').val() + '</lock>', function (data) {
+            $.get('?cmd=judo socket trust <lock>' + $('input#trusted').val() + '</lock>', function (data) {
                 pageObj.response3Popup(data);
             }, 'html');
         }

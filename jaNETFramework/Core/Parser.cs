@@ -128,12 +128,6 @@ namespace jaNET.Environment.Core
                 !string.IsNullOrWhiteSpace(output)      // Has something to send
                 && File.Exists(method.GetApplicationPath + ".smtpsettings")) {
 
-                //foreach (XmlNode nodeItem in MailHeaders.GetMailHeaders) {
-                //    Process.CallWithTimeout(() => new Mail().Send(nodeItem.SelectSingleNode("MailFrom").InnerText,
-                //                                                  nodeItem.SelectSingleNode("MailTo").InnerText,
-                //                                                  nodeItem.SelectSingleNode("MailSubject").InnerText,
-                //                                                  output), 10000);
-                //}
                 Process.CallWithTimeout(() => new Mail().Send(MailHeaders.GetMailHeaderFrom,
                                                               MailHeaders.GetMailHeaderTo,
                                                               MailHeaders.GetMailHeaderSubject,

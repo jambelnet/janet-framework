@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.0.37";
+        public const string AssemblyVersion = "0.3.0.40";
 
         public string GetCopyright {
             get {
@@ -324,7 +324,7 @@ namespace jaNET.Environment
                                 "         + judo sms set [Api Id] [Username] [Password]\r\n" +
                                 "         + judo sms settings\r\n" +
                                 "     3.2 Send\r\n" +
-                                "         + judo sms send [Phone Number] [Message]";
+                                "         + judo sms send [Phone Number] `[Message]`";
             const
             string _schedule = "4. Scheduler\r\n" +
                                 "     4.1 New Schedule\r\n" +
@@ -423,9 +423,12 @@ namespace jaNET.Environment
                                 "     5.3 Setup\r\n" +
                                 "         + judo socket set [Host] [Port]\r\n" +
                                 "         + judo socket setup [Host] [Port]\r\n" +
-                                "     5.4 Settings\r\n" +
+                                "     5.4 Trusted\r\n" +
+                                "         + judo socket trust <lock>[Guests (semicolon delimeted, e.g. localhost; 192.168.1.1; etc)]</lock>\r\n" +
+                                "         + judo trusted settings\r\n" +
+                                "     5.5 Settings\r\n" +
                                 "         + judo socket settings\r\n" +
-                                "     5.5 Status\r\n" +
+                                "     5.6 Status\r\n" +
                                 "         + judo socket status\r\n" +
                                 "         + judo socket state";
             const
