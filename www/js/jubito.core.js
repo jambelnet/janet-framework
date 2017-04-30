@@ -12,9 +12,9 @@ var pageObj = {
             pointer: true,
             decimals: true,
             levelColors: [
-            "#0000ff",
-            "#00ff00",
-            "#ff0000"
+                "#0000ff",
+                "#00ff00",
+                "#ff0000"
             ]
         });
         // Humidity
@@ -28,9 +28,9 @@ var pageObj = {
             gaugeWidthScale: 0.6,
             pointer: true,
             levelColors: [
-            "#0000ff",
-            "#00ff00",
-            "#ff0000"
+                "#0000ff",
+                "#00ff00",
+                "#ff0000"
             ]
         });
         // Pressure
@@ -45,9 +45,9 @@ var pageObj = {
             pointer: true,
             decimals: true,
             levelColors: [
-            "#0000ff",
-            "#00ff00",
-            "#ff0000"
+                "#0000ff",
+                "#00ff00",
+                "#ff0000"
             ]
         });
         // Indoor Temperature
@@ -61,9 +61,9 @@ var pageObj = {
             gaugeWidthScale: 0.6,
             pointer: true,
             levelColors: [
-            "#0000ff",
-            "#00ff00",
-            "#ff0000"
+                "#0000ff",
+                "#00ff00",
+                "#ff0000"
             ]
         });
         // Indoor Humidity
@@ -78,9 +78,9 @@ var pageObj = {
             //refreshAnimationType: "bounce",
             pointer: true,
             levelColors: [
-            "#0000ff",
-            "#00ff00",
-            "#ff0000"
+                "#0000ff",
+                "#00ff00",
+                "#ff0000"
             ]
         });
 
@@ -100,6 +100,8 @@ var pageObj = {
         pageObj.getTrustedSettings()
 
         // get home screen values
+        pageObj.getWeatherData();
+        pageObj.setWeatherInterval();
         pageObj.getData();
         pageObj.setHomeInterval();
 
@@ -114,6 +116,36 @@ var pageObj = {
 
         // refresh page1
         $('div#page1').page();
+    },
+    getWeatherData: function () {
+        // Weather widget
+        $.ajax({
+            type: 'GET',
+            contentType: 'application/json; charset=utf-8',
+            dataType: "json",
+            url: "?cmd=%currentcity%&%todayconditions%&%weathericon%&%currenttemperature%&%currenthumidity%&%currentpressure%&mode=json",
+        }).done(function (data) {
+            if (data.currenttemperature.Value.length <= 0) {
+                $('#conditions').html('Unavailable');
+                $('#location').hide();
+                $('#weather-ico').hide();
+            } else {
+                $('#conditions').html(data.currenttemperature.Value + '&deg;C');
+                $('#location').html(data.currentcity.Value + ', ' + data.todayconditions.Value);
+                $('#weather-ico').html('<img src="' + data.weathericon.Value + '"></img>');
+                $('#weatherdiv').css('display', 'inline-block').show();
+                pageObj.curtemp.refresh(data.currenttemperature.Value);
+                pageObj.curhumid.refresh(data.currenthumidity.Value);
+                pageObj.curpres.refresh(data.currentpressure.Value);
+            }
+        }).fail(function () {
+
+        });
+    },
+    setWeatherInterval: function () {
+        setInterval(function () {
+            pageObj.getWeatherData();
+        }, 60000);
     },
     getData: function () {
         if ($.mobile.activePage.attr("id") == "page0") {
@@ -138,29 +170,6 @@ var pageObj = {
                 url: "?cmd=%salute%&%whoami%&%whereami%&mode=json",
             }).done(function (data) {
                 $('#userstat').html('Good ' + data.salute.Value + ' ' + data.whoami.Value + '<br />' + 'Your status is set to ' + data.whereami.Value);
-            }).fail(function () {
-
-            });
-            // Weather widget
-            $.ajax({
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                dataType: "json",
-                url: "?cmd=%currentcity%&%todayconditions%&%weathericon%&%currenttemperature%&%currenthumidity%&%currentpressure%&mode=json",
-            }).done(function (data) {
-                if (data.currenttemperature.Value.length <= 0) {
-                    $('#conditions').html('Unavailable');
-                    $('#location').hide();
-                    $('#weather-ico').hide();
-                } else {
-                    $('#conditions').html(data.currenttemperature.Value + '&deg;C');
-                    $('#location').html(data.currentcity.Value + ', ' + data.todayconditions.Value);
-                    $('#weather-ico').html('<img src="' + data.weathericon.Value + '"></img>');
-                    $('#weatherdiv').css('display', 'inline-block').show();
-                    pageObj.curtemp.refresh(data.currenttemperature.Value);
-                    pageObj.curhumid.refresh(data.currenthumidity.Value);
-                    pageObj.curpres.refresh(data.currentpressure.Value);
-                }
             }).fail(function () {
 
             });
@@ -270,23 +279,23 @@ var pageObj = {
                     if (header_text != null && header_text != 'undefined' && id_text.indexOf('*') == -1 && categ_text == $('#ddCategories').val())
                         if (reference != null) {
                             $("#customul").append(
-                            "<li data-theme=\"a\" data-count-theme=\"a\">" +
-                            "<a href=\"javascript:pageObj.runCommand('" + id_text + "')\" data-transition=\"slide\">" + img_src +
-                            "<h3>" + header_text + "</h3>" +
-                            "<p><strong>" + shortdescr_text + "</strong></p>" +
-                            "<p>" + descr_text + "</p>" +
-                            "<span class='ui-li-count' id='" + reference + "' style='font-size: 10px;'></span></a>" +
-                            "</li>"
+                                "<li data-theme=\"a\" data-count-theme=\"a\">" +
+                                "<a href=\"javascript:pageObj.runCommand('" + id_text + "')\" data-transition=\"slide\">" + img_src +
+                                "<h3>" + header_text + "</h3>" +
+                                "<p><strong>" + shortdescr_text + "</strong></p>" +
+                                "<p>" + descr_text + "</p>" +
+                                "<span class='ui-li-count' id='" + reference + "' style='font-size: 10px;'></span></a>" +
+                                "</li>"
                             );
                         }
                         else {
                             $("#customul").append(
-                            "<li data-theme=\"a\" data-count-theme=\"a\">" +
-                            "<a href=\"javascript:pageObj.runCommand('" + id_text + "')\" data-transition=\"slide\">" + img_src +
-                            "<h3>" + header_text + "</h3>" +
-                            "<p><strong>" + shortdescr_text + "</strong></p>" +
-                            "<p>" + descr_text + "</p></a>" +
-                            "</li>"
+                                "<li data-theme=\"a\" data-count-theme=\"a\">" +
+                                "<a href=\"javascript:pageObj.runCommand('" + id_text + "')\" data-transition=\"slide\">" + img_src +
+                                "<h3>" + header_text + "</h3>" +
+                                "<p><strong>" + shortdescr_text + "</strong></p>" +
+                                "<p>" + descr_text + "</p></a>" +
+                                "</li>"
                             );
                         }
                 }); //close each(
