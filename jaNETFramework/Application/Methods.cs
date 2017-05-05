@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.1.41";
+        public const string AssemblyVersion = "0.3.1.43";
 
         public string GetCopyright {
             get {
@@ -50,7 +50,7 @@ namespace jaNET.Environment
         public bool UpdateAvailable(int assemblyVersion) {
             int currentVersion;
             try {
-                int.TryParse(Helpers.GetRawData("http://www.jubito.org/current-version.txt"), out currentVersion);
+                int.TryParse(Helpers.Http.Get("http://www.jubito.org/current-version.txt"), out currentVersion);
             }
             catch (WebException) {
                 // 404 Not Found

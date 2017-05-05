@@ -19,95 +19,145 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-using jaNET.Diagnostics;
 using jaNET.Environment.AppConfig;
 using System;
 using System.Collections.Generic;
-using System.Web.Script.Serialization;
+using System.Runtime.Serialization;
 
 namespace jaNET.Providers
 {
+    [DataContract]
     class OpenWeather : IWeather
     {
+        [DataMember]
         public string TodayConditions { get; set; }
+        [DataMember]
         public string TodayLow { get; set; }
+        [DataMember]
         public string TodayHigh { get; set; }
+        [DataMember]
         public string TodayDay {
             get {
                 return DateTime.Now.DayOfWeek.ToString();
             }
         }
+        [DataMember]
         public string TomorrowConditions { get; set; }
+        [DataMember]
         public string TomorrowLow { get; set; }
+        [DataMember]
         public string TomorrowHigh { get; set; }
+        [DataMember]
         public string TomorrowDay {
             get {
                 return DateTime.Now.AddDays(1).DayOfWeek.ToString();
             }
         }
+        [DataMember]
         public string CurrentTemp { get; set; }
+        [DataMember]
         public string CurrentPressure { get; set; }
+        [DataMember]
         public string CurrentHumidity { get; set; }
+        [DataMember]
         public string CurrentCity { get; set; }
+        [DataMember]
         public string WeatherIcon { get; set; }
 
+        [DataContract]
         public class Coord
         {
             public double lon { get; set; }
             public double lat { get; set; }
         }
 
+        [DataContract]
         public class Weather
         {
+            [DataMember]
             public int id { get; set; }
+            [DataMember]
             public string main { get; set; }
+            [DataMember]
             public string description { get; set; }
+            [DataMember]
             public string icon { get; set; }
         }
 
+        [DataContract]
         public class Main
         {
+            [DataMember]
             public double temp { get; set; }
+            [DataMember]
             public double pressure { get; set; }
+            [DataMember]
             public int humidity { get; set; }
+            [DataMember]
             public double temp_min { get; set; }
+            [DataMember]
             public double temp_max { get; set; }
         }
 
+        [DataContract]
         public class Wind
         {
+            [DataMember]
             public double speed { get; set; }
+            [DataMember]
             public double deg { get; set; }
+            [DataMember]
             public double gust { get; set; }
         }
 
+        [DataContract]
         public class Clouds
         {
+            [DataMember]
             public int all { get; set; }
         }
 
+        [DataContract]
         public class Sys
         {
+            [DataMember]
             public int type { get; set; }
+            [DataMember]
             public int id { get; set; }
+            [DataMember]
             public double message { get; set; }
+            [DataMember]
             public string country { get; set; }
+            [DataMember]
             public int sunrise { get; set; }
+            [DataMember]
             public int sunset { get; set; }
         }
 
+        [DataContract]
         public class RootObject
         {
+            [DataMember]
             public Coord coord { get; set; }
+            [DataMember]
             public List<Weather> weather { get; set; }
+            [DataMember]
             public string @base { get; set; }
+            [DataMember]
             public Main main { get; set; }
+            [DataMember]
             public Wind wind { get; set; }
+            [DataMember]
             public Clouds clouds { get; set; }
+            [DataMember]
             public int dt { get; set; }
+            [DataMember]
             public Sys sys { get; set; }
+            [DataMember]
             public int id { get; set; }
+            [DataMember]
             public string name { get; set; }
+            [DataMember]
             public int cod { get; set; }
         }
 
@@ -118,7 +168,8 @@ namespace jaNET.Providers
         void GetWeather() {
             try {
                 string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
-                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
+                //var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
+                var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                 TodayConditions = oRootObject.weather[0].main;
                 TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
                 TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");

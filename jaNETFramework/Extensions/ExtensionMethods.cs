@@ -31,7 +31,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
 namespace jaNET.Extensions
@@ -54,7 +53,8 @@ namespace jaNET.Extensions
         }
 
         internal static string ToJson(this object res) {
-            return new JavaScriptSerializer().Serialize(res);
+            //return new JavaScriptSerializer().Serialize(res); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
+            return new Helpers.JsonSerializer().Serialize(res);
         }
 
         internal static string ToDictString<TKey, TValue>(this IEnumerable<KeyValuePair<string, KeyValuePair<TKey, TValue>>> dictionary) {
