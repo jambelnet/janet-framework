@@ -162,6 +162,7 @@ namespace jaNET.Environment
                 ShortDescription = "Get user login",
                 Header = "Login name",
                 Category = "System",
+                ThumbnailUrl = "/www/images/icon-set/user.png",
                 Reference = "whoamiwidget"
             });
             li.Add(new InstructionSet() {
@@ -182,6 +183,7 @@ namespace jaNET.Environment
                 ShortDescription = "Get user status",
                 Header = "Where am I?",
                 Category = "System",
+                ThumbnailUrl = "/www/images/icon-set/home.png",
                 Reference = "whereamiwidget"
             });
             li.Add(new InstructionSet() {
@@ -193,7 +195,8 @@ namespace jaNET.Environment
                 Action = "*whoru",
                 ShortDescription = "Get jubito's name :)",
                 Header = "Who are you?",
-                Category = "System"
+                Category = "System",
+                ThumbnailUrl = "/www/images/logo.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*weathertoday",
@@ -214,6 +217,7 @@ namespace jaNET.Environment
                 ShortDescription = "Get today's weather",
                 Header = "Today's weather",
                 Category = "Weather",
+                ThumbnailUrl = "/www/images/icon-set/weather.png",
                 Reference = "forecastwidget"
             });
             li.Add(new InstructionSet() {
@@ -258,7 +262,8 @@ namespace jaNET.Environment
                 Description = "Gmail/Pop3",
                 ShortDescription = "Check for unread messages from all accounts",
                 Header = "Check unread messages",
-                Category = "Network"
+                Category = "Network",
+                ThumbnailUrl = "/www/images/icon-set/email.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*allmail",
@@ -270,7 +275,8 @@ namespace jaNET.Environment
                 Description = "Gmail/Pop3",
                 ShortDescription = "Count messages from all accounts",
                 Header = "Check all",
-                Category = "Network"
+                Category = "Network",
+                ThumbnailUrl = "/www/images/icon-set/allmail.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*gmail",
@@ -291,6 +297,7 @@ namespace jaNET.Environment
                 ShortDescription = "Check for unread messages",
                 Header = "Check Gmail",
                 Category = "Network",
+                ThumbnailUrl = "/www/images/icon-set/gmail.png",
                 Reference = "gmailwidget"
             });
             li.Add(new InstructionSet() {
@@ -303,7 +310,8 @@ namespace jaNET.Environment
                 Description = "Gmail account",
                 ShortDescription = "Read headers from unread messages",
                 Header = "Gmail headers",
-                Category = "Network"
+                Category = "Network",
+                ThumbnailUrl = "/www/images/icon-set/gmailreader.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*time",
@@ -324,6 +332,7 @@ namespace jaNET.Environment
                 ShortDescription = "Get system time in AM/PM",
                 Header = "Time",
                 Category = "Localization",
+                ThumbnailUrl = "/www/images/icon-set/time.png",
                 Reference = "timewidget"
             });
             li.Add(new InstructionSet() {
@@ -344,6 +353,7 @@ namespace jaNET.Environment
                 Description = "Get system time in 24 format",
                 ShortDescription = "Time 24h",
                 Category = "Localization",
+                ThumbnailUrl = "/www/images/icon-set/time.png",
                 Reference = "time24widget"
             });
             li.Add(new InstructionSet() {
@@ -364,6 +374,7 @@ namespace jaNET.Environment
                 Description = "Get system date",
                 ShortDescription = "Date",
                 Category = "Localization",
+                ThumbnailUrl = "/www/images/icon-set/date.png",
                 Reference = "datewidget"
             });
             li.Add(new InstructionSet() {
@@ -384,6 +395,7 @@ namespace jaNET.Environment
                 ShortDescription = "Get system day",
                 Header = "Day",
                 Category = "Localization",
+                ThumbnailUrl = "/www/images/icon-set/day.png",
                 Reference = "daywidget"
             });
             li.Add(new InstructionSet() {
@@ -405,6 +417,7 @@ namespace jaNET.Environment
                 ShortDescription = "Acknowledge part of day",
                 Header = "Part of day",
                 Category = "Localization",
+                ThumbnailUrl = "/www/images/icon-set/daypart.png",
                 Reference = "partofdaywidget"
             });
             li.Add(new InstructionSet() {
@@ -417,7 +430,8 @@ namespace jaNET.Environment
                 Description = "Change user status to present",
                 ShortDescription = "User check-in",
                 Header = "Check-in",
-                Category = "User"
+                Category = "User",
+                ThumbnailUrl = "/www/images/checkin.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*check_me_out",
@@ -429,7 +443,8 @@ namespace jaNET.Environment
                 Description = "Change user status to absent",
                 ShortDescription = "User check-out",
                 Header = "Check-out",
-                Category = "User"
+                Category = "User",
+                ThumbnailUrl = "/www/images/checkout.png"
             });
             li.Add(new InstructionSet() {
                 Id = "*checkinout",
@@ -458,6 +473,7 @@ namespace jaNET.Environment
                 ShortDescription = "User check-in/check-out",
                 Header = "Check-in/Check-out",
                 Category = "User",
+                ThumbnailUrl = "/www/images/icon-set/location.png",
                 Reference = "userstatuswidget"
             });
             li.Add(new InstructionSet() {
