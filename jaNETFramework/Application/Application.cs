@@ -196,8 +196,8 @@ namespace jaNET.Environment
                 Id = "whoru",
                 Action = "*whoru",
                 Header = "Who are you?",
-                ShortDescription = "Get jubito's name :)",
-                Description = "A polite system introduction",
+                ShortDescription = "Get jubito's name",
+                Description = "A polite system introduction :)",
                 Category = "System",
                 ThumbnailUrl = "/www/images/logo.png"
             });
@@ -377,7 +377,7 @@ namespace jaNET.Environment
                 Action = "*date",
                 Header = "Date",
                 ShortDescription = "Get system date",
-                Description = "",
+                Description = "e.g. May 9",
                 Category = "Localization",
                 ThumbnailUrl = "/www/images/icon-set/calendar.png",
                 Reference = "datewidget"
