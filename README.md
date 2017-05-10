@@ -14,8 +14,7 @@ A free and open source IoT framework that provides a set of built-in [functions]
 
 You can change defaults by corresponding UI menu (*Menu->Settings->Web Server*) or via judo API.
 
-> judo server setup [host] [port] [authentication]
-
+> judo server setup [host] [port] [authentication]\
 i.e.
 > judo server setup localhost 8080 none|basic
 
@@ -30,8 +29,7 @@ There's basically two components in the core system:
 
 ## Help
 
-A forum wil be started at some point.
-
+A forum wil be started at some point.\
 Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framework/issues) and turn yourself into a valuable project participant.
 
 ## Requirements
@@ -46,7 +44,7 @@ Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framew
 
 ## Configuration
 
-All system configuration are described in *System* tag within *AppConfig.xml*.
+All system configuration are described in *System* tag within *AppConfig.xml*.\
 They can manipulated by judo API, but I suggest you doing it, either by editing the XML or by the web UI (*Menu->Settings*).
 
 ## Hardware & Software Compatibility
@@ -72,7 +70,7 @@ It is fully tested and runnable on devices listed below:
 
 ## Contributing
 
-Any kind of contribution is always very welcome and appreciated.
+Any kind of contribution is always very welcome and appreciated.\
 Once you're familiar with the way jaNET works then you might want to contribute to the core system.
 
 ## Contact
@@ -91,8 +89,7 @@ https://github.com/jambelnet/janet-framework/wiki
 To get a deeper understanding on how the web application layer sits on top, and implements the framework, [download](http://www.jubito.org/download.html) Jubito, open index.html and js/jubito.core.js files and read through the code. They are located on the /www/ root directory. A copy of it, can be found on this git as well.
 Afterwards you'll be able to create [custom widgets and more](http://jubitoblog.blogspot.com/2016/08/consuming-restful-data.html).
 
-Tech blog: http://jubitoblog.blogspot.com
-
+Tech blog: http://jubitoblog.blogspot.com\
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
