@@ -189,6 +189,32 @@ namespace jaNET.Environment
                 Reference = "whereamiwidget"
             });
             li.Add(new InstructionSet() {
+                Id = "*mute",
+                Action = "Disabling speech synthesis. %mute%"
+            });
+            li.Add(new InstructionSet() {
+                Id = "mute",
+                Action = "*mute",
+                Header = "Mute",
+                ShortDescription = "Disable speech synthesizer",
+                Description = "Turn off Text-To-Speech",
+                Category = "System",
+                ThumbnailUrl = "/www/images/icon-set/mute.png"
+            });
+            li.Add(new InstructionSet() {
+                Id = "*unmute",
+                Action = "%unmute% Speech synthesis enabled."
+            });
+            li.Add(new InstructionSet() {
+                Id = "unmute",
+                Action = "*unmute",
+                Header = "Unmute",
+                ShortDescription = "Enable speech synthesizer",
+                Description = "Turn on Text-To-Speech",
+                Category = "System",
+                ThumbnailUrl = "/www/images/icon-set/unmute.png"
+            });
+            li.Add(new InstructionSet() {
                 Id = "*whoru",
                 Action = "I am Jubito, nice to meet you."
             });
