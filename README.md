@@ -89,7 +89,7 @@ https://github.com/jambelnet/janet-framework/wiki
 To get a deeper understanding on how the web application layer sits on top, and implements the framework, [download](http://www.jubito.org/download.html) Jubito, open index.html and js/jubito.core.js files and read through the code. They are located on the /www/ root directory. A copy of it, can be found on this git as well.
 Afterwards you'll be able to create [custom widgets and more](http://jubitoblog.blogspot.com/2016/08/consuming-restful-data.html).
 
-Tech blog: http://jubitoblog.blogspot.com\
+Tech blog: http://jubitoblog.blogspot.com \
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
