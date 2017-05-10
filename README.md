@@ -13,6 +13,7 @@ A free and open source IoT framework that provides a set of built-in [functions]
 [1] Default built-in web server provided by the framework is listening to localhost on port 8080.
 
 You can change defaults by corresponding UI menu (*Menu->Settings->Web Server*) or via judo API.
+
 > judo server setup <host> <port> <authentication>
 > judo server setup localhost 8080 none|basic
 
@@ -42,7 +43,7 @@ Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framew
 
 ## Configuration
 
-All system configuration are described in *System* tag within AppConfig.xml.
+All system configuration are described in *System* tag within *AppConfig.xml*.
 They can manipulated by judo API, but I suggest you doing it, either by editing the XML or by the web UI (*Menu->Settings*).
 
 ## Hardware & Software Compatibility
