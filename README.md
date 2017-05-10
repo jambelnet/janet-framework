@@ -30,6 +30,7 @@ There's basically two components in the core system:
 ## Help
 
 A forum wil be started at some point.
+
 Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framework/issues) and turn yourself into a valuable project participant.
 
 ## Requirements
