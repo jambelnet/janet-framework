@@ -7,10 +7,10 @@ A free and open source IoT framework that provides a set of built-in [functions]
 ## Usage
 
 1. Clone the repository, open the solution with Visual Studio or MonoDevelop and build it.
-2. Copy '*www*' root directory inside your build folder, e.g. '*janet-framework\jaNETProgram\bin\Debug*'.
-3. Run the application (*jaNETProgram.exe*) and access Jubito UI (http:/localhost:8080/www/)[1] in your browser.
+2. Copy '*www*' root directory inside your build folder, e.g. *janet-framework\jaNETProgram\bin\Debug*.
+3. Run the application (*jaNETProgram.exe*) and access Jubito UI (*http:/localhost:8080/www/*)[*1*] in your browser.
 
-[1] Default built-in web server provided by the framework is listening to localhost on port 8080.
+[*1*] Default built-in web server provided by the framework is listening to localhost on port 8080.
 
 You can change defaults by corresponding UI menu (*Menu->Settings->Web Server*) or via judo API.
 
@@ -22,14 +22,14 @@ You can change defaults by corresponding UI menu (*Menu->Settings->Web Server*) 
 
 ## Structure
 
-There's basically two components to the core system:
+There's basically two components in the core system:
 
 * Instruction Sets
 * Events
 
 ## Help
 
-Potentially I'll start a forum somewhere in time.
+A forum wil be started at some point.
 Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framework/issues) and turn yourself into a valuable project participant.
 
 ## Requirements
