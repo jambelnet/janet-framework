@@ -192,17 +192,17 @@ namespace jaNETFramework.Environment.Core
                         case "start":
                         case "listen":
                         case "open":
-                            TCP.Start();
+                            TCP.Server.Start();
                             Thread.Sleep(50);
-                            output = string.Format("Socket state: {0}", TCP.ServerState);
+                            output = string.Format("Socket state: {0}", TCP.Server.ServerState);
                             break;
                         case "off":
                         case "disable":
                         case "stop":
                         case "close":
-                            TCP.Stop();
+                            TCP.Server.Stop();
                             Thread.Sleep(50);
-                            output = string.Format("Socket state: {0}", TCP.ServerState);
+                            output = string.Format("Socket state: {0}", TCP.Server.ServerState);
                             break;
                         case "set":
                         case "setup":
@@ -218,7 +218,7 @@ namespace jaNETFramework.Environment.Core
                         case "state":
                         case "status":
                         default:
-                            output = string.Format("Socket state: {0}", TCP.ServerState);
+                            output = string.Format("Socket state: {0}", TCP.Server.ServerState);
                             break;
                     }
                     break;

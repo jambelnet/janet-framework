@@ -80,7 +80,7 @@ namespace jaNET.Environment
             if (!string.IsNullOrEmpty(Comm.GetHostname))
                 WebServer.Start();
             if (!string.IsNullOrEmpty(Comm.GetLocalHost))
-                TCP.Start();
+                TCP.Server.Start();
             if (!string.IsNullOrEmpty(Comm.GetComPort))
                 SerialComm.ActivateSerialPort(string.Empty); // throws exception in linux?
 
@@ -524,7 +524,7 @@ namespace jaNET.Environment
         public static void Dispose() {
             SerialComm.DeactivateSerialPort();
             WebServer.Stop();
-            TCP.Stop();
+            TCP.Server.Stop();
             Parser.ParserState = false;
             System.Environment.Exit(0);
         }
