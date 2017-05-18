@@ -23,6 +23,7 @@ using jaNET.Environment.AppConfig;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
 
 namespace jaNET.Providers
 {
@@ -168,8 +169,8 @@ namespace jaNET.Providers
         void GetWeather() {
             try {
                 string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
-                //var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
-                var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
+                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
+                //var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                 TodayConditions = oRootObject.weather[0].main;
                 TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
                 TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");

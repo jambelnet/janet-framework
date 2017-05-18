@@ -213,7 +213,7 @@ namespace jaNETFramework.Environment.Core
                             output = method.AddToXML(com, AppStructure.SystemCommRoot);
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}", Comm.GetLocalHost, Comm.GetLocalPort);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", Comm.GetLocalHost, Comm.GetLocalPort, Comm.GetTrusted);
                             break;
                         case "state":
                         case "status":

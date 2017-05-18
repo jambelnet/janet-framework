@@ -125,18 +125,18 @@ var pageObj = {
             dataType: "json",
             url: "?cmd=%currentcity%&%todayconditions%&%weathericon%&%currenttemperature%&%currenthumidity%&%currentpressure%&mode=json",
         }).done(function (data) {
-            if (data.currenttemperature.value.length <= 0) {
+            if (data.currenttemperature.Value.length <= 0) {
                 $('#conditions').html('Unavailable');
                 $('#location').hide();
                 $('#weather-ico').hide();
             } else {
-                $('#conditions').html(data.currenttemperature.value + '&deg;C');
-                $('#location').html(data.currentcity.value + ', ' + data.todayconditions.value);
-                $('#weather-ico').html('<img src="' + data.weathericon.value + '"></img>');
+                $('#conditions').html(data.currenttemperature.Value + '&deg;C');
+                $('#location').html(data.currentcity.Value + ', ' + data.todayconditions.Value);
+                $('#weather-ico').html('<img src="' + data.weathericon.Value + '"></img>');
                 $('#weatherdiv').css('display', 'inline-block').show();
-                pageObj.curtemp.refresh(data.currenttemperature.value);
-                pageObj.curhumid.refresh(data.currenthumidity.value);
-                pageObj.curpres.refresh(data.currentpressure.value);
+                pageObj.curtemp.refresh(data.currenttemperature.Value);
+                pageObj.curhumid.refresh(data.currenthumidity.Value);
+                pageObj.curpres.refresh(data.currentpressure.Value);
             }
         }).fail(function () {
 
@@ -157,8 +157,8 @@ var pageObj = {
                 url: "?cmd=%day%&%date%&%calendaryear%&%time24%&mode=json",
             }).done(function (data) {
                 $('#header').css('display', 'block').show();
-                $('#time').html(data.time24.value);
-                $('#date').html(data.day.value + '<br />' + data.date.value + ', ' + data.calendaryear.value);
+                $('#time').html(data.time24.Value);
+                $('#date').html(data.day.Value + '<br />' + data.date.Value + ', ' + data.calendaryear.Value);
             }).fail(function () {
 
             });
@@ -169,7 +169,7 @@ var pageObj = {
                 dataType: "json",
                 url: "?cmd=%salute%&%whoami%&%whereami%&mode=json",
             }).done(function (data) {
-                $('#userstat').html('Good ' + data.salute.value + ' ' + data.whoami.value + '<br />' + 'Your status is set to ' + data.whereami.value);
+                $('#userstat').html('Good ' + data.salute.Value + ' ' + data.whoami.Value + '<br />' + 'Your status is set to ' + data.whereami.Value);
             }).fail(function () {
 
             });
@@ -180,9 +180,9 @@ var pageObj = {
                 dataType: "json",
                 url: "?cmd=%gmailcount%&%gmailreader%&mode=json",
             }).done(function (data) {
-                $('#gmail-badge').html(data.gmailcount.value);
-                //$('#gmail').html('Gmail: ' + data.gmailcount.value);
-                $('#gmailreader').html(data.gmailreader.value.replace(/\r\n|\n|\r/g, '<br />'));
+                $('#gmail-badge').html(data.gmailcount.Value);
+                //$('#gmail').html('Gmail: ' + data.gmailcount.Value);
+                $('#gmailreader').html(data.gmailreader.Value.replace(/\r\n|\n|\r/g, '<br />'));
             }).fail(function () {
 
             });
@@ -197,9 +197,9 @@ var pageObj = {
                 url: "?cmd=judo%20serial%20send%20dhttemp&judo%20serial%20send%20humid&mode=json",
             }).done(function (data) {
                 $('#indoordiv').css('display', 'inline-block').show();
-                $('#indoor').html('Indoor: ' + data.judo_serial_send_dhttemp.value + '&deg;C' + ' ' + data.judo_serial_send_humid.value + '%');
-                pageObj.indoortemp.refresh(data.judo_serial_send_dhttemp.value);
-                pageObj.indoorhumid.refresh(data.judo_serial_send_humid.value);
+                $('#indoor').html('Indoor: ' + data.judo_serial_send_dhttemp.Value + '&deg;C' + ' ' + data.judo_serial_send_humid.Value + '%');
+                pageObj.indoortemp.refresh(data.judo_serial_send_dhttemp.Value);
+                pageObj.indoorhumid.refresh(data.judo_serial_send_humid.Value);
             }).fail(function () {
 
             });
