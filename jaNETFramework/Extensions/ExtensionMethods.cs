@@ -54,7 +54,7 @@ namespace jaNET.Extensions
         }
 
         internal static string ToJson(this object res) {
-            return new JavaScriptSerializer().Serialize(res); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
+            return new JavaScriptSerializer().Serialize(res); //// JavaScriptSerializer cannot be used in Xamarin.
             //return new Helpers.JsonSerializer().Serialize(res);
         }
 

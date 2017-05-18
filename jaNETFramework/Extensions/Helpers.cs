@@ -112,7 +112,7 @@ namespace jaNET
             internal String SelectSingleNode(string endpoint, string node) {
                 string json = GetRawData(endpoint);
 
-                dynamic item = new JavaScriptSerializer().Deserialize<object>(json); //// ToDo: JavaScriptSerializer is no longer used for Xamarin compatibility.
+                dynamic item = new JavaScriptSerializer().Deserialize<object>(json); //// ToDo: JavaScriptSerializer cannot be used in Xamarin.
 
                 var steps = node.Split('/');
                 for (var i = 0; i < steps.Length; i++) {

@@ -27,138 +27,138 @@ using System.Web.Script.Serialization;
 
 namespace jaNET.Providers
 {
-    [DataContract]
+    //[DataContract]
     class OpenWeather : IWeather
     {
-        [DataMember]
+        //[DataMember]
         public string TodayConditions { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TodayLow { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TodayHigh { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TodayDay {
             get {
                 return DateTime.Now.DayOfWeek.ToString();
             }
         }
-        [DataMember]
+        //[DataMember]
         public string TomorrowConditions { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TomorrowLow { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TomorrowHigh { get; set; }
-        [DataMember]
+        //[DataMember]
         public string TomorrowDay {
             get {
                 return DateTime.Now.AddDays(1).DayOfWeek.ToString();
             }
         }
-        [DataMember]
+        //[DataMember]
         public string CurrentTemp { get; set; }
-        [DataMember]
+        //[DataMember]
         public string CurrentPressure { get; set; }
-        [DataMember]
+        //[DataMember]
         public string CurrentHumidity { get; set; }
-        [DataMember]
+        //[DataMember]
         public string CurrentCity { get; set; }
-        [DataMember]
+        //[DataMember]
         public string WeatherIcon { get; set; }
 
-        [DataContract]
+        //[DataContract]
         public class Coord
         {
             public double lon { get; set; }
             public double lat { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class Weather
         {
-            [DataMember]
+            //[DataMember]
             public int id { get; set; }
-            [DataMember]
+            //[DataMember]
             public string main { get; set; }
-            [DataMember]
+            //[DataMember]
             public string description { get; set; }
-            [DataMember]
+            //[DataMember]
             public string icon { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class Main
         {
-            [DataMember]
+            //[DataMember]
             public double temp { get; set; }
-            [DataMember]
+            //[DataMember]
             public double pressure { get; set; }
-            [DataMember]
+            //[DataMember]
             public int humidity { get; set; }
-            [DataMember]
+            //[DataMember]
             public double temp_min { get; set; }
-            [DataMember]
+            //[DataMember]
             public double temp_max { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class Wind
         {
-            [DataMember]
+            //[DataMember]
             public double speed { get; set; }
-            [DataMember]
+            //[DataMember]
             public double deg { get; set; }
-            [DataMember]
+            //[DataMember]
             public double gust { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class Clouds
         {
-            [DataMember]
+            //[DataMember]
             public int all { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class Sys
         {
-            [DataMember]
+            //[DataMember]
             public int type { get; set; }
-            [DataMember]
+            //[DataMember]
             public int id { get; set; }
-            [DataMember]
+            //[DataMember]
             public double message { get; set; }
-            [DataMember]
+            //[DataMember]
             public string country { get; set; }
-            [DataMember]
+            //[DataMember]
             public int sunrise { get; set; }
-            [DataMember]
+            //[DataMember]
             public int sunset { get; set; }
         }
 
-        [DataContract]
+        //[DataContract]
         public class RootObject
         {
-            [DataMember]
+            //[DataMember]
             public Coord coord { get; set; }
-            [DataMember]
+            //[DataMember]
             public List<Weather> weather { get; set; }
-            [DataMember]
+            //[DataMember]
             public string @base { get; set; }
-            [DataMember]
+            //[DataMember]
             public Main main { get; set; }
-            [DataMember]
+            //[DataMember]
             public Wind wind { get; set; }
-            [DataMember]
+            //[DataMember]
             public Clouds clouds { get; set; }
-            [DataMember]
+            //[DataMember]
             public int dt { get; set; }
-            [DataMember]
+            //[DataMember]
             public Sys sys { get; set; }
-            [DataMember]
+            //[DataMember]
             public int id { get; set; }
-            [DataMember]
+            //[DataMember]
             public string name { get; set; }
-            [DataMember]
+            //[DataMember]
             public int cod { get; set; }
         }
 
@@ -169,7 +169,7 @@ namespace jaNET.Providers
         void GetWeather() {
             try {
                 string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
-                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer is no longer used for Xamarin compatibility.
+                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer cannot be used in Xamarin.
                 //var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                 TodayConditions = oRootObject.weather[0].main;
                 TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
