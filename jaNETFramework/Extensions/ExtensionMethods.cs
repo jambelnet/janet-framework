@@ -241,8 +241,7 @@ namespace jaNET.Extensions
                 context = Regex.Replace(context, "%tomorrowhigh%", weather.TomorrowHigh);
             }
             if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%")) {
-                string us = User.Status ? "present" : "absent";
-                context = Regex.Replace(context, "%whereami%|%userstat%|%userstatus%", us);
+                context = Regex.Replace(context, "%whereami%|%userstat%|%userstatus%", User.Status ? "present" : "absent");
             }
             if (context.Contains("%uptime%")) {
                 context = Regex.Replace(context, "%uptime%", Application.Uptime.GetAll);

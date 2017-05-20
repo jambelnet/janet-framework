@@ -156,9 +156,9 @@ namespace jaNET.Net.Sockets
 
         //internal class Client
         //{
-            //internal Client() {
-                //throw new NotImplementedException();
-            //}
+        //    internal Client() {
+        //        throw new NotImplementedException();
+        //    }
         //}
     }
 }
