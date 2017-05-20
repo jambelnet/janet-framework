@@ -32,7 +32,7 @@ using System.Net.Mail;
 using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
+//using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -206,7 +206,8 @@ namespace jaNET.Net
                     smtpClient.EnableSsl = smtpSettings.SSL;
                     if (smtpClient.EnableSsl)
                         ServicePointManager.ServerCertificateValidationCallback =
-                            (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) => true;
+                            (s, certificate, chain, sslPolicyErrors) => true;
+                    //(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) => true;
                     //delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
                     smtpClient.Send(mail);
                     return true;

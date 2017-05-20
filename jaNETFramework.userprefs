@@ -1,6 +1,10 @@
 ﻿<Properties RefactoringSettings.EnableRefactorings="True" StartupItem="jaNETProgram/jaNETProgram.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="jaNETFramework/Application/Methods.cs">
+    <Files>
+      <File FileName="jaNETFramework/Application/Methods.cs" Line="30" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
