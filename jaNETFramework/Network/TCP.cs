@@ -34,7 +34,7 @@ namespace jaNET.Net.Sockets
 {
     static class TCP
     {
-        internal class Server
+        internal static class Server
         {
             static TcpListener server;
             internal static volatile bool ServerState;
@@ -143,6 +143,7 @@ namespace jaNET.Net.Sockets
                     //Debug.Print("SocketException: {0}", e);
                 }
                 catch {
+                    
                 }
                 /*finally
                 {
@@ -153,11 +154,11 @@ namespace jaNET.Net.Sockets
             }
         }
 
-        internal class Client
-        {
-            internal Client() {
-                throw new NotImplementedException();
-            }
-        }
+        //internal class Client
+        //{
+            //internal Client() {
+                //throw new NotImplementedException();
+            //}
+        //}
     }
 }

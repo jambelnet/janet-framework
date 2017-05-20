@@ -74,7 +74,7 @@ namespace jaNET.Providers
                 foreach (CompilerError err in cr.Errors) {
                     error.AppendFormat("{0}\n", err.ErrorText);
                 }
-                throw new Exception("Error Compiling Expression: " + error.ToString());
+                throw new Exception("Error Compiling Expression: " + error);
             }
             Assembly a = cr.CompiledAssembly;
             _Compiled = a.CreateInstance("libJanet._Evaluator");

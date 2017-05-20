@@ -72,6 +72,7 @@ namespace jaNET.IO.Ports
                 t.Start();
             }
             catch {
+                
             }
         }
 
@@ -81,6 +82,7 @@ namespace jaNET.IO.Ports
                     port.Close();
             }
             catch {
+                
             }
         }
 

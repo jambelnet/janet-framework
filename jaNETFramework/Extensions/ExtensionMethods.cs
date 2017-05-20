@@ -54,7 +54,7 @@ namespace jaNET.Extensions
         }
 
         internal static string ToJson(this object res) {
-            return new JavaScriptSerializer().Serialize(res); //// JavaScriptSerializer cannot be used in Xamarin.
+            return new JavaScriptSerializer().Serialize(res); // JavaScriptSerializer cannot be used in Xamarin.
             //return new Helpers.JsonSerializer().Serialize(res);
         }
 
@@ -241,11 +241,7 @@ namespace jaNET.Extensions
                 context = Regex.Replace(context, "%tomorrowhigh%", weather.TomorrowHigh);
             }
             if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%")) {
-                string us;
-                if (User.Status)
-                    us = "present";
-                else
-                    us = "absent";
+                string us = User.Status ? "present" : "absent";
                 context = Regex.Replace(context, "%whereami%|%userstat%|%userstatus%", us);
             }
             if (context.Contains("%uptime%")) {

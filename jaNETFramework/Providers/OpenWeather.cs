@@ -169,7 +169,7 @@ namespace jaNET.Providers
         void GetWeather() {
             try {
                 string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
-                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); //// JavaScriptSerializer cannot be used in Xamarin.
+                var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); // JavaScriptSerializer cannot be used in Xamarin.
                 //var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
                 TodayConditions = oRootObject.weather[0].main;
                 TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");

@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.1.62";
+        public const string AssemblyVersion = "0.3.1.63";
 
         public string GetCopyright {
             get {
@@ -203,7 +203,7 @@ namespace jaNET.Environment
                     xdoc.Root.Element(xPath).Add(
                         new XElement(element,
                             xattrs,
-                            new XText((string)type.GetProperty("Action").GetValue(newElement, null).ToString().Trim())
+                            new XText(type.GetProperty("Action").GetValue(newElement, null).ToString().Trim())
                         ));
                 }
                 else

@@ -54,7 +54,9 @@ namespace jaNET.Environment
                         Event.GetEvent("oncheckout").Item(0).InnerText.Parse();
                 }
             }
-            catch { }
+            catch {
+                
+            }
             return status;
         }
     }
