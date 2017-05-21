@@ -138,7 +138,7 @@ namespace jaNET.Net.Sockets
             catch (SocketException e) {
                 ServerState = false;
                 server.Stop();
-                Logger.Instance.Append(string.Format("obj [ Server.TCP.ListenforClients <SocketException> ]: {0}", e.Message));
+                Logger.Instance.Append(string.Format("obj [ Server.TcpServer.ListenforClients <SocketException> ]: {0}", e.Message));
                 //Debug.Print("SocketException: {0}", e);
             }
             catch {
