@@ -179,7 +179,6 @@ namespace jaNET.Net.Http
                     "<hr></body></html>");
             }
             catch (Exception e) {
-                //if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
                 ctx.Response.StatusCode = 404;
                 buf = Encoding.UTF8.GetBytes(
                     "<html><head><title>404 Not Found</title></head>" +
@@ -188,7 +187,8 @@ namespace jaNET.Net.Http
                     "The requested URL could not be found. Are you missing the www root?<br />" +
                     "e.g. <a href=http://localhost:8080/www/>http://localhost:8080/www/</a>" +
                     "<hr></body></html>");
-                Logger.Instance.Append(string.Format("obj [ WebServer.ProcessRequestAsync <Exception> ] Exception Message: [ {0} ]", e.Message));
+                if (!e.Message.Contains("favicon.ico") && !e.Message.Contains("The object was used after being disposed."))
+                    Logger.Instance.Append(string.Format("obj [ WebServer.ProcessRequestAsync <Exception> ] Exception Message: [ {0} ]", e.Message));
             }
             finally {
                 ctx.Response.ContentLength64 = buf.Length;

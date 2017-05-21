@@ -196,10 +196,12 @@ var pageObj = {
                 dataType: "json",
                 url: "?cmd=judo%20serial%20send%20dhttemp&judo%20serial%20send%20humid&mode=json",
             }).done(function (data) {
-                $('#indoordiv').css('display', 'inline-block').show();
-                $('#indoor').html('Indoor: ' + data.judo_serial_send_dhttemp.Value + '&deg;C' + ' ' + data.judo_serial_send_humid.Value + '%');
-                pageObj.indoortemp.refresh(data.judo_serial_send_dhttemp.Value);
-                pageObj.indoorhumid.refresh(data.judo_serial_send_humid.Value);
+                if (data.judo_serial_send_dhttemp.Value != 'Serial port state: False') {
+                    $('#indoordiv').css('display', 'inline-block').show();
+                    $('#indoor').html('Indoor: ' + data.judo_serial_send_dhttemp.Value + '&deg;C' + ' ' + data.judo_serial_send_humid.Value + '%');
+                    pageObj.indoortemp.refresh(data.judo_serial_send_dhttemp.Value);
+                    pageObj.indoorhumid.refresh(data.judo_serial_send_humid.Value);
+                }
             }).fail(function () {
 
             });
