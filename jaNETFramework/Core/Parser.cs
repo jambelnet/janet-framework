@@ -72,6 +72,7 @@ namespace jaNET.Environment.Core
                                           .Where(s => !string.IsNullOrWhiteSpace(s))
                                           .Select(s => s.Trim())
                                           .Distinct().ToList();
+
                 var results = new Dictionary<string, KeyValuePair<string, string>>();
 
                 instructionSets.ForEach(instruction => results.Add(instruction.Replace(" ", "_").Replace("%", string.Empty),

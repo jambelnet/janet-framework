@@ -171,17 +171,19 @@ namespace jaNET.Providers
                 string endpoint = Helpers.Xml.AppConfigQuery(AppStructure.WeatherPath).Item(0).InnerText;
                 var oRootObject = new JavaScriptSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint)); // JavaScriptSerializer cannot be used in Xamarin.
                 //var oRootObject = new Helpers.JsonSerializer().Deserialize<RootObject>(Helpers.Http.Get(endpoint));
-                TodayConditions = oRootObject.weather[0].main;
-                TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
-                TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");
-                CurrentCity = oRootObject.name;
-                CurrentTemp = Math.Round(oRootObject.main.temp, 1).ToString().Replace(",", ".");
-                CurrentHumidity = oRootObject.main.humidity.ToString();
-                CurrentPressure = oRootObject.main.pressure.ToString().Replace(",", ".");
-                WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
+                if (oRootObject != null) {
+                    TodayConditions = oRootObject.weather[0].main;
+                    TodayHigh = Math.Round(oRootObject.main.temp_max, 1).ToString().Replace(",", ".");
+                    TodayLow = Math.Round(oRootObject.main.temp_min, 1).ToString().Replace(",", ".");
+                    CurrentCity = oRootObject.name;
+                    CurrentTemp = Math.Round(oRootObject.main.temp, 1).ToString().Replace(",", ".");
+                    CurrentHumidity = oRootObject.main.humidity.ToString();
+                    CurrentPressure = oRootObject.main.pressure.ToString().Replace(",", ".");
+                    WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
+                }
             }
             catch (Exception e) {
-                //Logger.Instance.Append(string.Format("obj [ OpenWeather.OpenWeather <Exception> ] Exception Message: [ {0} ]", e.Message));
+                //Logger.Instance.Append(string.Format("obj [ OpenWeather.GetWeather <Exception> ] Exception Message: [ {0} ]", e.Message));
             }
         }
     }
