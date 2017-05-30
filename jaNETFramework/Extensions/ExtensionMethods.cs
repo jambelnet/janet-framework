@@ -202,43 +202,43 @@ namespace jaNET.Extensions
                 context = Regex.Replace(context, "%daypart%|%partofday%", method.GetPartOfDay(false));
             }
             if (context.Contains("%todayday%")) {
-                context = Regex.Replace(context, "%todayday%", weather.TodayDay);
+                context = Regex.Replace(context, "%todayday%", weather.TodayDay ?? string.Empty);
             }
             if (context.Contains("%todayconditions%")) {
-                context = Regex.Replace(context, "%todayconditions%", weather.TodayConditions);
+                context = Regex.Replace(context, "%todayconditions%", weather.TodayConditions ?? string.Empty);
             }
             if (context.Contains("%todaylow%")) {
-                context = Regex.Replace(context, "%todaylow%", weather.TodayLow);
+                context = Regex.Replace(context, "%todaylow%", weather.TodayLow ?? string.Empty);
             }
             if (context.Contains("%todayhigh%")) {
-                context = Regex.Replace(context, "%todayhigh%", weather.TodayHigh);
+                context = Regex.Replace(context, "%todayhigh%", weather.TodayHigh ?? string.Empty);
             }
             if (Regex.IsMatch(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%")) {
-                context = Regex.Replace(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%", weather.CurrentTemp);
+                context = Regex.Replace(context, "%currenttemperature%|%currenttemp%|%todaytemp%|%todaytemperature%", weather.CurrentTemp ?? string.Empty);
             }
             if (context.Contains("%currenthumidity%")) {
-                context = Regex.Replace(context, "%currenthumidity%", weather.CurrentHumidity);
+                context = Regex.Replace(context, "%currenthumidity%", weather.CurrentHumidity ?? string.Empty);
             }
             if (context.Contains("%currentpressure%")) {
-                context = Regex.Replace(context, "%currentpressure%", weather.CurrentPressure);
+                context = Regex.Replace(context, "%currentpressure%", weather.CurrentPressure ?? string.Empty);
             }
             if (context.Contains("%currentcity%")) {
-                context = Regex.Replace(context, "%currentcity%", weather.CurrentCity);
+                context = Regex.Replace(context, "%currentcity%", weather.CurrentCity ?? string.Empty);
             }
             if (context.Contains("%weathericon%")) {
-                context = Regex.Replace(context, "%weathericon%", weather.WeatherIcon);
+                context = Regex.Replace(context, "%weathericon%", weather.WeatherIcon ?? string.Empty);
             }
             if (context.Contains("%tomorrowday%")) {
-                context = Regex.Replace(context, "%tomorrowday%", weather.TomorrowDay);
+                context = Regex.Replace(context, "%tomorrowday%", weather.TomorrowDay ?? string.Empty);
             }
             if (context.Contains("%tomorrowconditions%")) {
-                context = Regex.Replace(context, "%tomorrowconditions%", weather.TomorrowConditions);
+                context = Regex.Replace(context, "%tomorrowconditions%", weather.TomorrowConditions ?? string.Empty);
             }
             if (context.Contains("%tomorrowlow%")) {
-                context = Regex.Replace(context, "%tomorrowlow%", weather.TomorrowLow);
+                context = Regex.Replace(context, "%tomorrowlow%", weather.TomorrowLow ?? string.Empty);
             }
             if (context.Contains("%tomorrowhigh%")) {
-                context = Regex.Replace(context, "%tomorrowhigh%", weather.TomorrowHigh);
+                context = Regex.Replace(context, "%tomorrowhigh%", weather.TomorrowHigh ?? string.Empty);
             }
             if (context.Contains("%whereami%") || context.Contains("%userstat%") || context.Contains("%userstatus%")) {
                 context = Regex.Replace(context, "%whereami%|%userstat%|%userstatus%", User.Status ? "present" : "absent");
