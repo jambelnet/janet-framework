@@ -81,7 +81,7 @@ namespace jaNET.Extensions
         }
 
         internal static SerialComm.TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
-            SerialComm.TypeOfSerialMessage t = SerialComm.TypeOfSerialMessage.None;
+            var t = SerialComm.TypeOfSerialMessage.None;
 
             switch (type.ToLower()) {
                 case "send":

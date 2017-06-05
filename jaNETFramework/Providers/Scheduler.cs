@@ -146,7 +146,8 @@ namespace jaNET.Providers
                     ScheduleList.Add(ss);
 
                 lock (_schedule_locker)
-                    Task.Factory.StartNew(() => ScheduleListener(ss, interval));
+                    Task.Run(() => ScheduleListener(ss, interval));
+                //Task.Factory.StartNew(() => ScheduleListener(ss, interval));
 
                 return string.Format("Schedule {0} added", ss.Name);
             }

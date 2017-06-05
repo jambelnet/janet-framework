@@ -77,12 +77,12 @@ namespace jaNET.Diagnostics
             //var ts = new CancellationTokenSource();
             //CancellationToken ct = ts.Token;
 
-            var worker = Task.Factory.StartNew(method) // ,ct
-                              .ContinueWith(t => {
-                                  // Ensure any exception is observed, is no-op if no exception.
-                                  // Using closure to help avoid this being optimised out.
-                                  e = t.Exception;
-                              });
+            var worker = Task.Run(method) // ,ct
+                .ContinueWith(t => {
+                    // Ensure any exception is observed, is no-op if no exception.
+                    // Using closure to help avoid this being optimised out.
+                    e = t.Exception;
+                });
             //if (!worker.Wait(timeout, ct)) ts.Cancel();
             return worker.Wait(timeout);
         }

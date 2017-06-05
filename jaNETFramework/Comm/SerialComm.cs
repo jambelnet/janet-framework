@@ -42,7 +42,8 @@ namespace jaNET.IO.Ports
         static readonly object _serial_locker = new object();
         static readonly object _write_locker = new object();
         internal static volatile string SerialData = string.Empty;
-        internal static SerialPort port = new SerialPort();
+        //internal static SerialPort port = new SerialPort();
+        public static SerialPort port { get { return Singleton<SerialPort>.Instance; } }
 
         internal static void ActivateSerialPort(string portName) {
             try {
@@ -135,7 +136,7 @@ namespace jaNET.IO.Ports
                             SerialData = string.Empty;
                             // Send a new argument
                             port.WriteLine(message);
-                            Thread.Sleep(50);
+                            Thread.Sleep(220);
                         }
                         Action GetSerialData = () => {
                             while (output == string.Empty) {
