@@ -21,6 +21,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace jaNET.Diagnostics
@@ -70,21 +71,19 @@ namespace jaNET.Diagnostics
             }
         }
 
-        // True => worked, False => timeout
         internal static bool CallWithTimeout(Action method, int timeout = 1000) {
-            Exception e;
-
-            //var ts = new CancellationTokenSource();
-            //CancellationToken ct = ts.Token;
-
-            var worker = Task.Run(method) // ,ct
-                .ContinueWith(t => {
-                    // Ensure any exception is observed, is no-op if no exception.
-                    // Using closure to help avoid this being optimised out.
-                    e = t.Exception;
-                });
-            //if (!worker.Wait(timeout, ct)) ts.Cancel();
-            return worker.Wait(timeout);
+            try {
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(timeout);
+                Task.Run(() => method, cts.Token);
+            }
+            catch (OperationCanceledException) {
+                return false;
+            }
+            catch (Exception) {
+                return false;
+            }
+            return true;
         }
     }
 }

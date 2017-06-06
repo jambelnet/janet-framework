@@ -57,7 +57,6 @@ namespace jaNETFramework.Environment.Core
                 #endregion
                 #region Serial
                 case "serial":
-                    SerialComm.SerialData = string.Empty;
                     switch (args[2]) {
                         case "open":
                             if (args.Count() > 3)

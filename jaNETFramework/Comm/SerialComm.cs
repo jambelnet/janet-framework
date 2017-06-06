@@ -26,6 +26,7 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace jaNET.IO.Ports
 {
@@ -42,13 +43,14 @@ namespace jaNET.IO.Ports
         static readonly object _serial_locker = new object();
         static readonly object _write_locker = new object();
         internal static volatile string SerialData = string.Empty;
-        //internal static SerialPort port = new SerialPort();
-        public static SerialPort port { get { return Singleton<SerialPort>.Instance; } }
+        internal static SerialPort port;
 
         internal static void ActivateSerialPort(string portName) {
             try {
+                port = new SerialPort();
+
                 bool isPOSIX = Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix
-                            || Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
+                                || Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
 
                 if (isPOSIX && !File.Exists(port.PortName))
                     return;
@@ -73,18 +75,13 @@ namespace jaNET.IO.Ports
                 t.Start();
             }
             catch {
-                
+                port.Dispose();
             }
         }
 
         internal static void DeactivateSerialPort() {
-            try {
-                if (port.IsOpen)
-                    port.Close();
-            }
-            catch {
-                
-            }
+            if (port.IsOpen)
+                port.Close();
         }
 
         static void SerialPortListener() {
@@ -124,36 +121,30 @@ namespace jaNET.IO.Ports
         }
 
         internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
-            string output = string.Empty;
-
-            try {
-                if (port.IsOpen) {
-                    lock (_write_locker) {
-                        if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
-                            // Clear all buffers
-                            port.DiscardInBuffer();
-                            port.DiscardOutBuffer();
-                            SerialData = string.Empty;
-                            // Send a new argument
-                            port.WriteLine(message);
-                            Thread.Sleep(220);
-                        }
-                        Action GetSerialData = () => {
-                            while (output == string.Empty) {
-                                output = SerialData;
-                                Thread.Sleep(50);
-                            }
-                        };
-                        Process.CallWithTimeout(GetSerialData, timeout);
+            if (port.IsOpen) {
+                lock (_write_locker) {
+                    string output = string.Empty;
+                    if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
+                        // Clear all buffers
+                        port.DiscardInBuffer();
+                        port.DiscardOutBuffer();
+                        SerialData = string.Empty;
+                        // Send a new argument
+                        port.WriteLine(message);
+                        Thread.Sleep(220);
                     }
+                    Action GetSerialData = () => {
+                        while (output == string.Empty) {
+                            output = SerialData;
+                            Thread.Sleep(50);
+                        }
+                    };
+                    Process.CallWithTimeout(GetSerialData, timeout);
+                    return SerialData;
                 }
-                else
-                    output = string.Format("Serial port state: {0}", port.IsOpen);
-                return output;
             }
-            catch {
-                return output;
-            }
+            else
+                return string.Format("Serial port state: {0}", port.IsOpen);
         }
     }
 }

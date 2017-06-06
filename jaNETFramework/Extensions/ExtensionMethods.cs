@@ -81,20 +81,16 @@ namespace jaNET.Extensions
         }
 
         internal static SerialComm.TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
-            var t = SerialComm.TypeOfSerialMessage.None;
-
             switch (type.ToLower()) {
                 case "send":
-                    t = SerialComm.TypeOfSerialMessage.Send;
-                    break;
+                    return SerialComm.TypeOfSerialMessage.Send;
                 case "listen":
-                    t = SerialComm.TypeOfSerialMessage.Listen;
-                    break;
+                    return SerialComm.TypeOfSerialMessage.Listen;
                 case "monitor":
-                    t = SerialComm.TypeOfSerialMessage.Monitor;
-                    break;
+                    return SerialComm.TypeOfSerialMessage.Monitor;
+                default:
+                    return SerialComm.TypeOfSerialMessage.None;
             }
-            return t;
         }
 
         internal static string FixScheduleDate(this string date) {
