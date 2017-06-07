@@ -26,7 +26,6 @@ using System;
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace jaNET.IO.Ports
 {
@@ -120,31 +119,35 @@ namespace jaNET.IO.Ports
             }
         }
 
-        internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
-            if (port.IsOpen) {
-                lock (_write_locker) {
-                    string output = string.Empty;
-                    if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
-                        // Clear all buffers
-                        port.DiscardInBuffer();
-                        port.DiscardOutBuffer();
-                        SerialData = string.Empty;
-                        // Send a new argument
-                        port.WriteLine(message);
-                        Thread.Sleep(220);
-                    }
-                    Action GetSerialData = () => {
-                        while (output == string.Empty) {
-                            output = SerialData;
-                            Thread.Sleep(50);
+        internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1500) {
+            string output = string.Empty;
+            try {
+                if (port.IsOpen) {
+                    lock (_write_locker) {
+                        if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
+                            // Clear all buffers
+                            port.DiscardInBuffer();
+                            port.DiscardOutBuffer();
+                            SerialData = string.Empty;
+                            // Send a new argument
+                            port.WriteLine(message);
+                            Thread.Sleep(220);
                         }
-                    };
-                    Process.CallWithTimeout(GetSerialData, timeout);
-                    return SerialData;
+                        Process.CallWithTimeout(() => {
+                            while (output == string.Empty) {
+                                output = SerialData;
+                                Thread.Sleep(50);
+                            }
+                        }, timeout);
+                    }
                 }
+                else
+                    output = string.Format("Serial port state: {0}", port.IsOpen);
+                return output;
             }
-            else
-                return string.Format("Serial port state: {0}", port.IsOpen);
+            catch {
+                return output;
+            }
         }
     }
 }

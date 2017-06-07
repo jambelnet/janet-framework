@@ -71,19 +71,19 @@ namespace jaNET.Diagnostics
             }
         }
 
+        // True => worked, False => timeout
         internal static bool CallWithTimeout(Action method, int timeout = 1000) {
-            try {
-                var cts = new CancellationTokenSource();
-                cts.CancelAfter(timeout);
-                Task.Run(() => method, cts.Token);
-            }
-            catch (OperationCanceledException) {
-                return false;
-            }
-            catch (Exception) {
-                return false;
-            }
-            return true;
+            Exception e;
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(timeout);
+
+            var worker = Task.Run(method, cts.Token)
+                .ContinueWith(t => {
+                    // Ensure any exception is observed, is no-op if no exception.
+                    // Using closure to help avoid this being optimised out.
+                    e = t.Exception;
+                });
+            return worker.Wait(timeout);
         }
     }
 }
