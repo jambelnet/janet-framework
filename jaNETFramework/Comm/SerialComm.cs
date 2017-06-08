@@ -42,12 +42,10 @@ namespace jaNET.IO.Ports
         static readonly object _serial_locker = new object();
         static readonly object _write_locker = new object();
         internal static volatile string SerialData = string.Empty;
-        internal static SerialPort port;
+        internal static SerialPort port = new SerialPort();
 
         internal static void ActivateSerialPort(string portName) {
             try {
-                port = new SerialPort();
-
                 bool isPOSIX = Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix
                                 || Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
 
@@ -92,9 +90,8 @@ namespace jaNET.IO.Ports
 
                         if (SerialData != string.Empty &&
                             Helpers.Xml.AppConfigQuery(
-                            AppStructure.SystemEventsRoot +
-                            "/event[@id='" + SerialData + "']").Count > 0) {
-                            Action ParseSerialData = () => {
+                            AppStructure.SystemEventsRoot + "/event[@id='" + SerialData + "']").Count > 0) {
+                            Process.CallWithTimeout(() => {
                                 try {
                                     Helpers.Xml.AppConfigQuery(
                                     AppStructure.SystemEventsRoot +
@@ -103,8 +100,7 @@ namespace jaNET.IO.Ports
                                 catch {
                                     //null reference exception from Xml.AppConfigQuery
                                 }
-                            };
-                            Process.CallWithTimeout(ParseSerialData, 10000);
+                            }, 10000);
                         }
                     }
                     catch (Exception e) {
@@ -121,8 +117,8 @@ namespace jaNET.IO.Ports
 
         internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
             string output = string.Empty;
-            try {
-                if (port.IsOpen) {
+            if (port.IsOpen) {
+                try {
                     lock (_write_locker) {
                         if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
                             // Clear all buffers
@@ -131,7 +127,7 @@ namespace jaNET.IO.Ports
                             SerialData = string.Empty;
                             // Send a new argument
                             port.WriteLine(message);
-                            Thread.Sleep(200);
+                            Thread.Sleep(220);
                         }
                         Process.CallWithTimeout(() => {
                             while (output == string.Empty) {
@@ -141,13 +137,13 @@ namespace jaNET.IO.Ports
                         }, timeout);
                     }
                 }
-                else
-                    output = string.Format("Serial port state: {0}", port.IsOpen);
-                return output;
+                catch {
+
+                }
             }
-            catch {
-                return output;
-            }
+            else
+                return string.Format("Serial port state: {0}", port.IsOpen);
+            return output;
         }
     }
 }
