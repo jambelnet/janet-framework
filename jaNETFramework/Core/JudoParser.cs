@@ -35,7 +35,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml;
 
-namespace jaNETFramework.Environment.Core
+namespace jaNET.Environment.Core
 {
     static class JudoParser
     {
