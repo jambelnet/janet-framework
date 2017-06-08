@@ -72,18 +72,23 @@ namespace jaNET.Diagnostics
         }
 
         // True => worked, False => timeout
-        internal static bool CallWithTimeout(Action method, int timeout = 1000) {
-            Exception e;
+        /// <summary>
+        /// Always observe with try/catch
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="timeout"></param>
+        internal static void CallWithTimeout(Action method, int timeout = 1000) {
+            //Exception e;
             var cts = new CancellationTokenSource();
             cts.CancelAfter(timeout);
 
-            var worker = Task.Run(method, cts.Token)
-                .ContinueWith(t => {
-                    // Ensure any exception is observed, is no-op if no exception.
-                    // Using closure to help avoid this being optimised out.
-                    e = t.Exception;
-                });
-            return worker.Wait(timeout);
+            var worker = Task.Run(method, cts.Token).Wait(timeout, cts.Token);
+                //.ContinueWith(t => {
+                //    // Ensure any exception is observed, is no-op if no exception.
+                //    // Using closure to help avoid this being optimised out.
+                //    e = t.Exception;
+                //});
+            //worker.Wait(timeout, cts.Token);
         }
     }
 }
