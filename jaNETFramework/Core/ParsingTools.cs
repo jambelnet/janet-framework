@@ -21,9 +21,9 @@
 
 using jaNET.Diagnostics;
 using jaNET.Environment.AppConfig;
+using jaNET.Environment.Core;
 using jaNET.Extensions;
 using jaNET.Providers;
-using jaNETFramework.Environment.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

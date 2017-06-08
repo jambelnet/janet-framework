@@ -24,7 +24,6 @@ using jaNET.Environment.AppConfig;
 using jaNET.Extensions;
 using jaNET.Net;
 using jaNET.Net.Http;
-using jaNETFramework.Environment.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
