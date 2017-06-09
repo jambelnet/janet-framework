@@ -211,16 +211,16 @@ var pageObj = {
             // Flip Toggles
             $.get('?cmd=judo serial state', function (data) {
                 if (data.indexOf('Serial port state: True') >= 0) {
-                    $('select#sliderSerial').val('on').flipswitch('refresh');
+                    $('input#sliderSerial').prop('checked', true).flipswitch('refresh'); //.val('on').flipswitch('refresh');
                 } else {
-                    $('select#sliderSerial').val('off').flipswitch('refresh');
+                    $('input#sliderSerial').prop('checked', false).flipswitch('refresh'); //.val('off').flipswitch('refresh');
                 }
             }, 'html');
             $.get('?cmd=judo socket state', function (data) {
                 if (data.indexOf('Socket state: True') >= 0) {
-                    $('select#sliderSocket').val('on').flipswitch('refresh');
+                    $('input#sliderSocket').prop('checked', true).flipswitch('refresh'); //.val('on').flipswitch('refresh');
                 } else {
-                    $('select#sliderSocket').val('off').flipswitch('refresh');
+                    $('input#sliderSocket').prop('checked', false).flipswitch('refresh'); //.val('off').flipswitch('refresh');
                 }
             }, 'html');
             $.get('?cmd=%about%&%uptime%', function (data) {
@@ -802,23 +802,23 @@ var pageObj = {
             $('input#scheduleDate').val('%calendardate%');
     },
     serialStatus: function () {
-        if ($('select#sliderSerial').val() == 'on')
+        if ($('input#sliderSerial').is(':checked')) //.val() == 'on')
             $.get('?cmd=judo serial open', function (data) {
-                pageObj.response3Popup(data);
+                //pageObj.response3Popup(data);
             }, 'html');
-        else if ($('select#sliderSerial').val() == 'off')
+        else if ($('input#sliderSerial').is(!':checked')) //.val() == 'off')
             $.get('?cmd=judo serial close', function (data) {
-                pageObj.response3Popup(data);
+                //pageObj.response3Popup(data);
             }, 'html');
     },
     socketStatus: function () {
-        if ($('select#sliderSocket').val() == 'on')
+        if ($('input#sliderSocket').is(':checked')) //.val() == 'on')
             $.get('?cmd=judo socket open', function (data) {
-                pageObj.response3Popup(data);
+                //pageObj.response3Popup(data);
             }, 'html');
-        else if ($('select#sliderSocket').val() == 'off')
+        else if ($('input#sliderSocket').is(!':checked')) //.val() == 'off')
             $.get('?cmd=judo socket close', function (data) {
-                pageObj.response3Popup(data);
+                //pageObj.response3Popup(data);
             }, 'html');
     },
     wsDivControl: function () {
