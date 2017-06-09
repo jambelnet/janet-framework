@@ -72,7 +72,7 @@ namespace jaNET.IO.Ports
                 t.Start();
             }
             catch {
-                port.Dispose();
+                
             }
         }
 
@@ -120,15 +120,15 @@ namespace jaNET.IO.Ports
             if (port.IsOpen) {
                 try {
                     lock (_write_locker) {
+                        // Clear all buffers
+                        port.DiscardInBuffer();
+                        port.DiscardOutBuffer();
+                        SerialData = string.Empty;
                         if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
-                            // Clear all buffers
-                            port.DiscardInBuffer();
-                            port.DiscardOutBuffer();
-                            SerialData = string.Empty;
                             // Send a new argument
                             port.WriteLine(message);
-                            Thread.Sleep(220);
                         }
+                        Thread.Sleep(220);
                         Process.CallWithTimeout(() => {
                             while (output == string.Empty) {
                                 output = SerialData;
@@ -138,7 +138,7 @@ namespace jaNET.IO.Ports
                     }
                 }
                 catch {
-
+                    
                 }
             }
             else
