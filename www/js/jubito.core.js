@@ -806,7 +806,7 @@ var pageObj = {
             $.get('?cmd=judo serial open', function (data) {
                 //pageObj.response3Popup(data);
             }, 'html');
-        else //if ($('input#sliderSerial').is(!':checked')) //.val() == 'off')
+        else
             $.get('?cmd=judo serial close', function (data) {
                 //pageObj.response3Popup(data);
             }, 'html');
@@ -816,7 +816,7 @@ var pageObj = {
             $.get('?cmd=judo socket open', function (data) {
                 //pageObj.response3Popup(data);
             }, 'html');
-        else //if ($('input#sliderSocket').is(!':checked')) //.val() == 'off')
+        else
             $.get('?cmd=judo socket close', function (data) {
                 //pageObj.response3Popup(data);
             }, 'html');
