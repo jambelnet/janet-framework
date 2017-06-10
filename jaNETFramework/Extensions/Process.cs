@@ -82,7 +82,7 @@ namespace jaNET.Diagnostics
             var cts = new CancellationTokenSource();
             cts.CancelAfter(timeout);
 
-            var worker = Task.Run(method, cts.Token).Wait(timeout, cts.Token);
+            Task.Run(method, cts.Token).Wait(timeout, cts.Token);
                 //.ContinueWith(t => {
                 //    // Ensure any exception is observed, is no-op if no exception.
                 //    // Using closure to help avoid this being optimised out.

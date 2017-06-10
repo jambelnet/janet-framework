@@ -116,7 +116,9 @@ namespace jaNET.IO.Ports
         }
 
         internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
+            bool _done = false;
             string output = string.Empty;
+
             if (port.IsOpen) {
                 try {
                     lock (_write_locker) {
@@ -130,15 +132,16 @@ namespace jaNET.IO.Ports
                         }
                         Thread.Sleep(220);
                         Process.CallWithTimeout(() => {
-                            while (output == string.Empty) {
+                            while (!_done) {
                                 output = SerialData;
+                                _done |= !string.IsNullOrWhiteSpace(output);
                                 Thread.Sleep(50);
                             }
                         }, timeout);
                     }
                 }
                 catch {
-                    
+                    _done = true;
                 }
             }
             else
