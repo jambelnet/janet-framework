@@ -24,6 +24,7 @@ using jaNET.Environment;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml;
 
@@ -36,6 +37,15 @@ namespace jaNET
 
             using (var wc = new WebClient())
                 rawData = wc.DownloadString(uri);
+
+            return rawData;
+        }
+
+        static async Task<String> GetRawDataAsync(string uri) {
+            string rawData;
+
+            using (var wc = new WebClient())
+                rawData = await wc.DownloadStringTaskAsync(uri);
 
             return rawData;
         }
@@ -133,6 +143,10 @@ namespace jaNET
         {
             internal static String Get(string requestURI) {
                 return GetRawData(requestURI);
+            }
+
+            internal static async Task<String> GetAsync(string requestURI) {
+                return await GetRawDataAsync(requestURI);
             }
         }
 

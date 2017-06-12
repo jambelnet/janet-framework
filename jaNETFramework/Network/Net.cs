@@ -28,6 +28,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Net.NetworkInformation;
 using System.Net.Security;
@@ -35,12 +36,31 @@ using System.Net.Sockets;
 //using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace jaNET.Net
 {
     static class NetInfo
     {
+        internal class DynDns
+        {
+            internal static async Task DynamicUpdate(string hostname, string username, string password) {
+                try {
+                    var ip = Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b");
+                    string noIpUri = "http://dynupdate.no-ip.com/nic/update?hostname=" + hostname + "&myip=" + ip.Value;
+
+                    using (var client = new HttpClient(new HttpClientHandler { Credentials = new NetworkCredential(username, password) }))
+                    using (var response = await client.GetAsync(noIpUri))
+                    using (var content = response.Content)
+                        await content.ReadAsStringAsync();
+                }
+                catch (Exception e) {
+                    Logger.Instance.Append(string.Format("obj [ DynDns.DynamicUpdate <Exception> ] Exception Message: [ {0} ]", e.Message));
+                }
+            }
+        }
+
         internal static class SimplePing
         {
             static Boolean resolveHostEntry(string entry) {

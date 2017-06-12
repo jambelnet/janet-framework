@@ -19,8 +19,6 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
-using jaNET;
-using jaNET.Environment;
 using jaNET.Environment.AppConfig;
 using jaNET.Extensions;
 using jaNET.IO;
@@ -34,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using static jaNET.Net.NetInfo;
 
 namespace jaNET.Environment.Core
 {
@@ -184,7 +183,7 @@ namespace jaNET.Environment.Core
                 case "socket":
                     switch (args[2]) {
                         case "trust":
-                            output = method.AddToXML(new Comm { Trusted = args[3]  }, AppStructure.SystemCommRoot);
+                            output = method.AddToXML(new Comm { Trusted = args[3] }, AppStructure.SystemCommRoot);
                             break;
                         case "on":
                         case "enable":
@@ -590,6 +589,15 @@ namespace jaNET.Environment.Core
                     switch (args[2]) {
                         case "get":
                             output = Helpers.Http.Get(WebServer.SimpleUriDecode(args[3]));
+                            break;
+                    }
+                    break;
+                #endregion
+                #region DynDns
+                case "dyndns":
+                    switch (args[2]) {
+                        case "update":
+                            DynDns.DynamicUpdate(args[3], args[4], args[5]);
                             break;
                     }
                     break;
