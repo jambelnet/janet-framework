@@ -23,6 +23,7 @@ using jaNET.Environment;
 using jaNET.Environment.AppConfig;
 using jaNET.Environment.Core;
 using jaNET.IO.Ports;
+using jaNET.Net;
 using jaNET.Net.Http;
 using jaNET.Providers;
 using System;
@@ -259,6 +260,9 @@ namespace jaNET.Extensions
             }
             if (context.Contains("%apppath%") || context.Contains("%applicationpath%")) {
                 context = Regex.Replace(context, "%apppath%|%applicationpath%", method.GetApplicationPath);
+            }
+            if (context.Contains("%publicip%") || context.Contains("%checkip%")) {
+                context = Regex.Replace(context, "%publicip%|%checkip%", NetInfo.DynDns.CheckIpAsync().Result ?? string.Empty);
             }
             context = Regex.Replace(context, "%clear%|%cls%|%mute%|%unmute%|%checkin%|%usercheckin%|%checkout%|%usercheckout%", string.Empty);
             // If Event

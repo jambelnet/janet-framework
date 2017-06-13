@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
-using static jaNET.Net.NetInfo;
 
 namespace jaNET.Environment.Core
 {
@@ -595,9 +594,29 @@ namespace jaNET.Environment.Core
                 #endregion
                 #region DynDns
                 case "dyndns":
+                case "ddns":
+                case "noip":
+                case "no-ip":
+                    var ddnsSettings = settings.Load(".dyndns");
                     switch (args[2]) {
+                        case "add":
+                        case "new":
+                        case "setup":
+                        case "set":
+                            output = settings.Save(".dyndns",
+                                                    string.Format("{0}\r\n{1}\r\n{2}",
+                                                    args[3], args[4], args[5]));
+                            break;
+                        case "settings":
+                            output = string.Format("{0}\r\n{1}\r\n{2}",
+                                                    ddnsSettings[0], ddnsSettings[1], ddnsSettings[2]);
+                            break;
                         case "update":
-                            DynDns.DynamicUpdate(args[3], args[4], args[5]);
+                            if (args.Count() == 6)
+                                NetInfo.DynDns.DynamicUpdateAsync(args[3], args[4], args[5]);
+                            else {
+                                NetInfo.DynDns.DynamicUpdateAsync(ddnsSettings[0], ddnsSettings[1], ddnsSettings[2]);
+                            }
                             break;
                     }
                     break;

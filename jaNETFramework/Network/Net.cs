@@ -45,10 +45,13 @@ namespace jaNET.Net
     {
         internal class DynDns
         {
-            internal static async Task DynamicUpdate(string hostname, string username, string password) {
+            internal static async Task<string> CheckIpAsync() {
+                return Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").Value;
+            }
+
+            internal static async Task DynamicUpdateAsync(string hostname, string username, string password) {
                 try {
-                    var ip = Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b");
-                    string noIpUri = "http://dynupdate.no-ip.com/nic/update?hostname=" + hostname + "&myip=" + ip.Value;
+                    string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", hostname, CheckIpAsync().Result);
 
                     using (var client = new HttpClient(new HttpClientHandler { Credentials = new NetworkCredential(username, password) }))
                     using (var response = await client.GetAsync(noIpUri))

@@ -70,7 +70,7 @@ namespace jaNET.Environment
             string AppPath = Methods.Instance.GetApplicationPath;
 
             if (!File.Exists(AppPath + "AppConfig.xml"))
-                await GenerateDumpAppConfig();
+                await GenerateDumpAppConfigAsync();
 
             if (!File.Exists(AppPath + ".htaccess"))
                 new Settings().Save(".htaccess", "admin\r\nadmin");
@@ -87,7 +87,7 @@ namespace jaNET.Environment
             "%checkin%".ToValues();
         }
 
-        static async Task GenerateDumpAppConfig() {
+        static async Task GenerateDumpAppConfigAsync() {
             // Root
             var root = new AppConfig.jaNET();
             // Nodes

@@ -34,7 +34,7 @@ namespace jaNET.Environment
     {
         public static Methods Instance { get { return Singleton<Methods>.Instance; } }
 
-        public const string AssemblyVersion = "0.3.1.83";
+        public const string AssemblyVersion = "0.3.1.84";
 
         public string GetCopyright {
             get {
@@ -510,29 +510,42 @@ namespace jaNET.Environment
                                 "     9.1 Get\r\n" +
                                 "         + judo http get [Request-URI]";
             const
-            string _weather = "10. Weather\r\n" +
+            string _ddns = "10. Dynamic Dns\r\n" +
                                 "     10.1 Setup\r\n" +
+                                "         + judo noip add [Hostname] [Username] [Password]\r\n" +
+                                "         + judo noip new [Hostname] [Username] [Password]\r\n" +
+                                "         + judo noip set [Hostname] [Username] [Password]\r\n" +
+                                "         + judo noip setup [Hostname] [Username] [Password]\r\n" +
+                                "     10.2 Settings\r\n" +
+                                "         + judo noip settings\r\n" +
+                                "     10.3 Update\r\n" +
+                                "         + judo noip update [Hostname] [Username] [Password]\r\n" +
+                                "     10.4 Update (load settings from file)\r\n" +
+                                "         + judo noip update";
+            const
+            string _weather = "11. Weather\r\n" +
+                                "     11.1 Setup\r\n" +
                                 "         + judo weather set <lock>[Endpoint]</lock>\r\n" +
                                 "         + judo weather setup <lock>[Endpoint]</lock>\r\n" +
-                                "     10.2 Settings\r\n" +
+                                "     11.2 Settings\r\n" +
                                 "         + judo weather settings";
             const
-            string _ping = "11. Ping\r\n" +
-                                "     11.1 Default Timeout [ 1000ms ]\r\n" +
+            string _ping = "12. Ping\r\n" +
+                                "     12.1 Default Timeout [ 1000ms ]\r\n" +
                                 "         + judo ping [Host]\r\n" +
-                                "     11.2 Specific Timeout\r\n" +
+                                "     12.2 Specific Timeout\r\n" +
                                 "         + judo ping [Host] [Timeout]";
             const
-            string _help = "12. Help\r\n" +
-                                "     12.1 Preview All\r\n" +
+            string _help = "13. Help\r\n" +
+                                "     13.1 Preview All\r\n" +
                                 "         + judo help\r\n" +
                                 "         + judo ?\r\n" +
-                                "     12.2 Preview Specific Category\r\n" +
+                                "     13.2 Preview Specific Category\r\n" +
                                 "         + judo help [help keyword]\r\n" +
                                 "         + judo ? [help keyword]\r\n\r\n" +
                                 "(*) Brackets are mandatory when place a sentence as one argument.\r\n" +
                                 "(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.\r\n" +
-                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, weather, ping, help";
+                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, help";
             const
             string _all = _inset + "\r\n" +
                           _mail + "\r\n" +
@@ -543,6 +556,7 @@ namespace jaNET.Environment
                           _serial + "\r\n" +
                           _cloud + "\r\n" +
                           _http + "\r\n" +
+                          _ddns + "\r\n" +
                           _weather + "\r\n" +
                           _ping + "\r\n" +
                           _help + "\r\n";
@@ -567,6 +581,8 @@ namespace jaNET.Environment
                     return _cloud;
                 case "http":
                     return _http;
+                case "ddns":
+                    return _ddns;
                 case "weather":
                     return _weather;
                 case "ping":
