@@ -501,7 +501,7 @@ var pageObj = {
     },
     dyndnsSettings: function () {
         if ($('input#dyndnsHostname').val() != '') {
-            $.get('?cmd=judo noip set ' + $('input#dyndnsHostname').val() + ' ' + $('input#dyndnsUsername').val() + ' ' + $('input#dyndnsPassword').val(), function (data) {
+            $.get('?cmd=judo noip set ' + $('input#dyndnsHostname').val() + ' ' + $('input#dyndnsUsername').val() + ' ' + encodeURIComponent($('input#dyndnsPassword').val()), function (data) {
                 pageObj.response3Popup(data);
             }, 'html');
         }
