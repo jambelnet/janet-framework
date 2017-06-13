@@ -360,6 +360,15 @@
                         <li data-theme="b">
                             <a href="#weatherSettings" data-rel="dialog" data-transition="pop">Setup</a>
                         </li>
+                        <li data-role="list-divider" role="heading">
+                            Dynamic DNS
+                        </li>
+                        <li data-theme="b">
+                            <a href="javascript:pageObj.viewSettings('dyndns')" data-rel="dialog" data-transition="pop">View Settings</a>
+                        </li>
+                        <li data-theme="b">
+                            <a href="#dyndnsSettings" data-rel="dialog" data-transition="pop">Setup</a>
+                        </li>
                     </ul>
                 </div>
                 <div data-role="collapsible">
@@ -460,6 +469,22 @@
         </div>
     </div>
     <!-- END DIALOG WEATHER SETTINGS -->
+    <!-- START DIALOG DYNDNS SETTINGS -->
+    <div data-role="page" id="dyndnsSettings" data-theme="a">
+        <div data-role="header">
+            <h1>Dynamic DNS Settings</h1>
+        </div>
+        <div class="ui-content" role="main">
+            <label for="dyndnsHostname">Hostname</label>
+            <input name="dyndnsHostname" id="dyndnsHostname" placeholder="" value="" type="text" />
+            <label for="dyndnsUsername">Username</label>
+            <input name="dyndnsUSername" id="dyndnsUsername" placeholder="" value="" type="text" />
+            <label for="dyndnsPassword">Password</label>
+            <input name="dyndnsPassword" id="dyndnsPassword" placeholder="" value="" type="password" />
+            <a data-role="button" data-inline="false" data-transition="fade" href="javascript:pageObj.dyndnsSettings()">Save</a>
+        </div>
+    </div>
+    <!-- END DIALOG DYNDNS SETTINGS -->
     <!-- START DIALOG SEND SMS -->
     <div data-role="page" id="sendSMS" data-theme="a">
         <div data-role="header">

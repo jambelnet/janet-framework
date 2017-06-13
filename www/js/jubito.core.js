@@ -499,6 +499,17 @@ var pageObj = {
         $('input#weatherURI').val('');
         window.history.back();
     },
+    dyndnsSettings: function () {
+        if ($('input#dyndnsHostname').val() != '') {
+            $.get('?cmd=judo noip set ' + $('input#dyndnsHostname').val() + ' ' + $('input#dyndnsUsername').val() + ' ' + $('input#dyndnsPassword').val(), function (data) {
+                pageObj.response3Popup(data);
+            }, 'html');
+        }
+        $('input#dyndnsHostname').val('');
+        $('input#dyndnsUsername').val('');
+        $('input#dyndnsPassword').val('');
+        window.history.back();
+    },
     saveSchedule: function () {
         var scheduleID = $('input#scheduleName').val().replace(/ /g, '_');
         var date;
