@@ -45,15 +45,29 @@ namespace jaNET.Net
     {
         internal class DynDns
         {
+            internal string Hostname { get; set; }
+            internal string Username { get; set; }
+            internal string Password { get; set; }
+
+            internal DynDns() {
+                var ddnsSettings = new Settings().Load(".dyndnssettings");
+
+                if (ddnsSettings != null) {
+                    Hostname = ddnsSettings[0];
+                    Username = ddnsSettings[1];
+                    Password = ddnsSettings[2];
+                }
+            }
+
             internal static async Task<string> CheckIpAsync() {
                 return Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").Value;
             }
 
-            internal static async Task DynamicUpdateAsync(string hostname, string username, string password) {
+            internal static async Task DynamicUpdateAsync(DynDns ddns) {
                 try {
-                    string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", hostname, CheckIpAsync().Result);
+                    string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", ddns.Hostname, CheckIpAsync().Result);
 
-                    using (var client = new HttpClient(new HttpClientHandler { Credentials = new NetworkCredential(username, password) }))
+                    using (var client = new HttpClient(new HttpClientHandler { Credentials = new NetworkCredential(ddns.Username, ddns.Password) }))
                     using (var response = await client.GetAsync(noIpUri))
                     using (var content = response.Content)
                         await content.ReadAsStringAsync();
@@ -581,47 +595,34 @@ namespace jaNET.Net
     #region SMS
     class SMS
     {
+        internal string Username { get; private set; }
+        internal string Password { get; private set; }
+        internal string API { get; private set; }
+
+        internal SMS() {
+            var smsSettings = new Settings().Load(".smssettings");
+
+            if (smsSettings != null) {
+                API = smsSettings[0];
+                Username = smsSettings[1];
+                Password = smsSettings[2];
+            }
+        }
+
         internal string Send(string smsTo, string smsMsg) {
             var client = new WebClient();
-            var smsSettings = new SmsSettings();
+            //var smsSettings = new SmsSettings();
             // Add a user agent header in case the requested URI contains a query.
             client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-            client.QueryString.Add("user", smsSettings.SmsUsername);
-            client.QueryString.Add("password", smsSettings.SmsPassword);
-            client.QueryString.Add("api_id", smsSettings.SmsAPI);
+            client.QueryString.Add("user", Username);
+            client.QueryString.Add("password", Password);
+            client.QueryString.Add("api_id", API);
             client.QueryString.Add("to", smsTo);
             client.QueryString.Add("text", smsMsg);
             const string baseurl = "http://api.clickatell.com/http/sendmsg";
             //using (Stream data = client.OpenRead(baseurl))
             using (var reader = new StreamReader(client.OpenRead(baseurl))) // data
                 return reader.ReadToEnd();
-        }
-
-        internal class SmsSettings
-        {
-            internal string SmsUsername { get; private set; }
-            internal string SmsPassword { get; private set; }
-            internal string SmsAPI { get; private set; }
-
-            //internal SmsSettings GetSmsSettings {
-            //    get {
-            //        var smsSettings = new Settings().Load(".smssettings");
-
-            //        if (smsSettings != null) {
-            //            return new SmsSettings { SmsAPI = smsSettings[0], SmsUsername = smsSettings[1], SmsPassword = smsSettings[2] };
-            //        }
-            //        return null;
-            //    }
-            //}
-            internal SmsSettings() {
-                var smsSettings = new Settings().Load(".smssettings");
-
-                if (smsSettings != null) {
-                    SmsAPI = smsSettings[0];
-                    SmsUsername = smsSettings[1];
-                    SmsPassword = smsSettings[2];
-                }
-            }
         }
     }
     #endregion

@@ -485,6 +485,7 @@ namespace jaNET.Environment.Core
                 #endregion
                 #region Sms
                 case "sms":
+                    var sms = new SMS();
                     switch (args[2]) {
                         case "add":
                         case "new":
@@ -493,11 +494,10 @@ namespace jaNET.Environment.Core
                             output = settings.Save(".smssettings", string.Format("{0}\r\n{1}\r\n{2}", args[3], args[4], args[5]));
                             break;
                         case "settings":
-                            var smsSettings = new SMS.SmsSettings();
-                            output = string.Format("{0}\r\n{1}\r\n{2}", smsSettings.SmsAPI, smsSettings.SmsUsername, smsSettings.SmsPassword);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", sms.API, sms.Username, sms.Password);
                             break;
                         case "send":
-                            output = new SMS().Send(args[3], args[4]);
+                            output = sms.Send(args[3], args[4]);
                             break;
                     }
                     break;
@@ -597,25 +597,26 @@ namespace jaNET.Environment.Core
                 case "ddns":
                 case "noip":
                 case "no-ip":
-                    var ddnsSettings = settings.Load(".dyndns");
+                    var ddns = new NetInfo.DynDns();
                     switch (args[2]) {
                         case "add":
                         case "new":
                         case "setup":
                         case "set":
-                            output = settings.Save(".dyndns",
-                                                    string.Format("{0}\r\n{1}\r\n{2}",
-                                                    args[3], args[4], args[5]));
+                            output = settings.Save(".dyndnssettings", string.Format("{0}\r\n{1}\r\n{2}", args[3], args[4], args[5]));
                             break;
                         case "settings":
-                            output = string.Format("{0}\r\n{1}\r\n{2}",
-                                                    ddnsSettings[0], ddnsSettings[1], ddnsSettings[2]);
+                            output = string.Format("{0}\r\n{1}\r\n{2}", ddns.Hostname, ddns.Username, ddns.Password);
                             break;
                         case "update":
-                            if (args.Count() == 6)
-                                NetInfo.DynDns.DynamicUpdateAsync(args[3], args[4], args[5]);
+                            if (args.Count() == 6) {
+                                ddns.Hostname = args[3];
+                                ddns.Username = args[4];
+                                ddns.Password = args[5];
+                                NetInfo.DynDns.DynamicUpdateAsync(ddns);
+                            }
                             else {
-                                NetInfo.DynDns.DynamicUpdateAsync(ddnsSettings[0], ddnsSettings[1], ddnsSettings[2]);
+                                NetInfo.DynDns.DynamicUpdateAsync(ddns);
                             }
                             break;
                     }
