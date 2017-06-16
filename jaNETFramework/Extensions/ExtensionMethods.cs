@@ -264,6 +264,7 @@ namespace jaNET.Extensions
             if (context.Contains("%publicip%") || context.Contains("%checkip%")) {
                 context = Regex.Replace(context, "%publicip%|%checkip%", NetInfo.DynDns.CheckIpAsync().Result ?? string.Empty);
             }
+            // Remove everything that does not return a value
             context = Regex.Replace(context, "%clear%|%cls%|%mute%|%unmute%|%checkin%|%usercheckin%|%checkout%|%usercheckout%", string.Empty);
             // If Event
             if (context.Contains("%~>")) {

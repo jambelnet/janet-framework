@@ -617,6 +617,8 @@ var pageObj = {
             "%uphours%": "System uptime, hours",
             "%upminutes%": "System uptime, minutes",
             "%upseconds%": "System uptime, seconds",
+            "%apppath%": "Application path",
+            "%publicip%": "Get public IP address (from ISP)",
             "%about%": "About"
         }
 
