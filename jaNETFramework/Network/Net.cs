@@ -63,7 +63,7 @@ namespace jaNET.Net
                 return Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").Value;
             }
 
-            internal static async Task DynamicUpdateAsync(DynDns ddns) {
+            internal static async void DynamicUpdateAsync(DynDns ddns) {
                 try {
                     string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", ddns.Hostname, CheckIpAsync().Result);
 

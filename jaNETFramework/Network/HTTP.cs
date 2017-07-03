@@ -109,21 +109,27 @@ namespace jaNET.Net.Http
             while (httplistener.IsListening) {
                 try {
                     var ctx = await httplistener.GetContextAsync();
-                    Task.Run(() => ProcessRequestAsync(ctx)); // Do not await
+                    Task.Run(() => ProcessRequest(ctx)); // Do not await
                 }
                 catch (HttpListenerException e) {
                     Logger.Instance.Append(string.Format("obj [ WebServer.Start <HttpListenerException> ] Exception Message: [ {0} ]", e.Message));
                 }
-                catch (InvalidOperationException) {
-
+                /*catch (ObjectDisposedException e) {
+                    Logger.Instance.Append(string.Format("obj [ WebServer.Start <ObjectDisposedException> ] Exception Message: [ {0} ]", e.Message));
+                }*/
+                catch (InvalidOperationException e) {
+                    Logger.Instance.Append(string.Format("obj [ WebServer.Start <InvalidOperationException> ] Exception Message: [ {0} ]", e.Message));
                 }
+                /*catch (NullReferenceException e) {
+                    Logger.Instance.Append(string.Format("obj [ WebServer.Start <NullReferenceException> ] Exception Message: [ {0} ]", e.Message));
+                }*/
                 catch (Exception e) {
                     Logger.Instance.Append(string.Format("obj [ WebServer.Start <Exception> ] Exception Message: [ {0} ]", e.Message));
                 }
             }
         }
 
-        static async Task ProcessRequestAsync(HttpListenerContext ctx) {
+        static void ProcessRequest(HttpListenerContext ctx) {
             //string[] MIME_Image = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico" };
             //string[] MIME_Text = { ".html", ".htm", ".xml", ".css", ".js", ".txt" };
             string mapPath = string.Concat(Methods.Instance.GetApplicationPath, SimpleUriDecode(ctx.Request.RawUrl.Substring(1)));
@@ -165,9 +171,6 @@ namespace jaNET.Net.Http
                     throw new UnauthorizedAccessException();
                 }
             }
-            catch (InvalidOperationException) {
-
-            }
             catch (UnauthorizedAccessException) {
                 ctx.Response.StatusCode = 401;
                 buf = Encoding.UTF8.GetBytes(
@@ -193,7 +196,9 @@ namespace jaNET.Net.Http
             finally {
                 ctx.Response.ContentLength64 = buf.Length;
                 using (Stream s = ctx.Response.OutputStream)
-                    await s.WriteAsync(buf, 0, buf.Length);
+                    s.Write(buf, 0, buf.Length);
+                    //await s.WriteAsync(buf, 0, buf.Length); // await causing crash in Linux
+                ctx.Response.OutputStream.Close();
             }
         }
 
