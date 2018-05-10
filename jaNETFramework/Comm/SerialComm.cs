@@ -34,7 +34,8 @@ namespace jaNET.IO.Ports
         public enum TypeOfSerialMessage
         {
             None,
-            Send,
+            SendText,
+            SendByteArray,
             Listen,
             Monitor
         }
@@ -65,6 +66,8 @@ namespace jaNET.IO.Ports
                     AppStructure.ComBaudRatePath)
                     .Item(0).InnerText);
 
+                port.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
+                port.ReadTimeout = 220;
                 port.Open();
 
                 var t = new Thread(SerialPortListener);
@@ -72,7 +75,7 @@ namespace jaNET.IO.Ports
                 t.Start();
             }
             catch {
-                
+
             }
         }
 
@@ -96,18 +99,15 @@ namespace jaNET.IO.Ports
                                     Helpers.Xml.AppConfigQuery(
                                     AppStructure.SystemEventsRoot +
                                     "/event[@id='" + SerialData + "']").Item(0).InnerText.Parse();
-                                }
-                                catch {
+                                } catch {
                                     //null reference exception from Xml.AppConfigQuery
                                 }
                             }, 10000);
                         }
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         if (e is TimeoutException) {
 
-                        }
-                        else {
+                        } else {
 
                         }
                     }
@@ -115,9 +115,9 @@ namespace jaNET.IO.Ports
             }
         }
 
-        internal static string WriteToSerialPort(string message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000) {
+        internal static string WriteToSerialPort(object message, TypeOfSerialMessage typeOfSerialMessage, int timeout = 1000)
+        {
             bool _done = false;
-
             if (port.IsOpen) {
                 try {
                     lock (_write_locker) {
@@ -125,9 +125,13 @@ namespace jaNET.IO.Ports
                         port.DiscardInBuffer();
                         port.DiscardOutBuffer();
                         SerialData = string.Empty;
-                        if (typeOfSerialMessage == TypeOfSerialMessage.Send) {
+                        if (typeOfSerialMessage == TypeOfSerialMessage.SendText) {
                             // Send a new argument
-                            port.WriteLine(message);
+                            port.WriteLine(message.ToString());
+                        } else if (typeOfSerialMessage == TypeOfSerialMessage.SendByteArray) {
+                            byte[] msg = message as byte[];
+                            //port.Write("F9"); // 46 39 is F9
+                            port.Write(msg, 0, msg.Length);
                         }
                         //Thread.Sleep(220);
                         Process.CallWithTimeout(() => {
@@ -145,6 +149,12 @@ namespace jaNET.IO.Ports
             else
                 return string.Format("Serial port state: {0}", port.IsOpen);
             return SerialData;
+        }
+
+        private static void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            // Show all the incoming data in the port's buffer.
+            SerialData = port.ReadExisting();
         }
     }
 }

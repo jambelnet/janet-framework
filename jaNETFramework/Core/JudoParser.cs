@@ -30,6 +30,8 @@ using jaNET.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 
@@ -70,10 +72,19 @@ namespace jaNET.Environment.Core
                             output = string.Format("Serial port state: {0}", SerialComm.port.IsOpen);
                             break;
                         case "send":
+                        case "sendtext":
+                        case "sendbytes":
+                        case "sendbytearray":
                         case "listen":
                         case "monitor":
                             if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
                                 output = SerialComm.WriteToSerialPort(string.Empty, args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[3]));
+                            else if (args[2] == "sendbytes" || args[2] == "sendbytearray") {
+                                //var byteArray = new byte[] { 0x46, 0x39, 0x0D, 0x02, 0x30, 0x36, 0x04, 0x46, 0x39, 0x0D }; // HEX
+                                //byte[] byteArray = new byte[] { 070, 057, 013, 02, 048, 054, 04, 070, 057, 013 }; // DECIMAL
+                                byte[] byteArray = Encoding.UTF8.GetBytes(Regex.Unescape(@args[3])); // F9\r\u000206\u0004F9\r // Unicode \u0002 "start of text", Unicode \u0004 "end of transmission"
+                                output = SerialComm.WriteToSerialPort(byteArray, args[2].ToTypeOfSerialMessage());
+                            }
                             else if (args.Count() > 4)
                                 output = SerialComm.WriteToSerialPort(args[3], args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[4]));
                             else

@@ -22,7 +22,6 @@
 using jaNET.Environment;
 using jaNET.Environment.AppConfig;
 using jaNET.Environment.Core;
-using jaNET.IO.Ports;
 using jaNET.Net;
 using jaNET.Net.Http;
 using jaNET.Providers;
@@ -34,6 +33,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using static jaNET.IO.Ports.SerialComm;
 
 namespace jaNET.Extensions
 {
@@ -81,16 +81,20 @@ namespace jaNET.Extensions
             return string.Format("{0:HH:mm}", dt);
         }
 
-        internal static SerialComm.TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
+        internal static TypeOfSerialMessage ToTypeOfSerialMessage(this string type) {
             switch (type.ToLower()) {
                 case "send":
-                    return SerialComm.TypeOfSerialMessage.Send;
+                case "sendtext":
+                    return TypeOfSerialMessage.SendText;
+                case "sendbytes":
+                case "sendbytearray":
+                    return TypeOfSerialMessage.SendByteArray;
                 case "listen":
-                    return SerialComm.TypeOfSerialMessage.Listen;
+                    return TypeOfSerialMessage.Listen;
                 case "monitor":
-                    return SerialComm.TypeOfSerialMessage.Monitor;
+                    return TypeOfSerialMessage.Monitor;
                 default:
-                    return SerialComm.TypeOfSerialMessage.None;
+                    return TypeOfSerialMessage.None;
             }
         }
 
