@@ -67,7 +67,7 @@ namespace jaNET.IO.Ports
                     .Item(0).InnerText);
 
                 port.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
-                port.ReadTimeout = 220;
+                port.ReadTimeout = 500;
                 port.Open();
 
                 var t = new Thread(SerialPortListener);
