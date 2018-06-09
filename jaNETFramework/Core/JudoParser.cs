@@ -80,10 +80,14 @@ namespace jaNET.Environment.Core
                             if ((args[2] == "listen" || args[2] == "monitor") && args.Count() > 3)
                                 output = SerialComm.WriteToSerialPort(string.Empty, args[2].ToTypeOfSerialMessage(), Convert.ToInt32(args[3]));
                             else if (args[2] == "sendbytes" || args[2] == "sendbytearray") {
-                                //var byteArray = new byte[] { 0x46, 0x39, 0x0D, 0x02, 0x30, 0x36, 0x04, 0x46, 0x39, 0x0D }; // HEX
+                                var byteArray = new byte[] { }; // { 0x46, 0x39, 0x0D, 0x02, 0x30, 0x36, 0x04, 0x46, 0x39, 0x0D }; // HEX
                                 //byte[] byteArray = new byte[] { 070, 057, 013, 02, 048, 054, 04, 070, 057, 013 }; // DECIMAL
                                 //byte[] byteArray = Encoding.UTF8.GetBytes(Regex.Unescape(@args[3])); // F9\r\u000206\u0004F9\r // Unicode \u0002 "start of text", Unicode \u0004 "end of transmission"
-                                byte[] byteArray = args[3].Split(' ').Select(s => Convert.ToByte(s, 10)).ToArray(); // base: 10 for decimal, 16 for hex.
+                                if (args[3].Contains("0x")) {
+                                    byteArray = args[3].Replace(",", string.Empty).Split(' ').Select(s => Convert.ToByte(s, 16)).ToArray(); // base: 10 for decimal, 16 for hex.
+                                } else {
+                                    byteArray = args[3].Replace(",", string.Empty).Split(' ').Select(s => Convert.ToByte(s, 10)).ToArray(); // base: 10 for decimal, 16 for hex.
+                                }
                                 //output = SerialComm.WriteToSerialPort(byteArray, args[2].ToTypeOfSerialMessage(), args.Count() > 4 ? int.Parse(args[4]) : 1500);
                                 output = SerialComm.WriteToSerialPort(byteArray, args[2].ToTypeOfSerialMessage());
                             }

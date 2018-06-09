@@ -460,17 +460,21 @@ namespace jaNET.Environment
                                 "         + judo serial open [Port (optional)]\r\n" +
                                 "     7.2 Close\r\n" +
                                 "         + judo serial close\r\n" +
-                                "     7.3 Send Command\r\n" +
+                                "     7.3 Send Text Command\r\n" +
                                 "         + judo serial send [Command] [Timeout in ms (optional)]\r\n" +
-                                "     7.4 Setup\r\n" +
+                                "         + judo serial sendtext [Command] [Timeout in ms (optional)]\r\n" +
+                                "     7.4 Send Byte(s) Command\r\n" +
+                                "         + judo serial sendbytes [Command]\r\n" +
+                                "         + judo serial sendbytearray [Command]\r\n" +
+                                "     7.5 Setup\r\n" +
                                 "         + judo serial set [Port] [Baud]\r\n" +
                                 "         + judo serial setup [Port] [Baud]\r\n" +
-                                "     7.5 Settings\r\n" +
+                                "     7.6 Settings\r\n" +
                                 "         + judo serial settings\r\n" +
-                                "     7.6 Status\r\n" +
+                                "     7.7 Status\r\n" +
                                 "         + judo serial status\r\n" +
                                 "         + judo serial state\r\n" +
-                                "     7.7 Listen/Monitor\r\n" +
+                                "     7.8 Listen/Monitor\r\n" +
                                 "         + judo serial listen [Timeout in ms (optional)]\r\n" +
                                 "         + judo serial monitor [Timeout in ms (optional)]";
             const
