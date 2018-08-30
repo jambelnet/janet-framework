@@ -36,7 +36,7 @@ Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framew
 
 ### Windows
 * .NET Framework >= 4.5
-* Visual Studio (any version)
+* Visual Studio >= 2015
 
 ### Linux
 * mono-complete
