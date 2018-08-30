@@ -42,7 +42,9 @@ namespace jaNET.Environment.Core
         static volatile bool _parserState = true;
 
         public static bool ParserState {
-            get => _parserState;
+            get {
+                return _parserState;
+            }
             internal set {
                 _parserState = value;
             }
