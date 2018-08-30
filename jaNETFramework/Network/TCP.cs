@@ -39,9 +39,9 @@ namespace jaNET.Net.Sockets
 
         internal static void Start() {
             if (!ServerState) {
-                var t = new Thread(ListenForClients);
-                t.IsBackground = true;
-                t.Start();
+                new Thread(ListenForClients) {
+                    IsBackground = true
+                }.Start();
             }
         }
 

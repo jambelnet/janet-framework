@@ -37,11 +37,7 @@ namespace jaNET.Providers
         //[DataMember]
         public string TodayHigh { get; set; }
         //[DataMember]
-        public string TodayDay {
-            get {
-                return DateTime.Now.DayOfWeek.ToString();
-            }
-        }
+        public string TodayDay => DateTime.Now.DayOfWeek.ToString();
         //[DataMember]
         public string TomorrowConditions { get; set; }
         //[DataMember]
@@ -49,11 +45,7 @@ namespace jaNET.Providers
         //[DataMember]
         public string TomorrowHigh { get; set; }
         //[DataMember]
-        public string TomorrowDay {
-            get {
-                return DateTime.Now.AddDays(1).DayOfWeek.ToString();
-            }
-        }
+        public string TomorrowDay => DateTime.Now.AddDays(1).DayOfWeek.ToString();
         //[DataMember]
         public string CurrentTemp { get; set; }
         //[DataMember]
@@ -182,7 +174,7 @@ namespace jaNET.Providers
                     WeatherIcon = "http://openweathermap.org/img/w/" + oRootObject.weather[0].icon + ".png";
                 }
             }
-            catch (Exception e) {
+            catch {
                 //Logger.Instance.Append(string.Format("obj [ OpenWeather.GetWeather <Exception> ] Exception Message: [ {0} ]", e.Message));
             }
         }

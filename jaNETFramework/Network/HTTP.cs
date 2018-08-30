@@ -75,16 +75,16 @@ namespace jaNET.Net.Http
             string AuthenticationType = "none";
 
             if (!HttpListener.IsSupported)
-                throw new NotSupportedException(
-                    "Server is not supported.");
+                throw new NotSupportedException("Server is not supported.");
 
             if (httplistener.IsListening)
                 return;
 
             try {
                 if (Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Count > 0 && Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Count > 0)
-                    Prefix = "http://" + Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText + ":" +
-                                         Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText + "/";
+                    Prefix = string.Format("http://{0}:{1}/", 
+                        Helpers.Xml.AppConfigQuery(AppStructure.HttpHostNamePath).Item(0).InnerText,
+                        Helpers.Xml.AppConfigQuery(AppStructure.HttpPortPath).Item(0).InnerText);
                 if (Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Count > 0)
                     AuthenticationType = Helpers.Xml.AppConfigQuery(AppStructure.HttpAuthenticationPath).Item(0).InnerText;
             }
@@ -136,7 +136,7 @@ namespace jaNET.Net.Http
             byte[] buf = null;
 
             try {
-                if (isAuthenticated(ctx)) {
+                if (IsAuthenticated(ctx)) {
                     ctx.Response.StatusCode = (int)HttpStatusCode.OK;
 
                     if (mapPath.EndsWith("/", StringComparison.Ordinal))
@@ -156,9 +156,8 @@ namespace jaNET.Net.Http
                             t = Request.DataType.text;
 
                         buf = Encoding.UTF8.GetBytes(Parser.Instance.Parse(
-                                                            Regex.Replace(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal)),
-                                                            @"\?cmd=|&mode=text|&mode=json|&mode=html", string.Empty)
-                                                           , t, false));
+                            Regex.Replace(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal)),
+                            @"\?cmd=|&mode=text|&mode=json|&mode=html", string.Empty), t, false));
                     }
                     else
                         buf = File.ReadAllBytes(mapPath);
@@ -202,7 +201,7 @@ namespace jaNET.Net.Http
             }
         }
 
-        static bool isAuthenticated(HttpListenerContext ctx) {
+        static bool IsAuthenticated(HttpListenerContext ctx) {
             if (httplistener.AuthenticationSchemes == AuthenticationSchemes.Basic) {
                 var identity = (HttpListenerBasicIdentity)ctx.User.Identity;
                 return new Login().Authenticate(ctx.User.Identity.Name, identity.Password);

@@ -32,9 +32,9 @@ namespace jaNET.Environment
 {
     public class Methods
     {
-        public static Methods Instance { get { return Singleton<Methods>.Instance; } }
+        public static Methods Instance => Singleton<Methods>.Instance;
 
-        public const string AssemblyVersion = "0.3.1.89";
+        public const string AssemblyVersion = "0.3.1.92";
 
         public string GetCopyright {
             get {
@@ -48,24 +48,19 @@ namespace jaNET.Environment
         }
 
         public bool UpdateAvailable(int assemblyVersion) {
-            int currentVersion;
             try {
-                int.TryParse(Helpers.Http.Get("http://www.jubito.org/current-version.txt"), out currentVersion);
+                int.TryParse(Helpers.Http.Get("http://www.jubito.org/current-version.txt"), out int currentVersion);
+                return (currentVersion > assemblyVersion);
             }
             catch (WebException) {
                 // 404 Not Found
                 return false;
             }
-            return (currentVersion > assemblyVersion);
         }
 
-        public string GetWinPath {
-            get { return Directory.GetCurrentDirectory(); }
-        }
+        public string GetWinPath => Directory.GetCurrentDirectory();
 
-        public string GetLinuxPath {
-            get { return System.Environment.CommandLine.Substring(0, System.Environment.CommandLine.LastIndexOf("/")); }
-        }
+        public string GetLinuxPath => System.Environment.CommandLine.Substring(0, System.Environment.CommandLine.LastIndexOf("/"));
 
         public string GetApplicationPath {
             get {
@@ -102,53 +97,29 @@ namespace jaNET.Environment
             return string.Empty;
         }
 
-        public string GetSalute {
-            get { return GetPartOfDay(true); }
-        }
+        public string GetSalute => GetPartOfDay(true);
 
-        public string GetTime {
-            get { return (string.Format("{0:t}", DateTime.Now)); }
-        }
+        public string GetTime => string.Format("{0:t}", DateTime.Now);
 
-        public string GetTime24 {
-            get { return (string.Format("{0:HH:mm}", DateTime.Now)); }
-        }
+        public string GetTime24 => string.Format("{0:HH:mm}", DateTime.Now);
 
-        public string GetHour {
-            get { return (string.Format("{0:HH}", DateTime.Now)); }
-        }
+        public string GetHour => string.Format("{0:HH}", DateTime.Now);
 
-        public string GetMinute {
-            get { return (string.Format("{0:mm}", DateTime.Now)); }
-        }
+        public string GetMinute => string.Format("{0:mm}", DateTime.Now);
 
-        public string GetDate {
-            get { return (string.Format("{0:M}", DateTime.Now)); }
-        }
+        public string GetDate => string.Format("{0:M}", DateTime.Now);
 
-        public string GetCalendarDate {
-            get { return (string.Format("{0:d/M/yyyy}", DateTime.Now)); }
-        }
+        public string GetCalendarDate => string.Format("{0:d/M/yyyy}", DateTime.Now);
 
-        public string GetDay {
-            get { return (DateTime.Now.DayOfWeek.ToString()); }
-        }
+        public string GetDay => DateTime.Now.DayOfWeek.ToString();
 
-        public string GetCalendarDay {
-            get { return (DateTime.Now.Day.ToString()); }
-        }
+        public string GetCalendarDay => DateTime.Now.Day.ToString();
 
-        public string GetCalendarMonth {
-            get { return (DateTime.Now.Month.ToString()); }
-        }
+        public string GetCalendarMonth => DateTime.Now.Month.ToString();
 
-        public string GetCalendarYear {
-            get { return (DateTime.Now.Year.ToString()); }
-        }
+        public string GetCalendarYear => DateTime.Now.Year.ToString();
 
-        public string WhoAmI {
-            get { return System.Environment.UserName; }
-        }
+        public string WhoAmI => System.Environment.UserName;
 
         public XmlNodeList GetXmlElementList(string xPath, string elementName) {
             return Helpers.Xml.AppConfigQuery(xPath + "/" + elementName);
@@ -181,9 +152,11 @@ namespace jaNET.Environment
                 var xdoc = XDocument.Load(path);
                 var type = newElement.GetType();
                 var props = type.GetProperties().ToList();
-                props.RemoveAll(item => item.GetValue(newElement, null) == null ||
-                                item.GetValue(newElement, null).ToString().Trim() == string.Empty ||
-                                item.CustomAttributes.FirstOrDefault().AttributeType.Name == "XmlTextAttribute");
+
+                props.RemoveAll(
+                    item => item.GetValue(newElement, null) == null ||
+                    item.GetValue(newElement, null).ToString().Trim() == string.Empty ||
+                    item.CustomAttributes.FirstOrDefault().AttributeType.Name == "XmlTextAttribute");
 
                 File.Copy(path, backup, true);
                 File.Delete(path);
@@ -207,8 +180,9 @@ namespace jaNET.Environment
                         ));
                 }
                 else
-                    props.ForEach(a => xdoc.Descendants(a.CustomAttributes.FirstOrDefault().NamedArguments.FirstOrDefault().TypedValue.Value.ToString())
-                                           .Single().Value = a.GetValue(newElement, null).ToString());
+                    props.ForEach(a => xdoc.Descendants(a.CustomAttributes.FirstOrDefault()
+                        .NamedArguments.FirstOrDefault().TypedValue.Value.ToString())
+                        .Single().Value = a.GetValue(newElement, null).ToString());
 
                 xdoc.Save(path);
                 return "Element added.";

@@ -63,9 +63,9 @@ namespace jaNET.Net
                 return Regex.Match(await Helpers.Http.GetAsync("http://checkip.dyndns.org"), @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").Value;
             }
 
-            internal static async void DynamicUpdateAsync(DynDns ddns) {
+            internal static async Task DynamicUpdateAsync(DynDns ddns) {
                 try {
-                    string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", ddns.Hostname, CheckIpAsync().Result);
+                    string noIpUri = string.Format("http://dynupdate.no-ip.com/nic/update?hostname={0}&myip={1}", ddns.Hostname, await CheckIpAsync());
 
                     using (var client = new HttpClient(new HttpClientHandler { Credentials = new NetworkCredential(ddns.Username, ddns.Password) }))
                     using (var response = await client.GetAsync(noIpUri))
@@ -80,7 +80,7 @@ namespace jaNET.Net
 
         internal static class SimplePing
         {
-            static Boolean resolveHostEntry(string entry) {
+            static Boolean ResolveHostEntry(string entry) {
                 return new Regex("[^a-zA-Z]").IsMatch(entry);
             }
 
@@ -98,7 +98,7 @@ namespace jaNET.Net
                     IPAddress hostAddress;
                     IPEndPoint iep;
 
-                    if (resolveHostEntry(endPoint)) {
+                    if (ResolveHostEntry(endPoint)) {
                         hostEntry = Dns.GetHostEntry(endPoint);
                         hostAddress = hostEntry.AddressList[0];
                         iep = new IPEndPoint(hostAddress, 0);
@@ -440,9 +440,10 @@ namespace jaNET.Net
                     string message;
                     string response;
 
-                    var msg = new Pop3Message();
-                    msg.Bytes = rhs.Bytes;
-                    msg.Number = rhs.Number;
+                    var msg = new Pop3Message {
+                        Bytes = rhs.Bytes,
+                        Number = rhs.Number
+                    };
 
                     message = "RETR " + rhs.Number + "\r\n";
                     Write(message);

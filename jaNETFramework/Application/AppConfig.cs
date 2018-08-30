@@ -64,21 +64,13 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "MailHeaders")]
     public class MailHeaders
     {
-        public static XmlNodeList GetMailHeaders {
-            get { return Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeadersRoot); }
-        }
+        public static XmlNodeList GetMailHeaders => Helpers.Xml.AppConfigQuery(AppStructure.SystemAlertsMailHeadersRoot);
 
-        internal static string GetMailHeaderFrom {
-            get { return jaNET.GetElement(AppStructure.MailFromPath); }
-        }
+        internal static string GetMailHeaderFrom => jaNET.GetElement(AppStructure.MailFromPath);
 
-        internal static string GetMailHeaderTo {
-            get { return jaNET.GetElement(AppStructure.MailToPath); }
-        }
+        internal static string GetMailHeaderTo => jaNET.GetElement(AppStructure.MailToPath);
 
-        internal static string GetMailHeaderSubject {
-            get { return jaNET.GetElement(AppStructure.MailSubjectPath); }
-        }
+        internal static string GetMailHeaderSubject => jaNET.GetElement(AppStructure.MailSubjectPath);
 
         [XmlElement(ElementName = "MailFrom")]
         public string MailFrom { get; set; }
@@ -98,36 +90,21 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Comm")]
     public class Comm
     {
-        internal static string GetTrusted {
-            get { return jaNET.GetElement(AppStructure.TrustedPath); }
-        }
+        internal static string GetTrusted => jaNET.GetElement(AppStructure.TrustedPath);
 
-        internal static string GetLocalHost {
-            get { return jaNET.GetElement(AppStructure.LocalHostPath); }
-        }
-        internal static string GetLocalPort {
-            get { return jaNET.GetElement(AppStructure.LocalPortPath); }
-        }
+        internal static string GetLocalHost => jaNET.GetElement(AppStructure.LocalHostPath);
 
-        internal static string GetHostname {
-            get { return jaNET.GetElement(AppStructure.HttpHostNamePath); }
-        }
+        internal static string GetLocalPort => jaNET.GetElement(AppStructure.LocalPortPath);
 
-        internal static string GetHttpPort {
-            get { return jaNET.GetElement(AppStructure.HttpPortPath); }
-        }
+        internal static string GetHostname => jaNET.GetElement(AppStructure.HttpHostNamePath);
 
-        internal static string GetAuthentication {
-            get { return jaNET.GetElement(AppStructure.HttpAuthenticationPath); }
-        }
+        internal static string GetHttpPort => jaNET.GetElement(AppStructure.HttpPortPath);
 
-        internal static string GetComPort {
-            get { return jaNET.GetElement(AppStructure.ComPortPath); }
-        }
+        internal static string GetAuthentication => jaNET.GetElement(AppStructure.HttpAuthenticationPath);
 
-        internal static string GetBaudRate {
-            get { return jaNET.GetElement(AppStructure.ComBaudRatePath); }
-        }
+        internal static string GetComPort => jaNET.GetElement(AppStructure.ComPortPath);
+
+        internal static string GetBaudRate => jaNET.GetElement(AppStructure.ComBaudRatePath);
 
         [XmlElement(ElementName = "Trusted")]
         public string Trusted { get; set; }
@@ -152,9 +129,7 @@ namespace jaNET.Environment.AppConfig
     [XmlRoot(ElementName = "Others")]
     public class Others
     {
-        internal static string GetWeather {
-            get { return jaNET.GetElement(AppStructure.WeatherPath); }
-        }
+        internal static string GetWeather => jaNET.GetElement(AppStructure.WeatherPath);
 
         [XmlElement(ElementName = "Weather")]
         public string Weather { get; set; }

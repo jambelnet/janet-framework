@@ -46,14 +46,15 @@ namespace jaNET.IO.Ports
 
         internal static void ActivateSerialPort(string portName) {
             try {
-                bool isPOSIX = Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix
-                                || Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
+                bool isPOSIX = 
+                    Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.Unix ||
+                    Environment.OperatingSystem.Version == Environment.OperatingSystem.Type.MacOS;
 
                 if (isPOSIX && !File.Exists(port.PortName))
                     return;
 
                 // Port
-                if (portName == string.Empty)
+                if (string.IsNullOrWhiteSpace(portName))
                     port.PortName = Helpers.Xml.AppConfigQuery(
                         AppStructure.ComPortPath)
                         .Item(0).InnerText;
@@ -62,14 +63,13 @@ namespace jaNET.IO.Ports
                 // Baud
                 port.BaudRate = Convert.ToInt32(
                     Helpers.Xml.AppConfigQuery(
-                    AppStructure.ComBaudRatePath)
-                    .Item(0).InnerText);
+                    AppStructure.ComBaudRatePath).Item(0).InnerText);
 
                 port.Open();
 
-                var t = new Thread(SerialPortListener);
-                t.IsBackground = true;
-                t.Start();
+                new Thread(SerialPortListener) {
+                    IsBackground = true
+                }.Start();
             }
             catch {
                 
@@ -85,8 +85,9 @@ namespace jaNET.IO.Ports
             lock (_serial_locker) {
                 while (port.IsOpen) {
                     try {
-                        SerialData = port.ReadLine().Replace("\r", string.Empty)
-                                                    .Replace("SIGKILL", "\n");
+                        SerialData = port.ReadLine()
+                            .Replace("\r", string.Empty)
+                            .Replace("SIGKILL", "\n");
 
                         if (SerialData != string.Empty &&
                             Helpers.Xml.AppConfigQuery(

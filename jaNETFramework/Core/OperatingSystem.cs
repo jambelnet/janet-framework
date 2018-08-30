@@ -33,9 +33,7 @@ namespace jaNET.Environment
             Unknown
         }
 
-        internal static Type Version {
-            get { return GetOSversion(); }
-        }
+        internal static Type Version => GetOSversion();
 
         static Type GetOSversion() {
             switch (System.Environment.OSVersion.Platform) {

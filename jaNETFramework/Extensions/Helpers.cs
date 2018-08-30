@@ -126,9 +126,8 @@ namespace jaNET
 
                 var steps = node.Split('/');
                 for (var i = 0; i < steps.Length; i++) {
-                    int n;
                     //item = int.TryParse(steps[i], out n) ? item[n] : item[steps[i]];
-                    if (int.TryParse(steps[i], out n))
+                    if (int.TryParse(steps[i], out int n))
                         item = item[n];
                     else
                         item = item[steps[i]];

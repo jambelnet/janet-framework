@@ -352,12 +352,13 @@ namespace jaNET.Environment.Core
                         case "ls-actives-details":
                             foreach (Schedule schedule in Schedule.ScheduleList)
                                 if (schedule.Status)
-                                    output += string.Format("{0} | {1} | {2} | {3} | {4}\r\n",
-                                                             schedule.Name,
-                                                             schedule.Date,
-                                                             schedule.Time,
-                                                             schedule.Action,
-                                                             schedule.Status.ToString().ToLower().Replace("true", "Active"));
+                                    output += string.Format(
+                                        "{0} | {1} | {2} | {3} | {4}\r\n",
+                                        schedule.Name,
+                                        schedule.Date,
+                                        schedule.Time,
+                                        schedule.Action,
+                                        schedule.Status.ToString().ToLower().Replace("true", "Active"));
                             break;
                         case "inactive-details":
                         case "inactives-details":
@@ -367,12 +368,13 @@ namespace jaNET.Environment.Core
                         case "ls-inactives-details":
                             foreach (Schedule schedule in Schedule.ScheduleList)
                                 if (!schedule.Status)
-                                    output += string.Format("{0} | {1} | {2} | {3} | {4}\r\n",
-                                                             schedule.Name,
-                                                             schedule.Date,
-                                                             schedule.Time,
-                                                             schedule.Action,
-                                                             schedule.Status.ToString().ToLower().Replace("false", "Inactive"));
+                                    output += string.Format(
+                                        "{0} | {1} | {2} | {3} | {4}\r\n",
+                                        schedule.Name,
+                                        schedule.Date,
+                                        schedule.Time,
+                                        schedule.Action,
+                                        schedule.Status.ToString().ToLower().Replace("false", "Inactive"));
                             break;
                         case "details":
                         case "state":
@@ -383,22 +385,24 @@ namespace jaNET.Environment.Core
                             foreach (Schedule schedule in Schedule.ScheduleList)
                                 if (args.Count() > 3) {
                                     if (args[3] == schedule.Name)
-                                        output += string.Format("{0} | {1} | {2} | {3} | {4}\r\n",
-                                                                 schedule.Name,
-                                                                 schedule.Date,
-                                                                 schedule.Time,
-                                                                 schedule.Action,
-                                                                 schedule.Status.ToString().ToLower().Replace("true", "Active")
-                                                                                                     .Replace("false", "Inactive"));
+                                        output += string.Format(
+                                            "{0} | {1} | {2} | {3} | {4}\r\n",
+                                            schedule.Name,
+                                            schedule.Date,
+                                            schedule.Time,
+                                            schedule.Action,
+                                            schedule.Status.ToString().ToLower().Replace("true", "Active")
+                                                                                .Replace("false", "Inactive"));
                                 }
                                 else
-                                    output += string.Format("{0} | {1} | {2} | {3} | {4}\r\n",
-                                                             schedule.Name,
-                                                             schedule.Date,
-                                                             schedule.Time,
-                                                             schedule.Action,
-                                                             schedule.Status.ToString().ToLower().Replace("true", "Active")
-                                                                                                 .Replace("false", "Inactive"));
+                                    output += string.Format(
+                                        "{0} | {1} | {2} | {3} | {4}\r\n",
+                                        schedule.Name,
+                                        schedule.Date,
+                                        schedule.Time,
+                                        schedule.Action,
+                                        schedule.Status.ToString().ToLower().Replace("true", "Active")
+                                                                            .Replace("false", "Inactive"));
                             break;
                     }
                     break;
@@ -410,14 +414,14 @@ namespace jaNET.Environment.Core
                         case "new":
                         case "setup":
                         case "set":
-                            output = settings.Save(".smtpsettings",
-                                                    string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
-                                                    args[3], args[4], args[5], args[6], args[7]));
+                            output = settings.Save(
+                                ".smtpsettings", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}", args[3], args[4], args[5], args[6], args[7]));
                             break;
                         case "settings":
                             var smtpSettings = new Mail.SmtpSettings();
-                            output = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
-                                                    smtpSettings.Host, smtpSettings.Username, smtpSettings.Password, smtpSettings.Port, smtpSettings.SSL);
+                            output = string.Format(
+                                "{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
+                                smtpSettings.Host, smtpSettings.Username, smtpSettings.Password, smtpSettings.Port, smtpSettings.SSL);
                             break;
                     }
                     break;
@@ -429,14 +433,13 @@ namespace jaNET.Environment.Core
                         case "new":
                         case "setup":
                         case "set":
-                            output = settings.Save(".pop3settings",
-                                                    string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
-                                                    args[3], args[4], args[5], args[6], args[7]));
+                            output = settings.Save(
+                                ".pop3settings", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}", args[3], args[4], args[5], args[6], args[7]));
                             break;
                         case "settings":
                             var pop3Settings = new Mail.Pop3Settings();
-                            output = string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}",
-                                                    pop3Settings.Host, pop3Settings.Username, pop3Settings.Password, pop3Settings.Port, pop3Settings.SSL);
+                            output = string.Format(
+                                "{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}", pop3Settings.Host, pop3Settings.Username, pop3Settings.Password, pop3Settings.Port, pop3Settings.SSL);
                             break;
                     }
                     break;
@@ -461,8 +464,9 @@ namespace jaNET.Environment.Core
                 case "mail":
                     switch (args[2]) {
                         case "send":
-                            output = new Mail().Send(args[3], args[4], args[5], args[6]).ToString()
-                                               .Replace("True", "Mail sent!").Replace("False", "Mail could not be sent");
+                            output = new Mail().Send(
+                                args[3], args[4], args[5], args[6]).ToString()
+                                .Replace("True", "Mail sent!").Replace("False", "Mail could not be sent");
                             break;
                     }
                     break;
@@ -475,7 +479,9 @@ namespace jaNET.Environment.Core
                         case "new":
                         case "set":
                         case "setup":
-                            output = method.AddToXML(new MailHeaders { MailFrom = args[3], MailTo = args[4], MailSubject = args[5] }, AppStructure.SystemAlertsMailHeadersRoot);
+                            output = method.AddToXML(
+                                new MailHeaders { MailFrom = args[3], MailTo = args[4], MailSubject = args[5] }, 
+                                AppStructure.SystemAlertsMailHeadersRoot);
                             break;
                         case "settings":
                             output = string.Format("{0}\r\n{1}\r\n{2}", MailHeaders.GetMailHeaderFrom, MailHeaders.GetMailHeaderTo, MailHeaders.GetMailHeaderSubject);
@@ -509,15 +515,16 @@ namespace jaNET.Environment.Core
                         case "new":
                         case "set":
                         case "setup":
-                            var li = new List<InstructionSet>();
-                            li.Add(new InstructionSet {
-                                Id = "*" + args[3],
-                                Action = "judo json get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5]
-                            });
-                            li.Add(new InstructionSet {
-                                Id = args[3],
-                                Action = "*" + args[3]
-                            });
+                            var li = new List<InstructionSet> {
+                                new InstructionSet {
+                                    Id = "*" + args[3],
+                                    Action = "judo json get " + WebServer.SimpleUriEncode(args[4]) + " " + args[5]
+                                },
+                                new InstructionSet {
+                                    Id = args[3],
+                                    Action = "*" + args[3]
+                                }
+                            };
                             li.ForEach(item => output = method.AddToXML(item, AppStructure.SystemInstructionsRoot));
                             break;
                         case "get":

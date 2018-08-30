@@ -37,14 +37,12 @@ namespace jaNET.Environment.Core
 {
     public class Parser
     {
-        public static Parser Instance { get { return Singleton<Parser>.Instance; } }
+        public static Parser Instance => Singleton<Parser>.Instance;
 
         static volatile bool _parserState = true;
 
         public static bool ParserState {
-            get {
-                return _parserState;
-            }
+            get => _parserState;
             internal set {
                 _parserState = value;
             }
@@ -74,11 +72,12 @@ namespace jaNET.Environment.Core
 
                 var results = new Dictionary<string, KeyValuePair<string, string>>();
 
-                instructionSets.ForEach(instruction => results.Add(instruction.Replace(" ", "_").Replace("%", string.Empty),
-                                                                   // Remove blank spaces of judo command and %% of functions to generate a friendly and readable key
-                                                                   new KeyValuePair<string, string>(instruction,
-                                                                   // Remove extra white spaces
-                                                                   Regex.Replace(Execute(instruction, disableSpeech), @"[^\S\r\n]+", " "))));
+                instructionSets.ForEach(instruction => results.Add(
+                    instruction.Replace(" ", "_").Replace("%", string.Empty),
+                    // Remove blank spaces of judo command and %% of functions to generate a friendly and readable key
+                    new KeyValuePair<string, string>(instruction,
+                    // Remove extra white spaces
+                    Regex.Replace(Execute(instruction, disableSpeech), @"[^\S\r\n]+", " "))));
 
                 switch (dataType) {
                     case WebServer.Request.DataType.html:
@@ -128,10 +127,11 @@ namespace jaNET.Environment.Core
                 !string.IsNullOrWhiteSpace(output)      // Has something to send
                 && File.Exists(method.GetApplicationPath + ".smtpsettings")) {
 
-                Process.CallWithTimeout(() => new Mail().Send(MailHeaders.GetMailHeaderFrom,
-                                                              MailHeaders.GetMailHeaderTo,
-                                                              MailHeaders.GetMailHeaderSubject,
-                                                              output), 10000);
+                Process.CallWithTimeout(() => new Mail().Send(
+                    MailHeaders.GetMailHeaderFrom,
+                    MailHeaders.GetMailHeaderTo,
+                    MailHeaders.GetMailHeaderSubject,
+                    output), 10000);
             }
 
             if (!string.IsNullOrWhiteSpace(output) && !Mute && !disableSpeech) {

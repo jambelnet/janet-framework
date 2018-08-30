@@ -27,7 +27,7 @@ namespace jaNET.Diagnostics
 {
     class Logger
     {
-        public static Logger Instance { get { return Singleton<Logger>.Instance; } }
+        public static Logger Instance => Singleton<Logger>.Instance;
 
         // Read Log
         /*using (StreamReader r = File.OpenText("log.txt"))

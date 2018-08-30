@@ -65,7 +65,7 @@ namespace jaNET.Providers
         internal string Action { get; set; }
         bool _status;
         public bool Status {
-            get { return _status; }
+            get => _status;
             set {
                 if (value != _status) {
                     _status = value;

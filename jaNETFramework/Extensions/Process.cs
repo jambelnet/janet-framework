@@ -28,7 +28,7 @@ namespace jaNET.Diagnostics
 {
     class Process
     {
-        public static Process Instance { get { return Singleton<Process>.Instance; } }
+        public static Process Instance => Singleton<Process>.Instance;
 
         internal string Start(string sFilePath) {
             if (sFilePath.Trim().Contains(" ")) {
@@ -42,8 +42,9 @@ namespace jaNET.Diagnostics
         internal string Start(string sFilePath, string sArguments) {
             try {
                 if (sFilePath != string.Empty) {
-                    var process = new System.Diagnostics.Process();
-                    process.EnableRaisingEvents = false;
+                    var process = new System.Diagnostics.Process {
+                        EnableRaisingEvents = false
+                    };
 
                     if (sArguments != string.Empty) {
                         process.StartInfo.FileName = sFilePath;

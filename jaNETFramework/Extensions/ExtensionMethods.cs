@@ -96,8 +96,7 @@ namespace jaNET.Extensions
 
         internal static string FixScheduleDate(this string date) {
             try {
-                var dt = DateTime.ParseExact(date.Replace("-", "/").Replace(".", "/"), "dd/MM/yyyy",
-                                             CultureInfo.InvariantCulture);
+                var dt = DateTime.ParseExact(date.Replace("-", "/").Replace(".", "/"), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 return dt.ToString("d/M/yyyy", CultureInfo.InvariantCulture);
             }
             catch {
