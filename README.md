@@ -16,7 +16,7 @@ You can change defaults by corresponding UI menu (*Menu->Settings->Web Server*) 
 
 > judo server setup [host] [port] [authentication]\
 i.e.
-> judo server setup localhost 8080 none|basic
+> judo server setup localhost 8080 none | basic
 
 [judo API doc](https://github.com/jambelnet/janet-framework/wiki/judo-API)
 
