@@ -8,7 +8,7 @@ A free and open source IoT framework that provides a set of built-in [functions]
 
 1. Clone the repository and build it with the [.NET SDK](https://dotnet.microsoft.com/download) (`dotnet build jaNETFramework.sln`).
    The '*www*' directory is copied next to the program automatically.
-2. Run the application (`dotnet run --project jaNETProgram`, or *jaNETProgram.exe* from *jaNETProgram/bin/Debug/net10.0*) and access Jubito UI (*http://localhost:8080/www/*) in your browser.
+2. Run the application (`dotnet run --project jaNETProgram`, or *jaNETProgram.exe* from *jaNETProgram/bin/Debug/net10.0*) and access Jubito UI (*http://localhost:8080/www/*) [1] in your browser.
    To deploy, use `dotnet publish jaNETProgram -c Release`.
 
 [*1*] Default built-in web server provided by the framework is listening to localhost on port 8080.
