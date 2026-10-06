@@ -1,0 +1,72 @@
+name: Release
+
+# A release is a tag that names the version in Directory.Build.props:  git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: The tag must be the version of the code
+        id: version
+        run: |
+          version=$(dotnet msbuild jaNETFramework/jaNETFramework.csproj -getProperty:Version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "The tag is $GITHUB_REF_NAME but Directory.Build.props says $version." >&2
+            exit 1
+          fi
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "CHANGELOG.md has no entry for $version." >&2
+            exit 1
+          fi
+
+      - name: Build and test
+        run: |
+          dotnet build jaNETFramework.sln -c Release
+          dotnet test jaNETFramework.sln -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack jaNETFramework.sln -c Release --no-build -o packages
+
+      - name: Release notes from the changelog
+        run: |
+          awk -v v="${{ steps.version.outputs.version }}" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }' CHANGELOG.md > notes.md
+
+      # runs without anything installed: linux-x64, linux-arm64, linux-arm, osx-arm64, osx-x64, win-x64, win-arm64
+      - name: Programs for every system (self-contained)
+        run: python3 tools/publish.py
+
+      - name: Source archive
+        run: git archive --format=zip --prefix=janet-framework-${{ steps.version.outputs.version }}/ -o janet-framework-${{ steps.version.outputs.version }}.zip HEAD
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=""
+          case "${{ steps.version.outputs.version }}" in *-*) flags="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" $flags --title "jaNET Framework ${{ steps.version.outputs.version }}" --notes-file notes.md \
+            packages/*.nupkg packages/*.snupkg janet-framework-${{ steps.version.outputs.version }}.zip artifacts/*.tar.gz artifacts/*.zip
+
+      # needs the repository secret NUGET_API_KEY; without it the packages are only attached to the release
+      - name: Publish to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then echo "NUGET_API_KEY is not set: not published to nuget.org."; exit 0; fi
+          dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate

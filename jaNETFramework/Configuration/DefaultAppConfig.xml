@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jaNET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <System>
+    <Alerts>
+      <MailHeaders>
+        <MailFrom>noreply@xxx.org</MailFrom>
+        <MailTo>me@yyy.org</MailTo>
+        <MailSubject>Alert from Jubito</MailSubject>
+      </MailHeaders>
+    </Alerts>
+    <Comm>
+      <Trusted>localhost; 192.168.1.1</Trusted>
+      <localHost>localhost</localHost>
+      <localPort>5744</localPort>
+      <Hostname>localhost</Hostname>
+      <httpPort>8080</httpPort>
+      <Authentication>none</Authentication>
+      <ComPort>/dev/ttyACM0</ComPort>
+      <BaudRate>9600</BaudRate>
+    </Comm>
+    <Others>
+      <Weather>http://api.openweathermap.org/data/2.5/weather?q=Athens,GR&amp;units=metric&amp;APPID=YOUR_OPENWEATHERMAP_API_KEY</Weather>
+    </Others>
+  </System>
+  <Events>
+    <event id="oncheckin">%unmute%; salute; weathertoday</event>
+    <event id="oncheckout">judo sleep 5000; goodbye; %unmute%</event>
+  </Events>
+  <Instructions>
+    <InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+    <InstructionSet id="salute">*salute</InstructionSet>
+    <InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+    <InstructionSet id="goodbye">*goodbye</InstructionSet>
+    <InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+    <InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+    <InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+    <InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+    <InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+    <InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+    <InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+    <InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+    <InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+    <InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+    <InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+    <InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+    <InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+    <InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+    <InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+    <InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+    <InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+    <InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+    <InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="gmailone">*gmailone</InstructionSet>
+    <InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+    <InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+    <InstructionSet id="pop3one">*pop3one</InstructionSet>
+    <InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+    <InstructionSet id="pop3count">*pop3count</InstructionSet>
+    <InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+    <InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+    <InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+    <InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+    <InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+    <InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+    <InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+    <InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+    <InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+    <InstructionSet id="*time">Time is, %time%.</InstructionSet>
+    <InstructionSet id="*timewidget">%time%</InstructionSet>
+    <InstructionSet id="timewidget">*timewidget</InstructionSet>
+    <InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+    <InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+    <InstructionSet id="*time24widget">%time24%</InstructionSet>
+    <InstructionSet id="time24widget">*time24widget</InstructionSet>
+    <InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+    <InstructionSet id="*date">Date is, %date%.</InstructionSet>
+    <InstructionSet id="*datewidget">%date%</InstructionSet>
+    <InstructionSet id="datewidget">*datewidget</InstructionSet>
+    <InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+    <InstructionSet id="*day">Today is, %day%.</InstructionSet>
+    <InstructionSet id="*daywidget">%day%</InstructionSet>
+    <InstructionSet id="daywidget">*daywidget</InstructionSet>
+    <InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+    <InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+    <InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+    <InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+    <InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+    <InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+    <InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+    <InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+    <InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+    <InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+    <InstructionSet id="checkinout">*checkinout</InstructionSet>
+    <InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+    <InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+    <InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+    <InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+    <InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+    <InstructionSet id="sleeper">*sleeper</InstructionSet>
+  </Instructions>
+</jaNET>

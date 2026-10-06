@@ -1,0 +1,1610 @@
+=== CMD judo help
+1. Instruction Sets & Events
+ 1.1 Add New Instruction Set
+ + judo inset add [ID] <lock>[Action]</lock>
+ + judo inset new [ID] <lock>[Action]</lock>
+ + judo inset set [ID] <lock>[Action]</lock>
+ + judo inset setup [ID] <lock>[Action]</lock>
+ + judo inset add [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset new [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset set [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset setup [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ 1.2 Remove Instruction Set
+ + judo inset remove [ID]
+ + judo inset delete [ID]
+ + judo inset del [ID]
+ + judo inset kill [ID]
+ 1.3 List Items
+ + judo inset list
+ + judo inset ls
+ 1.4 Add New Event Handler
+ + judo event add [ID] <lock>[Action]</lock>
+ + judo event new [ID] <lock>[Action]</lock>
+ + judo event set [ID] <lock>[Action]</lock>
+ + judo event setup [ID] <lock>[Action]</lock>
+ 1.5 Remove Event Handler
+ + judo event remove [ID]
+ + judo event delete [ID]
+ + judo event del [ID]
+ + judo event kill [ID]
+ 1.6 Delay Between Actions
+ + judo sleep [timeout in ms]
+ + judo timer [timeout in ms]
+ 1.7 List Items
+ + judo event list
+ + judo event ls
+2. Mail
+ 2.1 Smtp Settings
+ + judo smtp add [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp setup [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp set [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp settings
+ 2.2 Pop3 Settings
+ + judo pop3 add [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 setup [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 set [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 settings
+ 2.3 Gmail Settings
+ + judo gmail add [Username] [Password]
+ + judo gmail setup [Username] [Password]
+ + judo gmail set [Username] [Password]
+ + judo gmail settings
+ 2.4 Mail Header Settings
+ + judo mailheaders set `[From]` `[To]` `[Subject]`
+ + judo mailheaders setup `[From]` `[To]` `[Subject]`
+ + judo mailheaders settings
+ 2.5 Send
+ + judo mail send [From Address] [To Address] `[Subject]` `[Message]`
+3. SMS
+ 3.1 Settings
+ + judo sms add [Api Id] [Username] [Password]
+ + judo sms setup [Api Id] [Username] [Password]
+ + judo sms set [Api Id] [Username] [Password]
+ + judo sms settings
+ 3.2 Send
+ + judo sms send [Phone Number] `[Message]`
+4. Scheduler
+ 4.1 New Schedule
+ + judo schedule add [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule new [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule set [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule setup [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule add [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule new [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule set [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule setup [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ 4.2 Remove Schedule
+ + judo schedule remove [Name]
+ + judo schedule delete [Name]
+ + judo schedule del [Name]
+ 4.3 Disable Schedule
+ + judo schedule disable [Name]
+ + judo schedule deactivate [Name]
+ + judo schedule stop [Name]
+ + judo schedule off [Name]
+ 4.4 Enable Schedule
+ + judo schedule enable [Name]
+ + judo schedule activate [Name]
+ + judo schedule start [Name]
+ + judo schedule on [Name]
+ 4.5 Remove All Schedules
+ + judo schedule remove-all
+ + judo schedule delete-all
+ + judo schedule del-all
+ + judo schedule cleanup
+ + judo schedule clear
+ + judo schedule empty
+ 4.6 Disable All Schedules
+ + judo schedule disable-all
+ + judo schedule deactivate-all
+ + judo schedule stop-all
+ + judo schedule off-all
+ 4.7 Enable All Schedules
+ + judo schedule enable-all
+ + judo schedule activate-all
+ + judo schedule start-all
+ + judo schedule on-all
+ 4.8 Active List [ Names ]
+ + judo schedule active
+ + judo schedule actives
+ + judo schedule active-list
+ + judo schedule active-ls
+ + judo schedule list-actives
+ + judo schedule ls-actives
+ 4.9 Inactive List [ Names ]
+ + judo schedule inactive
+ + judo schedule inactives
+ + judo schedule inactive-list
+ + judo schedule inactive-ls
+ + judo schedule list-inactives
+ + judo schedule ls-inactives
+ 4.10 List All [ Names ]
+ + judo schedule names
+ + judo schedule name-list
+ + judo schedule name-ls
+ + judo schedule list-names
+ + judo schedule ls-names
+ 4.11 Active List [ with Details ]
+ + judo schedule active-details
+ + judo schedule actives-details
+ + judo schedule active-list-details
+ + judo schedule active-ls-details
+ + judo schedule list-actives-details
+ + judo schedule ls-actives-details
+ 4.12 Inactive List [ with Details ]
+ + judo schedule inactive-details
+ + judo schedule inactives-details
+ + judo schedule inactive-list-details
+ + judo schedule inactive-ls-details
+ + judo schedule list-inactives-details
+ + judo schedule ls-inactives-details
+ 4.13 List All [ with Details ]
+ + judo schedule details [Name (optional)]
+ + judo schedule list [Name (optional)]
+ + judo schedule ls [Name (optional)]
+ + judo schedule status [Name (optional)]
+ + judo schedule state [Name (optional)]
+5. Socket Communication
+ 5.1 Start Service
+ + judo socket start
+ + judo socket enable
+ + judo socket on
+ + judo socket open
+ + judo socket listen
+ 5.2 Stop Service
+ + judo socket stop
+ + judo socket disable
+ + judo socket off
+ + judo socket close
+ 5.3 Setup
+ + judo socket set [Host] [Port]
+ + judo socket setup [Host] [Port]
+ 5.4 Trusted
+ + judo socket trust <lock>[Guests (semicolon delimeted, e.g. localhost; 192.168.1.1; etc)]</lock>
+ + judo trusted settings
+ 5.5 Settings
+ + judo socket settings
+ 5.6 Status
+ + judo socket status
+ + judo socket state
+6. Web Server
+ 6.1 Start
+ + judo server start
+ + judo server enable
+ + judo server on
+ + judo server listen
+ 6.2 Stop
+ + judo server stop
+ + judo server disable
+ + judo server off
+ 6.3 Change Login
+ + judo server login [Username] [Password]
+ + judo server cred [Username] [Password]
+ + judo server credentials [Username] [Password]
+ 6.4 Setup
+ + judo server set [Host] [Port] [Authentication]
+ + judo server setup [Host] [Port] [Authentication]
+ 6.5 Settings
+ + judo server settings
+ 6.6 Status
+ + judo server status
+ + judo server state
+7. Serial Port
+ 7.1 Open
+ + judo serial open [Port (optional)]
+ 7.2 Close
+ + judo serial close
+ 7.3 Send Command
+ + judo serial send [Command] [Timeout in ms (optional)]
+ 7.4 Setup
+ + judo serial set [Port] [Baud]
+ + judo serial setup [Port] [Baud]
+ 7.5 Settings
+ + judo serial settings
+ 7.6 Status
+ + judo serial status
+ + judo serial state
+ 7.7 Listen/Monitor
+ + judo serial listen [Timeout in ms (optional)]
+ + judo serial monitor [Timeout in ms (optional)]
+8. Web Services
+ 8.1 Json Setup
+ + judo json add [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json new [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json set [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json setup [ID] <lock>[Endpoint]</lock> [Node]
+ 8.2 Json Response
+ + judo json get <lock>[Endpoint]</lock> [Node]
+ + judo json response <lock>[Endpoint]</lock> [Node]
+ + judo json consume <lock>[Endpoint]</lock> [Node]
+ + judo json extract <lock>[Endpoint]</lock> [Node]
+ 8.3 Xml Setup [ Simple ]
+ + judo xml add [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml new [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml set [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml setup [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ 8.4 Xml Setup [ Namespace Prefix & Uri ]
+ + judo xml add [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml new [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml set [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml setup [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ 8.5 Xml Response [ Simple ]
+ + judo xml get <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml response <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml consume <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml extract <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ 8.6 Xml Response [ Namespace Prefix & Uri ]
+ + judo xml get <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml response <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml consume <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml extract <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+9. Http
+ 9.1 Get
+ + judo http get [Request-URI]
+10. Dynamic Dns
+ 10.1 Setup
+ + judo noip add [Hostname] [Username] [Password]
+ + judo noip new [Hostname] [Username] [Password]
+ + judo noip set [Hostname] [Username] [Password]
+ + judo noip setup [Hostname] [Username] [Password]
+ 10.2 Settings
+ + judo noip settings
+ 10.3 Update
+ + judo noip update [Hostname] [Username] [Password]
+ 10.4 Update (load settings from file)
+ + judo noip update
+11. Weather
+ 11.1 Setup
+ + judo weather set <lock>[Endpoint]</lock>
+ + judo weather setup <lock>[Endpoint]</lock>
+ 11.2 Settings
+ + judo weather settings
+12. Ping
+ 12.1 Default Timeout [ 1000ms ]
+ + judo ping [Host]
+ 12.2 Specific Timeout
+ + judo ping [Host] [Timeout]
+13. Help
+ 13.1 Preview All
+ + judo help
+ + judo ?
+ 13.2 Preview Specific Category
+ + judo help [help keyword]
+ + judo ? [help keyword]
+
+(*) Brackets are mandatory when place a sentence as one argument.
+(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.
+(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, help
+
+
+<USER>@jaNET>
+=== CMD judo ?
+1. Instruction Sets & Events
+ 1.1 Add New Instruction Set
+ + judo inset add [ID] <lock>[Action]</lock>
+ + judo inset new [ID] <lock>[Action]</lock>
+ + judo inset set [ID] <lock>[Action]</lock>
+ + judo inset setup [ID] <lock>[Action]</lock>
+ + judo inset add [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset new [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset set [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ + judo inset setup [ID] <lock>[Action]</lock> `[Category]` `[Header]` `[Short Description]` `[Long Description]` `[Thumbnail Url]` `[Reference]`
+ 1.2 Remove Instruction Set
+ + judo inset remove [ID]
+ + judo inset delete [ID]
+ + judo inset del [ID]
+ + judo inset kill [ID]
+ 1.3 List Items
+ + judo inset list
+ + judo inset ls
+ 1.4 Add New Event Handler
+ + judo event add [ID] <lock>[Action]</lock>
+ + judo event new [ID] <lock>[Action]</lock>
+ + judo event set [ID] <lock>[Action]</lock>
+ + judo event setup [ID] <lock>[Action]</lock>
+ 1.5 Remove Event Handler
+ + judo event remove [ID]
+ + judo event delete [ID]
+ + judo event del [ID]
+ + judo event kill [ID]
+ 1.6 Delay Between Actions
+ + judo sleep [timeout in ms]
+ + judo timer [timeout in ms]
+ 1.7 List Items
+ + judo event list
+ + judo event ls
+2. Mail
+ 2.1 Smtp Settings
+ + judo smtp add [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp setup [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp set [Host] [Username] [Password] [Port] [Ssl]
+ + judo smtp settings
+ 2.2 Pop3 Settings
+ + judo pop3 add [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 setup [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 set [Host] [Username] [Password] [Port] [Ssl]
+ + judo pop3 settings
+ 2.3 Gmail Settings
+ + judo gmail add [Username] [Password]
+ + judo gmail setup [Username] [Password]
+ + judo gmail set [Username] [Password]
+ + judo gmail settings
+ 2.4 Mail Header Settings
+ + judo mailheaders set `[From]` `[To]` `[Subject]`
+ + judo mailheaders setup `[From]` `[To]` `[Subject]`
+ + judo mailheaders settings
+ 2.5 Send
+ + judo mail send [From Address] [To Address] `[Subject]` `[Message]`
+3. SMS
+ 3.1 Settings
+ + judo sms add [Api Id] [Username] [Password]
+ + judo sms setup [Api Id] [Username] [Password]
+ + judo sms set [Api Id] [Username] [Password]
+ + judo sms settings
+ 3.2 Send
+ + judo sms send [Phone Number] `[Message]`
+4. Scheduler
+ 4.1 New Schedule
+ + judo schedule add [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule new [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule set [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule setup [Name] [{single day: e.g.Monday} {d/m/yyyy} {daily} {workdays} {weekend}] [hh:mm] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule add [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule new [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule set [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ + judo schedule setup [Name] [{repeat} {timer} {interval}] [Interval in ms] [{Instruction Set} || {Verbal Notification}]
+ 4.2 Remove Schedule
+ + judo schedule remove [Name]
+ + judo schedule delete [Name]
+ + judo schedule del [Name]
+ 4.3 Disable Schedule
+ + judo schedule disable [Name]
+ + judo schedule deactivate [Name]
+ + judo schedule stop [Name]
+ + judo schedule off [Name]
+ 4.4 Enable Schedule
+ + judo schedule enable [Name]
+ + judo schedule activate [Name]
+ + judo schedule start [Name]
+ + judo schedule on [Name]
+ 4.5 Remove All Schedules
+ + judo schedule remove-all
+ + judo schedule delete-all
+ + judo schedule del-all
+ + judo schedule cleanup
+ + judo schedule clear
+ + judo schedule empty
+ 4.6 Disable All Schedules
+ + judo schedule disable-all
+ + judo schedule deactivate-all
+ + judo schedule stop-all
+ + judo schedule off-all
+ 4.7 Enable All Schedules
+ + judo schedule enable-all
+ + judo schedule activate-all
+ + judo schedule start-all
+ + judo schedule on-all
+ 4.8 Active List [ Names ]
+ + judo schedule active
+ + judo schedule actives
+ + judo schedule active-list
+ + judo schedule active-ls
+ + judo schedule list-actives
+ + judo schedule ls-actives
+ 4.9 Inactive List [ Names ]
+ + judo schedule inactive
+ + judo schedule inactives
+ + judo schedule inactive-list
+ + judo schedule inactive-ls
+ + judo schedule list-inactives
+ + judo schedule ls-inactives
+ 4.10 List All [ Names ]
+ + judo schedule names
+ + judo schedule name-list
+ + judo schedule name-ls
+ + judo schedule list-names
+ + judo schedule ls-names
+ 4.11 Active List [ with Details ]
+ + judo schedule active-details
+ + judo schedule actives-details
+ + judo schedule active-list-details
+ + judo schedule active-ls-details
+ + judo schedule list-actives-details
+ + judo schedule ls-actives-details
+ 4.12 Inactive List [ with Details ]
+ + judo schedule inactive-details
+ + judo schedule inactives-details
+ + judo schedule inactive-list-details
+ + judo schedule inactive-ls-details
+ + judo schedule list-inactives-details
+ + judo schedule ls-inactives-details
+ 4.13 List All [ with Details ]
+ + judo schedule details [Name (optional)]
+ + judo schedule list [Name (optional)]
+ + judo schedule ls [Name (optional)]
+ + judo schedule status [Name (optional)]
+ + judo schedule state [Name (optional)]
+5. Socket Communication
+ 5.1 Start Service
+ + judo socket start
+ + judo socket enable
+ + judo socket on
+ + judo socket open
+ + judo socket listen
+ 5.2 Stop Service
+ + judo socket stop
+ + judo socket disable
+ + judo socket off
+ + judo socket close
+ 5.3 Setup
+ + judo socket set [Host] [Port]
+ + judo socket setup [Host] [Port]
+ 5.4 Trusted
+ + judo socket trust <lock>[Guests (semicolon delimeted, e.g. localhost; 192.168.1.1; etc)]</lock>
+ + judo trusted settings
+ 5.5 Settings
+ + judo socket settings
+ 5.6 Status
+ + judo socket status
+ + judo socket state
+6. Web Server
+ 6.1 Start
+ + judo server start
+ + judo server enable
+ + judo server on
+ + judo server listen
+ 6.2 Stop
+ + judo server stop
+ + judo server disable
+ + judo server off
+ 6.3 Change Login
+ + judo server login [Username] [Password]
+ + judo server cred [Username] [Password]
+ + judo server credentials [Username] [Password]
+ 6.4 Setup
+ + judo server set [Host] [Port] [Authentication]
+ + judo server setup [Host] [Port] [Authentication]
+ 6.5 Settings
+ + judo server settings
+ 6.6 Status
+ + judo server status
+ + judo server state
+7. Serial Port
+ 7.1 Open
+ + judo serial open [Port (optional)]
+ 7.2 Close
+ + judo serial close
+ 7.3 Send Command
+ + judo serial send [Command] [Timeout in ms (optional)]
+ 7.4 Setup
+ + judo serial set [Port] [Baud]
+ + judo serial setup [Port] [Baud]
+ 7.5 Settings
+ + judo serial settings
+ 7.6 Status
+ + judo serial status
+ + judo serial state
+ 7.7 Listen/Monitor
+ + judo serial listen [Timeout in ms (optional)]
+ + judo serial monitor [Timeout in ms (optional)]
+8. Web Services
+ 8.1 Json Setup
+ + judo json add [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json new [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json set [ID] <lock>[Endpoint]</lock> [Node]
+ + judo json setup [ID] <lock>[Endpoint]</lock> [Node]
+ 8.2 Json Response
+ + judo json get <lock>[Endpoint]</lock> [Node]
+ + judo json response <lock>[Endpoint]</lock> [Node]
+ + judo json consume <lock>[Endpoint]</lock> [Node]
+ + judo json extract <lock>[Endpoint]</lock> [Node]
+ 8.3 Xml Setup [ Simple ]
+ + judo xml add [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml new [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml set [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml setup [ID] <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ 8.4 Xml Setup [ Namespace Prefix & Uri ]
+ + judo xml add [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml new [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml set [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml setup [ID] <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ 8.5 Xml Response [ Simple ]
+ + judo xml get <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml response <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml consume <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ + judo xml extract <lock>[Endpoint]</lock> [Node] [Attribute (optional)]
+ 8.6 Xml Response [ Namespace Prefix & Uri ]
+ + judo xml get <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml response <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml consume <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+ + judo xml extract <lock>[Endpoint]</lock> [Ns+Uri] [Node] [Attribute (optional)]
+9. Http
+ 9.1 Get
+ + judo http get [Request-URI]
+10. Dynamic Dns
+ 10.1 Setup
+ + judo noip add [Hostname] [Username] [Password]
+ + judo noip new [Hostname] [Username] [Password]
+ + judo noip set [Hostname] [Username] [Password]
+ + judo noip setup [Hostname] [Username] [Password]
+ 10.2 Settings
+ + judo noip settings
+ 10.3 Update
+ + judo noip update [Hostname] [Username] [Password]
+ 10.4 Update (load settings from file)
+ + judo noip update
+11. Weather
+ 11.1 Setup
+ + judo weather set <lock>[Endpoint]</lock>
+ + judo weather setup <lock>[Endpoint]</lock>
+ 11.2 Settings
+ + judo weather settings
+12. Ping
+ 12.1 Default Timeout [ 1000ms ]
+ + judo ping [Host]
+ 12.2 Specific Timeout
+ + judo ping [Host] [Timeout]
+13. Help
+ 13.1 Preview All
+ + judo help
+ + judo ?
+ 13.2 Preview Specific Category
+ + judo help [help keyword]
+ + judo ? [help keyword]
+
+(*) Brackets are mandatory when place a sentence as one argument.
+(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.
+(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, help
+
+
+<USER>@jaNET>
+=== CMD judo inset ls
+<InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+<InstructionSet id="salute">*salute</InstructionSet>
+<InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+<InstructionSet id="goodbye">*goodbye</InstructionSet>
+<InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+<InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+<InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+<InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+<InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+<InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+<InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+<InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+<InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+<InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+<InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+<InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+<InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+<InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+<InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+<InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+<InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+<InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+<InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailone">*gmailone</InstructionSet>
+<InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+<InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3one">*pop3one</InstructionSet>
+<InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3count">*pop3count</InstructionSet>
+<InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+<InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+<InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+<InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+<InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+<InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+<InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+<InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+<InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+<InstructionSet id="*time">Time is, %time%.</InstructionSet>
+<InstructionSet id="*timewidget">%time%</InstructionSet>
+<InstructionSet id="timewidget">*timewidget</InstructionSet>
+<InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+<InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+<InstructionSet id="*time24widget">%time24%</InstructionSet>
+<InstructionSet id="time24widget">*time24widget</InstructionSet>
+<InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+<InstructionSet id="*date">Date is, %date%.</InstructionSet>
+<InstructionSet id="*datewidget">%date%</InstructionSet>
+<InstructionSet id="datewidget">*datewidget</InstructionSet>
+<InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+<InstructionSet id="*day">Today is, %day%.</InstructionSet>
+<InstructionSet id="*daywidget">%day%</InstructionSet>
+<InstructionSet id="daywidget">*daywidget</InstructionSet>
+<InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+<InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+<InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+<InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+<InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+<InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+<InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+<InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+<InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+<InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+<InstructionSet id="checkinout">*checkinout</InstructionSet>
+<InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+<InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+<InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+<InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+<InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+<InstructionSet id="sleeper">*sleeper</InstructionSet>
+
+
+<USER>@jaNET>
+=== CMD judo event ls
+<event id="oncheckin">%unmute%; salute; weathertoday</event>
+<event id="oncheckout">judo sleep 5000; goodbye; %unmute%</event>
+
+
+<USER>@jaNET>
+=== CMD judo trusted settings
+localhost; 192.168.1.1
+
+<USER>@jaNET>
+=== CMD judo socket settings
+localhost
+5744
+localhost; 192.168.1.1
+
+<USER>@jaNET>
+=== CMD judo server settings
+localhost
+8080
+none
+
+<USER>@jaNET>
+=== CMD judo serial settings
+/dev/ttyACM0
+9600
+
+<USER>@jaNET>
+=== CMD judo serial state
+Serial port state: False
+
+<USER>@jaNET>
+=== CMD judo schedule ls
+
+
+<USER>@jaNET>
+=== CMD whoami
+You are, <USER>.
+
+<USER>@jaNET>
+=== CMD whereami
+You are, present.
+
+<USER>@jaNET>
+=== CMD %user%
+<USER>
+
+<USER>@jaNET>
+=== CMD %calendaryear%
+2026
+
+<USER>@jaNET>
+=== CMD nonexistentcommand
+nonexistentcommand, not found.
+
+<USER>@jaNET>
+=== CMD judo sleep 10
+
+
+<USER>@jaNET>
+=== CMD judo inset add yes <lock>YES-branch</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add no <lock>NO-branch</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add evtrue <lock>{ evalBool(1 == 1); yes; no; }</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add evfalse <lock>{ evalBool(2 < 1); yes; no; }</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add evstr <lock>{ evalBool("a" == "a"); yes; no; }</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add evcontains <lock>{ evalBool("abc" ~> "b"); yes; no; }</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset add full t1 <lock>hello %user%</lock> `Cat` `Head` `Short` `Long` `/thumb.png` `ref`
+Element added.
+
+<USER>@jaNET>
+=== CMD judo inset ls
+<InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+<InstructionSet id="salute">*salute</InstructionSet>
+<InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+<InstructionSet id="goodbye">*goodbye</InstructionSet>
+<InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+<InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+<InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+<InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+<InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+<InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+<InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+<InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+<InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+<InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+<InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+<InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+<InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+<InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+<InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+<InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+<InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+<InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+<InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailone">*gmailone</InstructionSet>
+<InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+<InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3one">*pop3one</InstructionSet>
+<InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3count">*pop3count</InstructionSet>
+<InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+<InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+<InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+<InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+<InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+<InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+<InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+<InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+<InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+<InstructionSet id="*time">Time is, %time%.</InstructionSet>
+<InstructionSet id="*timewidget">%time%</InstructionSet>
+<InstructionSet id="timewidget">*timewidget</InstructionSet>
+<InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+<InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+<InstructionSet id="*time24widget">%time24%</InstructionSet>
+<InstructionSet id="time24widget">*time24widget</InstructionSet>
+<InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+<InstructionSet id="*date">Date is, %date%.</InstructionSet>
+<InstructionSet id="*datewidget">%date%</InstructionSet>
+<InstructionSet id="datewidget">*datewidget</InstructionSet>
+<InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+<InstructionSet id="*day">Today is, %day%.</InstructionSet>
+<InstructionSet id="*daywidget">%day%</InstructionSet>
+<InstructionSet id="daywidget">*daywidget</InstructionSet>
+<InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+<InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+<InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+<InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+<InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+<InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+<InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+<InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+<InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+<InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+<InstructionSet id="checkinout">*checkinout</InstructionSet>
+<InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+<InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+<InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+<InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+<InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+<InstructionSet id="sleeper">*sleeper</InstructionSet>
+<InstructionSet id="*yes">YES-branch</InstructionSet>
+<InstructionSet id="yes">*yes</InstructionSet>
+<InstructionSet id="*no">NO-branch</InstructionSet>
+<InstructionSet id="no">*no</InstructionSet>
+<InstructionSet id="*evtrue">{ evalBool(1 == 1); yes; no; }</InstructionSet>
+<InstructionSet id="evtrue">*evtrue</InstructionSet>
+<InstructionSet id="*evfalse">{ evalBool(2 &lt; 1); yes; no; }</InstructionSet>
+<InstructionSet id="evfalse">*evfalse</InstructionSet>
+<InstructionSet id="*evstr">{ evalBool("a" == "a"); yes; no; }</InstructionSet>
+<InstructionSet id="evstr">*evstr</InstructionSet>
+<InstructionSet id="*evcontains">{ evalBool("abc" ~&gt; "b"); yes; no; }</InstructionSet>
+<InstructionSet id="evcontains">*evcontains</InstructionSet>
+<InstructionSet id="*full">t1</InstructionSet>
+<InstructionSet id="full" img="Long" descr="Short" shortdescr="Head" header="Cat" categ="hello %user%" ref="/thumb.png">*full</InstructionSet>
+
+
+<USER>@jaNET>
+=== CMD yes
+YES-branch
+
+<USER>@jaNET>
+=== CMD no
+NO-branch
+
+<USER>@jaNET>
+=== CMD evtrue
+YES-branch
+
+<USER>@jaNET>
+=== CMD evfalse
+NO-branch
+
+<USER>@jaNET>
+=== CMD evstr
+YES-branch
+
+<USER>@jaNET>
+=== CMD evcontains
+NO-branch
+
+<USER>@jaNET>
+=== CMD t1
+t1, not found.
+
+<USER>@jaNET>
+=== CMD *t1
+
+
+<USER>@jaNET>
+=== CMD judo inset add multi <lock>one; two</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD multi
+one; two
+
+<USER>@jaNET>
+=== CMD yes; no
+YES-branch
+NO-branch
+
+<USER>@jaNET>
+=== CMD yes&no
+YES-branch
+NO-branch
+
+<USER>@jaNET>
+=== CMD {mute}yes
+YES-branch
+
+<USER>@jaNET>
+=== CMD judo event add ev1 <lock>yes</lock>
+Element added.
+
+<USER>@jaNET>
+=== CMD judo event ls
+<event id="oncheckin">%unmute%; salute; weathertoday</event>
+<event id="oncheckout">judo sleep 5000; goodbye; %unmute%</event>
+<event id="ev1">yes</event>
+
+
+<USER>@jaNET>
+=== CMD %~>ev1%
+
+
+<USER>@jaNET>
+=== CMD judo inset del t1
+Element removed.
+
+<USER>@jaNET>
+=== CMD judo inset ls
+<InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+<InstructionSet id="salute">*salute</InstructionSet>
+<InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+<InstructionSet id="goodbye">*goodbye</InstructionSet>
+<InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+<InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+<InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+<InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+<InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+<InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+<InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+<InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+<InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+<InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+<InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+<InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+<InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+<InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+<InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+<InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+<InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+<InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+<InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailone">*gmailone</InstructionSet>
+<InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+<InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3one">*pop3one</InstructionSet>
+<InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3count">*pop3count</InstructionSet>
+<InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+<InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+<InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+<InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+<InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+<InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+<InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+<InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+<InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+<InstructionSet id="*time">Time is, %time%.</InstructionSet>
+<InstructionSet id="*timewidget">%time%</InstructionSet>
+<InstructionSet id="timewidget">*timewidget</InstructionSet>
+<InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+<InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+<InstructionSet id="*time24widget">%time24%</InstructionSet>
+<InstructionSet id="time24widget">*time24widget</InstructionSet>
+<InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+<InstructionSet id="*date">Date is, %date%.</InstructionSet>
+<InstructionSet id="*datewidget">%date%</InstructionSet>
+<InstructionSet id="datewidget">*datewidget</InstructionSet>
+<InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+<InstructionSet id="*day">Today is, %day%.</InstructionSet>
+<InstructionSet id="*daywidget">%day%</InstructionSet>
+<InstructionSet id="daywidget">*daywidget</InstructionSet>
+<InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+<InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+<InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+<InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+<InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+<InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+<InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+<InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+<InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+<InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+<InstructionSet id="checkinout">*checkinout</InstructionSet>
+<InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+<InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+<InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+<InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+<InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+<InstructionSet id="sleeper">*sleeper</InstructionSet>
+<InstructionSet id="*yes">YES-branch</InstructionSet>
+<InstructionSet id="yes">*yes</InstructionSet>
+<InstructionSet id="*no">NO-branch</InstructionSet>
+<InstructionSet id="no">*no</InstructionSet>
+<InstructionSet id="*evtrue">{ evalBool(1 == 1); yes; no; }</InstructionSet>
+<InstructionSet id="evtrue">*evtrue</InstructionSet>
+<InstructionSet id="*evfalse">{ evalBool(2 &lt; 1); yes; no; }</InstructionSet>
+<InstructionSet id="evfalse">*evfalse</InstructionSet>
+<InstructionSet id="*evstr">{ evalBool("a" == "a"); yes; no; }</InstructionSet>
+<InstructionSet id="evstr">*evstr</InstructionSet>
+<InstructionSet id="*evcontains">{ evalBool("abc" ~&gt; "b"); yes; no; }</InstructionSet>
+<InstructionSet id="evcontains">*evcontains</InstructionSet>
+<InstructionSet id="*full">t1</InstructionSet>
+<InstructionSet id="full" img="Long" descr="Short" shortdescr="Head" header="Cat" categ="hello %user%" ref="/thumb.png">*full</InstructionSet>
+<InstructionSet id="*multi">one; two</InstructionSet>
+<InstructionSet id="multi">*multi</InstructionSet>
+<InstructionSet id="ev1">%~&gt;ev1%</InstructionSet>
+
+
+<USER>@jaNET>
+=== CMD judo event del ev1
+Element removed.
+
+<USER>@jaNET>
+=== CMD judo event ls
+<event id="oncheckin">%unmute%; salute; weathertoday</event>
+<event id="oncheckout">judo sleep 5000; goodbye; %unmute%</event>
+
+
+<USER>@jaNET>
+=== CMD judo schedule add s1 daily 10:00 yes
+Schedule s1 added
+
+<USER>@jaNET>
+=== CMD judo schedule add s2 Monday 8:30 no
+Schedule s2 added
+
+<USER>@jaNET>
+=== CMD judo schedule add s3 workdays 07:15 yes
+Schedule s3 added
+
+<USER>@jaNET>
+=== CMD judo schedule add s4 weekend 22:00 no
+Schedule s4 added
+
+<USER>@jaNET>
+=== CMD judo schedule add s5 25/12/2099 09:00 yes
+Schedule s5 added
+
+<USER>@jaNET>
+=== CMD judo schedule add s6 repeat 3600000 yes
+Schedule s6 added
+
+<USER>@jaNET>
+=== CMD judo schedule ls
+s1 | daily | 10:00 | yes | Active
+s2 | monday | 8:30 | no | Active
+s3 | workdays | 07:15 | yes | Active
+s4 | weekend | 22:00 | no | Active
+s5 | 25/12/2099 | 09:00 | yes | Active
+s6 | repeat | 3600000 | yes | Active
+
+
+<USER>@jaNET>
+=== CMD judo schedule details
+s1 | daily | 10:00 | yes | Active
+s2 | monday | 8:30 | no | Active
+s3 | workdays | 07:15 | yes | Active
+s4 | weekend | 22:00 | no | Active
+s5 | 25/12/2099 | 09:00 | yes | Active
+s6 | repeat | 3600000 | yes | Active
+
+
+<USER>@jaNET>
+=== CMD judo schedule names
+s1
+s2
+s3
+s4
+s5
+s6
+
+
+<USER>@jaNET>
+=== CMD judo schedule active
+s1
+s2
+s3
+s4
+s5
+s6
+
+
+<USER>@jaNET>
+=== CMD judo schedule inactive
+
+
+<USER>@jaNET>
+=== CMD judo schedule disable s1
+Scheduler updated [s1:Disable]
+
+<USER>@jaNET>
+=== CMD judo schedule inactive
+s1
+
+
+<USER>@jaNET>
+=== CMD judo schedule enable s1
+Scheduler updated [s1:Enable]
+
+<USER>@jaNET>
+=== CMD judo schedule status s1
+s1 | daily | 10:00 | yes | Active
+
+
+<USER>@jaNET>
+=== CMD judo schedule disable-all
+Scheduler updated [:DisableAll]
+
+<USER>@jaNET>
+=== CMD judo schedule active
+
+
+<USER>@jaNET>
+=== CMD judo schedule enable-all
+Scheduler updated [:EnableAll]
+
+<USER>@jaNET>
+=== CMD judo schedule rm s2
+Scheduler updated [s2:Remove]
+
+<USER>@jaNET>
+=== CMD judo schedule names
+s1
+s3
+s4
+s5
+s6
+
+
+<USER>@jaNET>
+=== CMD judo schedule clear
+Scheduler updated [:RemoveAll]
+
+<USER>@jaNET>
+=== CMD judo schedule ls
+
+
+<USER>@jaNET>
+=== CMD judo smtp set smtp.example.org user1 secret1 587 true
+Settings saved.
+
+<USER>@jaNET>
+=== CMD judo smtp settings
+smtp.example.org
+user1
+secret1
+587
+True
+
+<USER>@jaNET>
+=== CMD judo pop3 set pop.example.org user2 secret2 995 true
+Settings saved.
+
+<USER>@jaNET>
+=== CMD judo pop3 settings
+pop.example.org
+user2
+secret2
+995
+True
+
+<USER>@jaNET>
+=== CMD judo gmail set me@example.org secret3
+Settings saved.
+
+<USER>@jaNET>
+=== CMD judo gmail settings
+me@example.org
+secret3
+
+<USER>@jaNET>
+=== CMD judo mailheaders set `a@x.org` `b@y.org` `Subj ect`
+The file '<RUN>\AppConfig.xml' already exists.
+
+<USER>@jaNET>
+=== CMD judo mailheaders settings
+noreply@xxx.org
+me@yyy.org
+Alert from Jubito
+
+<USER>@jaNET>
+=== CMD judo sms set 1234 smsuser smspass
+Settings saved.
+
+<USER>@jaNET>
+=== CMD judo sms settings
+1234
+smsuser
+smspass
+
+<USER>@jaNET>
+=== CMD judo server setup localhost 8080 none
+Element added.
+
+<USER>@jaNET>
+=== CMD judo server settings
+localhost
+8080
+none
+
+<USER>@jaNET>
+=== CMD judo socket setup localhost 5744
+Element added.
+
+<USER>@jaNET>
+=== CMD judo socket settings
+localhost
+5744
+localhost; 192.168.1.1
+
+<USER>@jaNET>
+=== CMD judo trusted settings
+localhost; 192.168.1.1
+
+<USER>@jaNET>
+=== CMD judo serial set COM9 19200
+Element added.
+
+<USER>@jaNET>
+=== CMD judo serial settings
+COM9
+19200
+
+<USER>@jaNET>
+=== CMD judo ping localhost
+True
+
+<USER>@jaNET>
+=== CMD judo json add j1 http://localhost:8080/?cmd=yes&mode=json
+Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+
+<USER>@jaNET>
+=== CMD judo xml add x1 http://localhost:8080/?cmd=yes&mode=text
+
+mode=text, not found.
+
+<USER>@jaNET>
+=== CMD judo http get http://localhost:8080/?cmd=yes&mode=text
+YES-branch
+mode=text, not found.
+
+<USER>@jaNET>
+=== CMD judo json get http://localhost:8080/?cmd=yes&mode=json yes
+Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+
+<USER>@jaNET>
+=== CMD judo json consume http://localhost:8080/?cmd=yes&mode=json yes
+Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+
+<USER>@jaNET>
+=== CMD %uptime%
+<UPTIME>
+
+<USER>@jaNET>
+=== CMD %mute%
+
+
+<USER>@jaNET>
+=== CMD %unmute%
+
+
+<USER>@jaNET>
+=== CMD %checkout%
+
+
+<USER>@jaNET>
+=== CMD %whereami%
+absent
+
+<USER>@jaNET>
+=== CMD %checkin%
+
+
+<USER>@jaNET>
+=== CMD %whereami%
+present
+
+<USER>@jaNET>
+=== CMD judo unknownroot
+
+
+<USER>@jaNET>
+=== CMD judo
+Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+
+<USER>@jaNET>
+=== HTTP /?cmd=yes -> 200
+YES-branch
+=== HTTP /?cmd=yes&mode=json -> 200
+{"yes":{"Key":"yes","Value":"YES-branch"}}
+=== HTTP /?cmd=yes&mode=text -> 200
+YES-branch
+=== HTTP /?cmd=yes&mode=html -> 200
+YES-branch
+=== HTTP /?cmd=yes;no&mode=json -> 200
+{"yes":{"Key":"yes","Value":"YES-branch"},"no":{"Key":"no","Value":"NO-branch"}}
+=== HTTP /?cmd=evtrue&mode=json -> 200
+{"evtrue":{"Key":"evtrue","Value":"YES-branch"}}
+=== HTTP /?cmd=whoami&mode=json -> 200
+{"whoami":{"Key":"whoami","Value":"You are, <USER>."}}
+=== HTTP /?cmd=judo%20inset%20ls&mode=text -> 200
+<InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+<InstructionSet id="salute">*salute</InstructionSet>
+<InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+<InstructionSet id="goodbye">*goodbye</InstructionSet>
+<InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+<InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+<InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+<InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+<InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+<InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+<InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+<InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+<InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+<InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+<InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+<InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+<InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+<InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+<InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+<InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+<InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+<InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+<InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailone">*gmailone</InstructionSet>
+<InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+<InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3one">*pop3one</InstructionSet>
+<InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3count">*pop3count</InstructionSet>
+<InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+<InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+<InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+<InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+<InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+<InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+<InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+<InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+<InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+<InstructionSet id="*time">Time is, %time%.</InstructionSet>
+<InstructionSet id="*timewidget">%time%</InstructionSet>
+<InstructionSet id="timewidget">*timewidget</InstructionSet>
+<InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+<InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+<InstructionSet id="*time24widget">%time24%</InstructionSet>
+<InstructionSet id="time24widget">*time24widget</InstructionSet>
+<InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+<InstructionSet id="*date">Date is, %date%.</InstructionSet>
+<InstructionSet id="*datewidget">%date%</InstructionSet>
+<InstructionSet id="datewidget">*datewidget</InstructionSet>
+<InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+<InstructionSet id="*day">Today is, %day%.</InstructionSet>
+<InstructionSet id="*daywidget">%day%</InstructionSet>
+<InstructionSet id="daywidget">*daywidget</InstructionSet>
+<InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+<InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+<InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+<InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+<InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+<InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+<InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+<InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+<InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+<InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+<InstructionSet id="checkinout">*checkinout</InstructionSet>
+<InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+<InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+<InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+<InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+<InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+<InstructionSet id="sleeper">*sleeper</InstructionSet>
+<InstructionSet id="*yes">YES-branch</InstructionSet>
+<InstructionSet id="yes">*yes</InstructionSet>
+<InstructionSet id="*no">NO-branch</InstructionSet>
+<InstructionSet id="no">*no</InstructionSet>
+<InstructionSet id="*evtrue">{ evalBool(1 == 1); yes; no; }</InstructionSet>
+<InstructionSet id="evtrue">*evtrue</InstructionSet>
+<InstructionSet id="*evfalse">{ evalBool(2 &lt; 1); yes; no; }</InstructionSet>
+<InstructionSet id="evfalse">*evfalse</InstructionSet>
+<InstructionSet id="*evstr">{ evalBool("a" == "a"); yes; no; }</InstructionSet>
+<InstructionSet id="evstr">*evstr</InstructionSet>
+<InstructionSet id="*evcontains">{ evalBool("abc" ~&gt; "b"); yes; no; }</InstructionSet>
+<InstructionSet id="evcontains">*evcontains</InstructionSet>
+<InstructionSet id="*full">t1</InstructionSet>
+<InstructionSet id="full" img="Long" descr="Short" shortdescr="Head" header="Cat" categ="hello %user%" ref="/thumb.png">*full</InstructionSet>
+<InstructionSet id="*multi">one; two</InstructionSet>
+<InstructionSet id="multi">*multi</InstructionSet>
+<InstructionSet id="ev1">%~&gt;ev1%</InstructionSet>
+
+=== HTTP /?cmd=nonexistent&mode=json -> 200
+{"nonexistent":{"Key":"nonexistent","Value":"nonexistent, not found."}}
+=== HTTP /?cmd=judo%20schedule%20ls&mode=json -> 200
+{"judo_schedule_ls":{"Key":"judo schedule ls","Value":""}}
+=== HTTP ~/www/ -> 200
+(content not compared)
+=== HTTP ~/www/index.html -> 200
+(content not compared)
+=== HTTP ~/www/js/jubito.core.js -> 200
+(content not compared)
+=== HTTP /www/images/logo.png -> 200
+len=25767 sha=36-7D-39-18-0D-81-42-38-22-4E-0E-67-82-B1-47-67-8E-02-86-AB
+=== HTTP /www/favicon.ico -> 200
+len=99678 sha=80-87-6D-79-33-79-11-37-8A-59-E9-41-B9-6E-C0-06-83-EE-C4-55
+=== HTTP /www/doesnotexist.html -> 404
+
+=== HTTP /favicon.ico -> 404
+
+=== TCP yes
+YES-branch
+
+=== TCP evtrue
+YES-branch
+
+=== TCP whoami
+You are, <USER>.
+
+=== TCP judo inset ls
+<InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+<InstructionSet id="salute">*salute</InstructionSet>
+<InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+<InstructionSet id="goodbye">*goodbye</InstructionSet>
+<InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+<InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+<InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+<InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+<InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+<InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+<InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+<InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+<InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+<InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+<InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+<InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+<InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+<InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+<InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+<InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+<InstructionSet id="forecastwidget">*forecastwidget?C</InstructionSet>
+<InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+<InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailone">*gmailone</InstructionSet>
+<InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+<InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3one">*pop3one</InstructionSet>
+<InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+<InstructionSet id="pop3count">*pop3count</InstructionSet>
+<InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+<InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+<InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+<InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+<InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+<InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+<InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+<InstructionSet id="gmail" img="/www/images/icon-set/gm
+=== TCP nonexistent
+ERR MethodInvocationException
+=== CMD judo socket status
+Socket state: True
+
+<USER>@jaNET>
+=== CMD judo server login bob pw1
+Settings saved.
+
+<USER>@jaNET>
+=== CMD judo server setup localhost 8080 basic
+Element added.
+
+<USER>@jaNET>
+=== CMD judo server stop
+Web server state: False
+
+<USER>@jaNET>
+=== CMD judo server start
+Web server state: True
+
+<USER>@jaNET>
+=== CMD judo server status
+Web server state: True
+
+<USER>@jaNET>
+=== HTTP /?cmd=yes&mode=json -> 401
+
+=== HTTP /?cmd=yes&mode=json|bob:wrong -> 401
+
+=== HTTP /?cmd=yes&mode=json|bob:pw1 -> 200
+{"yes":{"Key":"yes","Value":"YES-branch"}}
+=== HTTP ~/www/index.html|bob:pw1 -> 200
+(content not compared)
+=== CMD judo server setup localhost 8080 none
+Element added.
+
+<USER>@jaNET>
+=== CMD judo server stop
+Web server state: False
+
+<USER>@jaNET>
+=== CMD judo server start
+Web server state: True
+
+<USER>@jaNET>
+=== CMD judo server status
+Web server state: True
+
+<USER>@jaNET>
+=== HTTP /?cmd=yes&mode=json -> 200
+{"yes":{"Key":"yes","Value":"YES-branch"}}
+=== FILE AppConfig.xml
+<?xml version="1.0" encoding="utf-8"?>
+<jaNET xmlns...>
+  <System>
+    <Alerts>
+      <MailHeaders>
+        <MailFrom>noreply@xxx.org</MailFrom>
+        <MailTo>me@yyy.org</MailTo>
+        <MailSubject>Alert from Jubito</MailSubject>
+      </MailHeaders>
+    </Alerts>
+    <Comm>
+      <Trusted>localhost; 192.168.1.1</Trusted>
+      <localHost>localhost</localHost>
+      <localPort>5744</localPort>
+      <Hostname>localhost</Hostname>
+      <httpPort>8080</httpPort>
+      <Authentication>none</Authentication>
+      <ComPort>COM9</ComPort>
+      <BaudRate>19200</BaudRate>
+    </Comm>
+    <Others>
+      <Weather>http://api.openweathermap.org/data/2.5/weather?q=Athens,GR&amp;units=metric&amp;APPID=44e99238e8b13d4085b1cc545ab9a70c</Weather>
+    </Others>
+  </System>
+  <Events>
+    <event id="oncheckin">%unmute%; salute; weathertoday</event>
+    <event id="oncheckout">judo sleep 5000; goodbye; %unmute%</event>
+  </Events>
+  <Instructions>
+    <InstructionSet id="*salute">Good %salute% %user%.</InstructionSet>
+    <InstructionSet id="salute">*salute</InstructionSet>
+    <InstructionSet id="*goodbye">Good bye %user%.</InstructionSet>
+    <InstructionSet id="goodbye">*goodbye</InstructionSet>
+    <InstructionSet id="*whoami">You are, %user%.</InstructionSet>
+    <InstructionSet id="*whoamiwidget">%user%</InstructionSet>
+    <InstructionSet id="whoamiwidget">*whoamiwidget</InstructionSet>
+    <InstructionSet id="whoami" img="/www/images/icon-set/user.png" descr="System login" shortdescr="Get user login" header="Login name" categ="System" ref="whoamiwidget">*whoami</InstructionSet>
+    <InstructionSet id="*whereami">You are, %whereami%.</InstructionSet>
+    <InstructionSet id="*whereamiwidget">%whereami%</InstructionSet>
+    <InstructionSet id="whereamiwidget">*whereamiwidget</InstructionSet>
+    <InstructionSet id="whereami" img="/www/images/icon-set/home.png" descr="Present or absent" shortdescr="Get user status" header="Where am I?" categ="System" ref="whereamiwidget">*whereami</InstructionSet>
+    <InstructionSet id="*mute">Disabling speech synthesis. %mute%</InstructionSet>
+    <InstructionSet id="mute" img="/www/images/icon-set/mute.png" descr="Turn off Text-To-Speech" shortdescr="Disable speech synthesizer" header="Mute" categ="System">*mute</InstructionSet>
+    <InstructionSet id="*unmute">%unmute% Speech synthesis enabled.</InstructionSet>
+    <InstructionSet id="unmute" img="/www/images/icon-set/unmute.png" descr="Turn on Text-To-Speech" shortdescr="Enable speech synthesizer" header="Unmute" categ="System">*unmute</InstructionSet>
+    <InstructionSet id="*whoru">I am Jubito, nice to meet you.</InstructionSet>
+    <InstructionSet id="whoru" img="/www/images/logo.png" descr="A polite system introduction :)" shortdescr="Get jubito's name" header="Who are you?" categ="System">*whoru</InstructionSet>
+    <InstructionSet id="*weathertoday">Today %todayday%, %todayconditions%, between %todaylow% and %todayhigh% celcius degrees.</InstructionSet>
+    <InstructionSet id="*forecastwidget">%todayconditions% %todaytemp%</InstructionSet>
+    <InstructionSet id="forecastwidget">*forecastwidget°C</InstructionSet>
+    <InstructionSet id="weathertoday" img="/www/images/icon-set/weather.png" descr="Feed from weather service" shortdescr="Get today's weather" header="Today's weather" categ="Weather" ref="forecastwidget">*weathertoday</InstructionSet>
+    <InstructionSet id="*gmailone">You have, 1, unread message to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="gmailone">*gmailone</InstructionSet>
+    <InstructionSet id="*gmailcount">You have, %gmailcount%, unread messages to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="gmailcount">*gmailcount</InstructionSet>
+    <InstructionSet id="*pop3one">You have, 1, unread message to pop-3 inbox.</InstructionSet>
+    <InstructionSet id="pop3one">*pop3one</InstructionSet>
+    <InstructionSet id="*pop3count">You have, %pop3count%, unread messages to pop-3 inbox.</InstructionSet>
+    <InstructionSet id="pop3count">*pop3count</InstructionSet>
+    <InstructionSet id="*mail">{ evalBool(%gmailcount% == 1); gmailone; ; }{ evalBool(%gmailcount% &gt; 1); gmailcount; ; }{ evalBool(%pop3count% == 1); pop3one; ; }{ evalBool(%pop3count% &gt; 1); pop3count; ; }</InstructionSet>
+    <InstructionSet id="mail" img="/www/images/icon-set/email.png" descr="Check for unread messages from all accounts" shortdescr="Gmail/Pop3" header="Check unread messages" categ="Network">*mail</InstructionSet>
+    <InstructionSet id="*allmail">You have, %pop3count%, mail messages, to pop-3 inbox, and, %gmailcount%, mail messages to your g-mail inbox.</InstructionSet>
+    <InstructionSet id="allmail" img="/www/images/icon-set/allmail.png" descr="Count messages from all accounts" shortdescr="Gmail/Pop3" header="Check all" categ="Network">*allmail</InstructionSet>
+    <InstructionSet id="*gmail">{ evalBool(%gmailcount% == 1); gmailone; gmailcount; }</InstructionSet>
+    <InstructionSet id="*gmailwidget">%gmailcount%</InstructionSet>
+    <InstructionSet id="gmailwidget">*gmailwidget</InstructionSet>
+    <InstructionSet id="gmail" img="/www/images/icon-set/gmail.png" descr="Check for unread messages" shortdescr="Gmail account" header="Check Gmail" categ="Network" ref="gmailwidget">*gmail</InstructionSet>
+    <InstructionSet id="*gmailreader">%gmailreader%</InstructionSet>
+    <InstructionSet id="gmailreader" img="/www/images/icon-set/gmailreader.png" descr="Read headers from unread messages" shortdescr="Gmail account" header="Gmail headers" categ="Network">*gmailreader</InstructionSet>
+    <InstructionSet id="*time">Time is, %time%.</InstructionSet>
+    <InstructionSet id="*timewidget">%time%</InstructionSet>
+    <InstructionSet id="timewidget">*timewidget</InstructionSet>
+    <InstructionSet id="time" img="/www/images/icon-set/time.png" descr="Get system time in AM/PM format" shortdescr="AM/PM" header="Time" categ="Localization" ref="timewidget">*time</InstructionSet>
+    <InstructionSet id="*time24">Time is, %time24%.</InstructionSet>
+    <InstructionSet id="*time24widget">%time24%</InstructionSet>
+    <InstructionSet id="time24widget">*time24widget</InstructionSet>
+    <InstructionSet id="time24" img="/www/images/icon-set/time24.png" descr="Get system time in 24 hours format" shortdescr="Time in 24h format" header="Time 24h" categ="Localization" ref="time24widget">*time24</InstructionSet>
+    <InstructionSet id="*date">Date is, %date%.</InstructionSet>
+    <InstructionSet id="*datewidget">%date%</InstructionSet>
+    <InstructionSet id="datewidget">*datewidget</InstructionSet>
+    <InstructionSet id="date" img="/www/images/icon-set/calendar.png" descr="e.g. May 9" shortdescr="Get system date" header="Date" categ="Localization" ref="datewidget">*date</InstructionSet>
+    <InstructionSet id="*day">Today is, %day%.</InstructionSet>
+    <InstructionSet id="*daywidget">%day%</InstructionSet>
+    <InstructionSet id="daywidget">*daywidget</InstructionSet>
+    <InstructionSet id="day" img="/www/images/icon-set/day.png" descr="e.g. Friday" shortdescr="Get system day" header="Day" categ="Localization" ref="daywidget">*day</InstructionSet>
+    <InstructionSet id="*partofday">Now is, %daypart%.</InstructionSet>
+    <InstructionSet id="*partofdaywidget">%partofday%</InstructionSet>
+    <InstructionSet id="partofdaywidget">*partofdaywidget</InstructionSet>
+    <InstructionSet id="partofday" img="/www/images/icon-set/daypart.png" descr="e.g. morning, evening, afternoon, etc." shortdescr="Acknowledge part of day" header="Part of day" categ="Localization" ref="partofdaywidget">*partofday</InstructionSet>
+    <InstructionSet id="*check_me_in">%checkin%</InstructionSet>
+    <InstructionSet id="check_me_in" img="/www/images/icon-set/checkin.png" descr="Change user status to present" shortdescr="User check-in" header="Check-in" categ="User">*check_me_in</InstructionSet>
+    <InstructionSet id="*check_me_out">%checkout%</InstructionSet>
+    <InstructionSet id="check_me_out" img="/www/images/icon-set/checkout.png" descr="Change user status to absent" shortdescr="User check-out" header="Check-out" categ="User">*check_me_out</InstructionSet>
+    <InstructionSet id="*checkinout">{ evalBool("%whereami%" == "absent"); check_me_in; check_me_out; }</InstructionSet>
+    <InstructionSet id="checkinout">*checkinout</InstructionSet>
+    <InstructionSet id="*userstatuswidget">%whereami%</InstructionSet>
+    <InstructionSet id="userstatuswidget">*userstatuswidget</InstructionSet>
+    <InstructionSet id="*eval_check_in_out">Evaluating your status. *checkinout *sleeper</InstructionSet>
+    <InstructionSet id="eval_check_in_out" img="/www/images/icon-set/location.png" descr="Change user status by evaluating current status" shortdescr="User check-in/check-out" header="Check-in/Check-out" categ="User" ref="userstatuswidget">*eval_check_in_out Your status has been changed.</InstructionSet>
+    <InstructionSet id="*sleeper">judo sleep 2000</InstructionSet>
+    <InstructionSet id="sleeper">*sleeper</InstructionSet>
+    <InstructionSet id="*yes">YES-branch</InstructionSet>
+    <InstructionSet id="yes">*yes</InstructionSet>
+    <InstructionSet id="*no">NO-branch</InstructionSet>
+    <InstructionSet id="no">*no</InstructionSet>
+    <InstructionSet id="*evtrue">{ evalBool(1 == 1); yes; no; }</InstructionSet>
+    <InstructionSet id="evtrue">*evtrue</InstructionSet>
+    <InstructionSet id="*evfalse">{ evalBool(2 &lt; 1); yes; no; }</InstructionSet>
+    <InstructionSet id="evfalse">*evfalse</InstructionSet>
+    <InstructionSet id="*evstr">{ evalBool("a" == "a"); yes; no; }</InstructionSet>
+    <InstructionSet id="evstr">*evstr</InstructionSet>
+    <InstructionSet id="*evcontains">{ evalBool("abc" ~&gt; "b"); yes; no; }</InstructionSet>
+    <InstructionSet id="evcontains">*evcontains</InstructionSet>
+    <InstructionSet id="*full">t1</InstructionSet>
+    <InstructionSet id="full" img="Long" descr="Short" shortdescr="Head" header="Cat" categ="hello %user%" ref="/thumb.png">*full</InstructionSet>
+    <InstructionSet id="*multi">one; two</InstructionSet>
+    <InstructionSet id="multi">*multi</InstructionSet>
+    <InstructionSet id="ev1">%~&gt;ev1%</InstructionSet>
+  </Instructions>
+</jaNET>
+=== FILE .htaccess
+<2 encrypted lines, legacy format>
+=== FILE .smtpsettings
+<5 encrypted lines, legacy format>
+=== FILE .pop3settings
+<5 encrypted lines, legacy format>
+=== FILE .gmailsettings
+<2 encrypted lines, legacy format>
+=== FILE .janet.key
+<missing>

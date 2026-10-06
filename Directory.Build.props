@@ -1,0 +1,36 @@
+<Project>
+
+  <!-- Settings shared by all projects of the solution -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- The version of everything: the packages, the program and what the banner and %copyright% say (AppInfo reads it from the assembly).
+       Releasing: change it here, add the entry to CHANGELOG.md, tag the commit v<version> (see README, "Releasing"). -->
+  <PropertyGroup>
+    <Version>1.0.0-rc.1</Version>
+  </PropertyGroup>
+
+  <!-- NuGet packages (jaNETFramework, jaNETFramework.Hosting); the program and the tests are not packed -->
+  <PropertyGroup>
+    <PackageReleaseNotes>https://github.com/jambelnet/janet-framework/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <IsPackable>false</IsPackable>
+    <Authors>John Ambeliotis and contributors</Authors>
+    <Company>J@mBeL.net</Company>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/jambelnet/janet-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jambelnet/janet-framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

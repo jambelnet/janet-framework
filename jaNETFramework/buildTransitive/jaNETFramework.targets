@@ -1,0 +1,7 @@
+<Project>
+  <!-- Copies the Jubito web UI next to the application, where the built-in web server looks for it (<application folder>/www).
+       Set <JanetCopyWebUi>false</JanetCopyWebUi> in your project to keep your own www folder instead. -->
+  <ItemGroup Condition="'$(JanetCopyWebUi)' != 'false'">
+    <Content Include="$(MSBuildThisFileDirectory)www\**\*" Link="www\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

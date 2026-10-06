@@ -61,3 +61,7 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# systemd and shell tools choke on CR characters
+deploy/janet.service text eol=lf
+*.sh text eol=lf

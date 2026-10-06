@@ -1,14 +1,17 @@
 # jaNET Framework
 
+[![CI](https://github.com/jambelnet/janet-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/jambelnet/janet-framework/actions/workflows/ci.yml)
+
 ## Introduction
 
-A free and open source IoT framework that provides a set of built-in [functions](https://github.com/jambelnet/janet-framework/wiki/Built-in-functions), a native API ([judo API](https://github.com/jambelnet/janet-framework/wiki/judo-API)), and multiple providers, such as scheduler, evaluator, notification manager and others, to allow a 3rd party software (e.g. [Jubito](http://www.jubito.org), see details below) to exploit, in order to interact with multiple services, software applications and vendor hardware (especially open hardware, such as Arduino, Raspberry Pi, Banana Pi, etc). It is designed for interoperability, therefore, to be absolutely vendor-neutral as well as hardware/protocol-agnostic. It can operate on any device that is capable of running .NET Framework or Mono (Linux, Windows, Mac, including single-board computers, such Raspberry Pi and Banana Pi).
+A free and open source IoT framework that provides a set of built-in [functions](https://github.com/jambelnet/janet-framework/wiki/Built-in-functions), a native API ([judo API](https://github.com/jambelnet/janet-framework/wiki/judo-API)), and multiple providers, such as scheduler, evaluator, notification manager and others, to allow a 3rd party software (e.g. [Jubito](http://www.jubito.org), see details below) to exploit, in order to interact with multiple services, software applications and vendor hardware (especially open hardware, such as Arduino, Raspberry Pi, Banana Pi, etc). It is designed for interoperability, therefore, to be absolutely vendor-neutral as well as hardware/protocol-agnostic. It can operate on any device that is capable of running .NET (Linux, Windows, Mac, including single-board computers, such Raspberry Pi and Banana Pi).
 
 ## Usage
 
-1. Clone the repository, open the solution with Visual Studio or MonoDevelop and build it.
-2. Copy '*www*' root directory inside your build folder, e.g. *janet-framework\jaNETProgram\bin\Debug*.
-3. Run the application (*jaNETProgram.exe*) and access Jubito UI (*http:/localhost:8080/www/*)[*1*] in your browser.
+1. Clone the repository and build it with the [.NET SDK](https://dotnet.microsoft.com/download) (`dotnet build jaNETFramework.sln`).
+   The '*www*' directory is copied next to the program automatically.
+2. Run the application (`dotnet run --project jaNETProgram`, or *jaNETProgram.exe* from *jaNETProgram/bin/Debug/net10.0*) and access Jubito UI (*http://localhost:8080/www/*)[*1*] in your browser.
+   To deploy, use `dotnet publish jaNETProgram -c Release`.
 
 [*1*] Default built-in web server provided by the framework is listening to localhost on port 8080.
 
@@ -20,6 +23,18 @@ i.e.
 
 [judo API doc](https://github.com/jambelnet/janet-framework/wiki/judo-API)
 
+## Console
+
+At a terminal the console shows a banner, an overview of the running services, a coloured prompt with command
+history (Up/Down), Tab completion for `judo` commands, `%functions%` and instruction sets, a grey hint taken from the history,
+tables for `judo schedule`/`inset`/`event` listings and a spinner for slow commands. Ctrl+L clears the screen, Ctrl+D quits.
+
+It is the same console on Windows, Linux and macOS. When input or output is redirected (pipes, scripts), `TERM=dumb`, or
+`--plain` / `JANET_PLAIN=1` is given, the classic plain-text console is used, byte for byte as before.
+
+Without a terminal (systemd, Docker, `nohup`) start it with `--headless`; it keeps serving until SIGTERM/Ctrl+C or `%exit%`.
+`deploy/janet.service` is an example systemd unit. `jaNETProgram --help` lists the options.
+
 ## Structure
 
 There's basically two components in the core system:
@@ -27,25 +42,160 @@ There's basically two components in the core system:
 * Instruction Sets
 * Events
 
+How the code is organized (folders, the instruction runner, how to add a judo command, tests) is described in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Using jaNET in your own application
+
+jaNET is also a library. Two NuGet packages (build them with `dotnet pack`, or add the projects to your solution):
+
+| Package | For |
+|---|---|
+| `jaNETFramework` | `JanetHost`, the extension points (`JudoCommand`, custom `%functions%`, `ISpeaker`) and the Jubito web UI, which is copied next to your program (`<JanetCopyWebUi>false</JanetCopyWebUi>` turns that off) |
+| `jaNETFramework.Hosting` | `services.AddJanet(...)` for the .NET generic host (Worker Service, ASP.NET Core) |
+
+```csharp
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddJanet(o => {
+    o.Functions["garage"] = () => door.IsOpen ? "open" : "closed";     // %garage% in every instruction
+    o.Commands.Add(new BlindsCommand());                               // judo blinds up|down
+});
+builder.Build().Run();
+```
+
+Without the generic host: `using var janet = new JanetHost(options); janet.Start(); janet.Execute("judo schedule ls");`.
+Both package readmes ([core](jaNETFramework/PackageReadme.md), [hosting](jaNETFramework.Hosting/README.md)) show the details.
+jaNET is GPL licensed, so applications that link it must be GPL compatible.
+
+## When something does not work
+
+The console says so, in words, instead of leaving you to read `log.txt`: a web, socket or serial service that could not start (port in use, no
+rights, an address that makes no sense), a damaged `AppConfig.xml` or settings file, a web server that anybody on the network can use without a
+password, and the default `admin` / `admin` login. At start-up they appear in a box (red for errors, yellow for warnings); with `--plain` and
+`--headless` they are printed as `Error: ...` and `Warning: ...` lines. After a command that changes things the new ones appear too, and
+`judo server start` (and `judo socket start`, `judo serial open`) answer with a `Reason:` line when the service stays off. The technical message
+still goes to `log.txt`. A program that embeds jaNET reads `JanetHost.Notices`; with `AddJanet` they are written to the application's log.
+
+Tab completion works like a shell: one match completes the word, several complete as far as they agree, and if they still differ the line is left
+as you typed it and the choices are listed; Tab again steps through them (Shift+Tab backwards). A `judo` command that does not exist turns red
+while you type it.
+
 ## Help
+
+In the fancy console `judo help` is laid out as one table per chapter (what it is for, the command, the other verbs that do the same);
+`--plain` and `--headless` print the text as it always was.
 
 A forum wil be started at some point.\
 Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framework/issues) and turn yourself into a valuable project participant.
 
+## Running it on Linux, macOS and Raspberry Pi
+
+The easy way is a build that carries its own runtime, so nothing has to be installed. Take `janet-<version>-<system>.tar.gz` from the
+[releases](https://github.com/jambelnet/janet-framework/releases), or make it yourself on any computer with the .NET SDK (`python tools/publish.py linux-arm64`, the files
+end up in `artifacts/`). Which system is yours? `uname -m` says `x86_64` (linux-x64), `aarch64` (linux-arm64, a Raspberry Pi with the 64-bit system) or `armv7l` (linux-arm, the 32-bit system).
+
+```
+tar xzf janet-1.0.0-linux-arm64.tar.gz
+cd janet-1.0.0-linux-arm64
+./jaNETProgram                 (--headless for a service; the console is fancy when you are at a terminal)
+```
+
+Use a `.tar.gz`, not a zip: a zip made on Windows has lost the "executable" flag of `jaNETProgram` (then `chmod +x jaNETProgram` is needed). If it still does not start:
+
+| What you see | What it is | What to do |
+| --- | --- | --- |
+| `You must install or update .NET to run this application` ... `Microsoft.AspNetCore.App` | You have a build that is not self-contained (`dotnet publish`, `dotnet build`) and only the .NET runtime | Install the ASP.NET Core runtime too (it contains the .NET runtime): `sudo apt install aspnetcore-runtime-10.0`, or use the self-contained build |
+| `cannot execute binary file: Exec format error` | The build is for another processor | Take the build that matches `uname -m` (see above) |
+| `Permission denied` | The executable flag is missing | `chmod +x jaNETProgram` |
+| `Couldn't find a valid ICU package installed on the system` | A minimal system (container, Alpine) without ICU | `export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` or install `libicu` |
+| `jaNET cannot start: ...` | jaNET cannot write its data folder | See *Where jaNET keeps its files*; start it as the user that owns the folder, or give it one with `--root DIR` |
+
+`dotnet jaNETProgram.dll` works with a framework-dependent build everywhere, with the same two runtimes. For a service see `deploy/janet.service`.
+
 ## Requirements
 
-### Windows
-* .NET Framework >= 4.5
-* Visual Studio >= 2015
+* [.NET SDK 10.0](https://dotnet.microsoft.com/download) or later (Windows, Linux or macOS; ARM boards such as Raspberry Pi are supported by .NET).
+  To only run a published build you need the **.NET runtime and the ASP.NET Core runtime** (the web server is Kestrel); the SDK has both.
+* Optional: Visual Studio 2022+, VS Code or Rider
 
-### Linux
-* mono-complete
-* [mono-develop](http://www.monodevelop.com)
+Run the tests with `dotnet test jaNETFramework.sln` (489 tests) and check the behavior against the original program with `tools\compare.ps1`.
+
+## MQTT (ESP32, Tasmota, ESPHome, Zigbee2MQTT, Home Assistant, ...)
+
+jaNET is an MQTT client: it listens to topics on a broker (Mosquitto, the one in Home Assistant, ...) and runs an instruction when a message arrives, and
+instructions, events and schedules can publish messages.
+
+```
+judo mqtt set 192.168.1.5                     (port 1883; add "tls" for 8883, or a port, or a client id)
+judo mqtt login jaNET my-password             (kept encrypted in .mqttsettings)
+judo mqtt subscribe home/livingroom/button <lock>{ evalBool("%mqttpayload%" == "pressed"); lighton; lightoff; }</lock>
+judo mqtt subscribe home/garage/door <lock>door_%mqttpayload%</lock>     (runs the instruction set door_open or door_closed)
+judo mqtt start                               (and again after every restart; "judo mqtt stop" turns it off)
+judo mqtt publish home/livingroom/light/set ON            (also `judo mqtt publish topic message retain`)
+```
+
+* In an action `%mqtttopic%` is the topic of the message, `%mqttpayload%` its text and `%mqttnumber%` the first number in it (`21.5` out of
+  `temperature 21.5 C`). **These values are made safe:** only letters, digits and `. , : _ / + @ # = -` are kept, everything else (spaces, quotes,
+  braces, `;`, `%`, ...) becomes `_`, and they are cut at 200 characters. Otherwise anybody who can publish to the broker could run commands through jaNET.
+  For a JSON payload use a sensor that publishes plain values, or a subscription on its sub-topics.
+* `+` in a topic stands for one level, `#` for all the rest (`home/#`); several subscriptions can match one message and all run, one after the other.
+* jaNET says `online` (retained) on `<client id>/status` when it connects and the broker says `offline` when it disappears; it reconnects by itself.
+* The console tells why it cannot connect (nothing listens, wrong login, certificate not trusted) and warns about a login that travels in clear text.
+  `insecure` (`judo mqtt set broker 8883 insecure`) uses tls without checking the broker's certificate, for a broker with its own certificate.
+* An ESP32 (or anything else) can also still talk to jaNET directly: the socket server (`judo socket`) and the web API (`/?cmd=...`) need no broker.
+
+## HTTPS
+
+The web server speaks plain http on its port (default 8080). To add https:
+
+```
+judo server https on            (port 8443, or: judo server https on 9443)
+```
+
+jaNET makes a self-signed certificate once and keeps it in the data folder (`.janet.cert.pfx`); browsers warn about it the first time (the console
+shows its fingerprint to compare). With https on, the plain port only serves this computer (so scripts on the same machine keep working) and sends
+everybody else to https. To use your own certificate (e.g. from Let's Encrypt, exported as .pfx):
+
+```
+judo server https cert /path/to/my.pfx <password>      (the password is kept encrypted in .tlssettings)
+judo server https cert default                         (back to the self-signed one)
+judo server https off
+```
+
+The console warns when the web login would travel in clear text over a network and when the web server has no password at all.
+Listening on a network address (`judo server set 0.0.0.0 8080 basic`) needs no administrator rights.
+
+## Backups
+
+Keep `.janet.key` together with `AppConfig.xml` and the dotfiles (`.htaccess`, `.smtpsettings`, ...) when you back up or move an installation: the key is
+what makes the settings files readable (details in [MODERNIZATION.md](MODERNIZATION.md)). Installations made by older versions are converted automatically on first start.
+
+## Where jaNET keeps its files
+
+The data folder holds `AppConfig.xml`, the encrypted settings files (`.htaccess`, `.smtpsettings`, `.weathersettings`, ...), the key
+`.janet.key` and `log.txt`. It is, in this order:
+
+1. the folder in the environment variable `JANET_HOME`, or given with `--root DIR`;
+2. the folder that already has an `AppConfig.xml` where older versions kept it (the current directory on Windows, the program folder elsewhere), so
+   an existing installation does not move;
+3. otherwise a folder of its own: `%LOCALAPPDATA%\jaNET` on Windows, `/var/lib/janet` for root and `~/.local/share/janet` on Linux,
+   `~/Library/Application Support/jaNET` on a Mac.
+
+The console shows the folder at start-up (`Data folder: ...`). Back it up as a whole, together with `.janet.key`. The web UI is the `www` folder
+next to the program; put a `www` folder in the data folder to use your own version of it. For a service see `deploy/janet.service`.
 
 ## Configuration
 
 All system configuration are described in *System* tag within *AppConfig.xml*.\
 They can manipulated by judo API, but I suggest you doing it, either by editing the XML or by the web UI (*Menu->Settings*).
+
+**Weather:** the weather functions (`%todayconditions%`, `%currenttemp%`, ...) read the OpenWeatherMap "current weather" API. No API key is shipped:
+create a free key at <https://openweathermap.org/api> and save it with `judo weather key <your key>`. The key is kept encrypted in
+`.weathersettings` and put into the request when it is made; the URL in `AppConfig.xml` keeps `APPID=YOUR_OPENWEATHERMAP_API_KEY`. A key that an
+older version left in the URL is moved there when jaNET starts. Until a key is set the weather functions stay empty.
+
+## Modernization
+
+See [MODERNIZATION.md](MODERNIZATION.md) for what changed in the move from .NET Framework/Mono to .NET 10, and how the unchanged behavior was verified.
 
 ## Hardware & Software Compatibility
 
@@ -60,6 +210,7 @@ It is fully tested and runnable on devices listed below:
 **Attached microcontrollers**:
 
 * Arduino
+* ESP32 and other Wi-Fi boards (through MQTT, the socket server or the web API)
 * [RaZberry](http://razberry.z-wave.me/)
 
 **Examples**:
@@ -67,6 +218,22 @@ It is fully tested and runnable on devices listed below:
 * [Arduino](http://jubitoblog.blogspot.com/search/label/arduino)
 * [RazBerry](http://jubitoblog.blogspot.com/search/label/razberry)
 * [IP Camera](http://jubitoblog.blogspot.com/2013/02/dvr-system-using-ip-camera.html)
+
+## Versions and releasing
+
+Version numbers follow [Semantic Versioning](https://semver.org/); what changed is in [CHANGELOG.md](CHANGELOG.md). The current version is the one in
+`Directory.Build.props`: it is the version of both NuGet packages, of the program and of what the banner and `%copyright%` show (`jaNETProgram --version`).
+
+To release: change `<Version>` in `Directory.Build.props`, add the entry for it to `CHANGELOG.md` (a test fails until you do), commit, then
+
+```
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The *Release* workflow checks that the tag is the version of the code, builds, tests, packs, and publishes a GitHub release with the notes from the changelog,
+the packages and the source archive (a version with a dash, such as `1.0.0-rc.1`, is a pre-release). Add the repository secret `NUGET_API_KEY` to have the
+packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS and replays the original program's behavior on every push.
 
 ## Contributing
 
@@ -79,7 +246,9 @@ You may reach out to me via [email](mailto:jambel@jubito.org) or [contact form](
 
 ## License
 
-This project is licensed under GNU General Public License (http://www.gnu.org/licenses/).
+jaNET Framework is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3 or (at your
+option) any later version. See [LICENSE](LICENSE) for the full text and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the components it uses.
+There is no warranty. Every source file carries a notice with the copyright of J@mBeL.net and the author, John Ambeliotis.
 
 ## Wiki
 https://github.com/jambelnet/janet-framework/wiki

@@ -1,0 +1,13 @@
+{
+  "name": "Jubito",
+  "short_name": "Jubito",
+  "description": "Home automation dashboard for jaNET Framework",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#11171d",
+  "theme_color": "#00797a",
+  "icons": [
+    { "src": "images/logo.png", "sizes": "any", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,2 @@
+# After switching authentication off again
+/?cmd=yes&mode=json

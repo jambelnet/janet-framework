@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,props,json,xml,yml,yaml,html,css}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_prefer_braces = when_multiline:suggestion
+
+# Culture and string comparison mistakes are bugs waiting for a user with another locale
+dotnet_diagnostic.CA1304.severity = warning
+dotnet_diagnostic.CA1305.severity = suggestion
+dotnet_diagnostic.CA1307.severity = suggestion
+dotnet_diagnostic.CA1309.severity = warning
+dotnet_diagnostic.CA1310.severity = warning
+dotnet_diagnostic.CA1311.severity = warning
+dotnet_diagnostic.CA2201.severity = warning
+dotnet_diagnostic.CA1816.severity = warning
+dotnet_diagnostic.CA1001.severity = warning
+dotnet_diagnostic.CA1822.severity = suggestion

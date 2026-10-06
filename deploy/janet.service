@@ -1,0 +1,27 @@
+# Example systemd unit.
+#   1. sudo useradd --system --groups dialout janet
+#   2. unpack the self-contained build for your system (janet-<version>-linux-arm64.tar.gz, ...) into /opt/janet:
+#        sudo mkdir /opt/janet && sudo tar xzf janet-*-linux-*.tar.gz --strip-components=1 -C /opt/janet
+#   3. sudo cp /opt/janet/janet.service /etc/systemd/system/ && sudo systemctl enable --now janet
+#   (a framework-dependent build needs "aspnetcore-runtime-10.0" and ExecStart=/opt/janet/jaNETProgram --headless)
+[Unit]
+Description=jaNET Framework
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/janet
+ExecStart=/usr/bin/dotnet /opt/janet/jaNETProgram.dll --headless
+# AppConfig.xml, the settings, the key and log.txt: /var/lib/janet, created and owned by the service user (back it up with .janet.key)
+StateDirectory=janet
+Environment=JANET_HOME=/var/lib/janet
+Restart=on-failure
+# the program stops its servers cleanly on SIGTERM
+KillSignal=SIGTERM
+# the serial port (/dev/ttyACM0, /dev/ttyUSB0) belongs to the dialout group on most distributions
+User=janet
+SupplementaryGroups=dialout
+
+[Install]
+WantedBy=multi-user.target

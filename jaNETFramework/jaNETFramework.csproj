@@ -1,90 +1,43 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AD4F4B46-D486-4FC1-9526-66E480520C62}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>jaNETFramework</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>jaNET</RootNamespace>
     <AssemblyName>jaNETFramework</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <Copyright>Copyright (c) 2010-2026 J@mBeL.net</Copyright>
+    <IsPackable>true</IsPackable>
+    <PackageId>jaNETFramework</PackageId>
+    <Description>jaNET Framework: an instruction runner for home automation and IoT with a scheduler, events, a web server with the Jubito UI, a socket server, serial port and mail/SMS/weather services. Embed it in your own application and extend it with your own commands and functions.</Description>
+    <PackageTags>jaNET;iot;home-automation;automation;scheduler;arduino;raspberry-pi</PackageTags>
+    <PackageReadmeFile>PackageReadme.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1573</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <Externalconsole>true</Externalconsole>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
+    <None Include="PackageReadme.md" Pack="true" PackagePath="\" />
+    <!-- the web UI travels with the package; buildTransitive/jaNETFramework.targets copies it into the output of the consuming project -->
+    <None Include="buildTransitive\jaNETFramework.targets" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="..\www\**\*" Pack="true" PackagePath="buildTransitive\www\" Visible="false" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Application\AppConfig.cs" />
-    <Compile Include="Application\Application.cs" />
-    <Compile Include="Core\JudoParser.cs" />
-    <Compile Include="Core\ParsingTools.cs" />
-    <Compile Include="Extensions\Singleton.cs" />
-    <Compile Include="Network\TCP.cs" />
-    <Compile Include="Providers\Evaluator.cs" />
-    <Compile Include="Extensions\ExtensionMethods.cs" />
-    <Compile Include="Extensions\Helpers.cs" />
-    <Compile Include="Application\Logger.cs" />
-    <Compile Include="Application\Methods.cs" />
-    <Compile Include="Network\Net.cs" />
-    <Compile Include="Core\OperatingSystem.cs" />
-    <Compile Include="Core\Parser.cs" />
-    <Compile Include="Extensions\Process.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Providers\IWeather.cs" />
-    <Compile Include="Providers\OpenWeather.cs" />
-    <Compile Include="Security\RijndaelSimple.cs" />
-    <Compile Include="Providers\Scheduler.cs" />
-    <Compile Include="Comm\SerialComm.cs" />
-    <Compile Include="Network\HTTP.cs" />
-    <Compile Include="Application\Settings.cs" />
-    <Compile Include="Application\User.cs" />
+    <!-- Kestrel: the web server (http and https). Needs the ASP.NET Core runtime next to the .NET runtime. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <ProjectExtensions>
-    <MonoDevelop>
-      <Properties>
-        <Policies>
-          <TextStylePolicy FileWidth="120" EolMarker="Windows" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
-          <CSharpFormattingPolicy AfterDelegateDeclarationParameterComma="True" inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
-          <TextStylePolicy FileWidth="120" EolMarker="Windows" inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/plain" />
-        </Policies>
-      </Properties>
-    </MonoDevelop>
-  </ProjectExtensions>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
+    <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
+    <PackageReference Include="System.IO.Ports" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\DefaultAppConfig.xml" LogicalName="DefaultAppConfig.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="jaNETFramework.Tests" />
+  </ItemGroup>
+
 </Project>

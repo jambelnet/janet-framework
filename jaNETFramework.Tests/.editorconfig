@@ -1,0 +1,6 @@
+[*.cs]
+# test classes own scratch directories and servers: simple Dispose methods are enough
+dotnet_diagnostic.CA1816.severity = none
+dotnet_diagnostic.CA1001.severity = none
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1861.severity = none

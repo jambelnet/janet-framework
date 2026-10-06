@@ -17,6 +17,8 @@ build/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
+# the MSBuild targets that ship in the jaNETFramework NuGet package
+!jaNETFramework/buildTransitive/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -157,3 +159,10 @@ $RECYCLE.BIN/
 /.vs/jaNETFramework/v15/Server/sqlite3
 /jambelnet.pub
 /jambelnet
+
+# Visual Studio folder-level cache
+.vs/
+
+
+# output of tools/publish.py
+artifacts/

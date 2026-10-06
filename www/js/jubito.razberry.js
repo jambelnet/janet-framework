@@ -1,84 +1,100 @@
-var root = "http://localhost:8083/ZWaveAPI/";
-var AddNodeToNetwork_State = 0;
-var RemoveNodeFromNetwork_State = 0;
+// (c) J@mBeL.net 2010-2026, John Ambeliotis. Part of jaNET Framework, licensed under the GNU GPL version 3 or later (see LICENSE).
+// Z-Wave device list for a RaZberry controller (Z-Way HTTP API).
+// The controller is expected on port 8083 of the same host that serves this page.
 
-function getData() {
-    $.getJSON(root + "Data", function (data) {
-        var output = '';
+const root = location.protocol + '//' + location.hostname + ':8083/ZWaveAPI/';
+const REFRESH_MS = 1500;
 
-        $.each(data.devices, function (index, value) {
-            //alert(index + ' ' + value + ' ' + data.devices[index].data.givenName.value);
-            // Ping devices
-            root + 'Run/devices[' + index + '].SendNoOperation()';
-            var devName = data.devices[index].data.vendorString.value;
+let addNodeActive = false;
+let removeNodeActive = false;
 
-            if (data.devices[index].data.givenName.value != '')
-                devName = data.devices[index].data.givenName.value;
+const devicesEl = document.getElementById('devices');
+const statusEl = document.getElementById('status');
 
-            if (devName != '') {
-                var descr = 'Level: ' + data.devices[index].instances[0].commandClasses[50].data[0].val.value + ' | Scale: ' + data.devices[index].instances[0].commandClasses[50].data[0].scaleString.value;
-                var level = data.devices[index].instances[0].commandClasses[37].data.level.value.toString().replace('true', 'On').replace('false', 'Off');
-                var cmdOff = root + 'Run/devices[' + index + '].instances[0].commandClasses[37].Set(0)';
-                var cmdOn = root + 'Run/devices[' + index + '].instances[0].commandClasses[37].Set(255)';
-                var updateTime = data.devices[index].instances[0].commandClasses[37].data.level.updateTime;
-                var date = new Date(updateTime * 1000);
-                // hours part from the timestamp
-                var hours = date.getHours();
-                // minutes part from the timestamp
-                var minutes = "0" + date.getMinutes();
-                // seconds part from the timestamp
-                var seconds = "0" + date.getSeconds();
-                var formattedTime = hours + ':' + minutes.substr(minutes.length - 2) + ':' + seconds.substr(seconds.length - 2);
-                var cmd;
-
-                if (level == 'On')
-                    cmd = cmdOff;
-                else
-                    cmd = cmdOn;
-
-                var list_item = '<li><a href=javascript:runCommand("' + cmd + '")>' + '#' + index + ' ' + devName + '<span class="ui-li-count">' + level.replace('On', '<font color=green>On</font>').replace('Off', '<font color=red>Off</font>') + '</span>' +
-                '<p><strong>Last Update: ' + formattedTime + '</strong></p>' +
-                '<p>' + descr + '</p>' +
-                '</a></li>';
-
-                output += list_item;
-            }
-        });
-        $('#devices').html(output).listview("refresh");
-    });
+// Commands only have to reach the controller; its answer is not needed (and is not readable cross-origin).
+function runCommand(url) {
+    return fetch(url, { mode: 'no-cors' }).catch(() => {});
 }
 
-function runCommand(cmd) {
-    $.get(cmd, function (data) {
-        return (data);
-    });
+function formatTime(seconds) {
+    const d = new Date(seconds * 1000);
+    const pad = n => String(n).padStart(2, '0');
+    return d.getHours() + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
 
-function NetworkNodes(state) {
-    switch (state) {
-        case 'add':
-            // Start
-            if (AddNodeToNetwork_State == 0) {
-                AddNodeToNetwork_State = 1;
-                $.get(root + 'Run/controller.AddNodeToNetwork(1)');
-            }
-                // Stop
-            else {
-                AddNodeToNetwork_State = 0;
-                $.get(root + 'Run/controller.AddNodeToNetwork(0)');
-            }
-            break;
-        case 'remove':
-            // Start
-            if (RemoveNodeFromNetwork_State == 0) {
-                RemoveNodeFromNetwork_State = 1;
-                $.get(root + 'Run/controller.RemoveNodeFromNetwork(1)');
-            }
-                // Stop
-            else {
-                RemoveNodeFromNetwork_State = 0;
-                $.get(root + 'Run/controller.RemoveNodeFromNetwork(0)');
-            }
-            break;
+function deviceRow(index, device) {
+    const data = device.data ?? {};
+    const name = data.givenName?.value || data.vendorString?.value || '';
+    if (name === '') return null;
+
+    const switchClass = device.instances?.[0]?.commandClasses?.[37]?.data;
+    const sensorClass = device.instances?.[0]?.commandClasses?.[50]?.data?.[0];
+    const isOn = switchClass?.level?.value === true || Number(switchClass?.level?.value) > 0;
+    const base = root + 'Run/devices[' + index + '].instances[0].commandClasses[37].Set(';
+
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'card';
+    button.disabled = !switchClass;
+    button.addEventListener('click', () => runCommand(base + (isOn ? '0' : '255') + ')').then(refresh));
+
+    const spacer = document.createElement('span');
+    spacer.className = 'noimg';
+
+    const body = document.createElement('span');
+    const h = document.createElement('h3');
+    h.textContent = '#' + index + ' ' + name;
+    const p1 = document.createElement('p');
+    const strong = document.createElement('strong');
+    strong.textContent = 'Last Update: ' + (switchClass?.level?.updateTime ? formatTime(switchClass.level.updateTime) : '–');
+    p1.append(strong);
+    const p2 = document.createElement('p');
+    p2.textContent = sensorClass
+        ? 'Level: ' + sensorClass.val?.value + ' | Scale: ' + sensorClass.scaleString?.value
+        : '';
+    body.append(h, p1, p2);
+
+    const value = document.createElement('span');
+    value.className = 'value';
+    value.textContent = switchClass ? (isOn ? 'On' : 'Off') : '';
+    value.style.color = isOn ? 'var(--ok)' : 'var(--danger)';
+
+    button.append(spacer, body, value);
+    li.append(button);
+    return li;
+}
+
+async function refresh() {
+    try {
+        const res = await fetch(root + 'Data');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const rows = Object.entries(data.devices ?? {}).map(([i, d]) => deviceRow(i, d)).filter(Boolean);
+        devicesEl.replaceChildren(...rows);
+        statusEl.hidden = rows.length > 0;
+        statusEl.textContent = 'No devices found.';
+    } catch {
+        statusEl.hidden = false;
+        statusEl.textContent = 'The Z-Way controller at ' + root + ' does not answer.';
     }
 }
+
+function networkNodes(kind) {
+    if (kind === 'add') {
+        addNodeActive = !addNodeActive;
+        runCommand(root + 'Run/controller.AddNodeToNetwork(' + (addNodeActive ? 1 : 0) + ')');
+        document.getElementById('addBtn').setAttribute('aria-pressed', String(addNodeActive));
+    } else {
+        removeNodeActive = !removeNodeActive;
+        runCommand(root + 'Run/controller.RemoveNodeFromNetwork(' + (removeNodeActive ? 1 : 0) + ')');
+        document.getElementById('removeBtn').setAttribute('aria-pressed', String(removeNodeActive));
+    }
+}
+
+document.getElementById('addBtn').addEventListener('click', () => networkNodes('add'));
+document.getElementById('removeBtn').addEventListener('click', () => networkNodes('remove'));
+document.getElementById('refreshBtn').addEventListener('click', refresh);
+
+refresh();
+setInterval(() => { if (!document.hidden) refresh(); }, REFRESH_MS);

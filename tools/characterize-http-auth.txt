@@ -1,0 +1,5 @@
+# Basic authentication enabled (path|user:password)
+/?cmd=yes&mode=json
+/?cmd=yes&mode=json|bob:wrong
+/?cmd=yes&mode=json|bob:pw1
+~/www/index.html|bob:pw1

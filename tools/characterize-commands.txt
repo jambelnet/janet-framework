@@ -1,0 +1,117 @@
+# One console command per line. '@@HTTP' runs the HTTP cases from characterize-http.txt.
+judo help
+judo ?
+judo inset ls
+judo event ls
+judo trusted settings
+judo socket settings
+judo server settings
+judo serial settings
+judo serial state
+judo schedule ls
+whoami
+whereami
+%user%
+%calendaryear%
+nonexistentcommand
+judo sleep 10
+judo inset add yes <lock>YES-branch</lock>
+judo inset add no <lock>NO-branch</lock>
+judo inset add evtrue <lock>{ evalBool(1 == 1); yes; no; }</lock>
+judo inset add evfalse <lock>{ evalBool(2 < 1); yes; no; }</lock>
+judo inset add evstr <lock>{ evalBool("a" == "a"); yes; no; }</lock>
+judo inset add evcontains <lock>{ evalBool("abc" ~> "b"); yes; no; }</lock>
+judo inset add full t1 <lock>hello %user%</lock> `Cat` `Head` `Short` `Long` `/thumb.png` `ref`
+judo inset ls
+yes
+no
+evtrue
+evfalse
+evstr
+evcontains
+t1
+*t1
+judo inset add multi <lock>one; two</lock>
+multi
+yes; no
+yes&no
+{mute}yes
+judo event add ev1 <lock>yes</lock>
+judo event ls
+%~>ev1%
+judo inset del t1
+judo inset ls
+judo event del ev1
+judo event ls
+judo schedule add s1 daily 10:00 yes
+judo schedule add s2 Monday 8:30 no
+judo schedule add s3 workdays 07:15 yes
+judo schedule add s4 weekend 22:00 no
+judo schedule add s5 25/12/2099 09:00 yes
+judo schedule add s6 repeat 3600000 yes
+judo schedule ls
+judo schedule details
+judo schedule names
+judo schedule active
+judo schedule inactive
+judo schedule disable s1
+judo schedule inactive
+judo schedule enable s1
+judo schedule status s1
+judo schedule disable-all
+judo schedule active
+judo schedule enable-all
+judo schedule rm s2
+judo schedule names
+judo schedule clear
+judo schedule ls
+judo smtp set smtp.example.org user1 secret1 587 true
+judo smtp settings
+judo pop3 set pop.example.org user2 secret2 995 true
+judo pop3 settings
+judo gmail set me@example.org secret3
+judo gmail settings
+judo mailheaders set `a@x.org` `b@y.org` `Subj ect`
+judo mailheaders settings
+judo sms set 1234 smsuser smspass
+judo sms settings
+judo server setup localhost 8080 none
+judo server settings
+judo socket setup localhost 5744
+judo socket settings
+judo trusted settings
+judo serial set COM9 19200
+judo serial settings
+judo ping localhost
+judo json add j1 http://localhost:8080/?cmd=yes&mode=json
+judo xml add x1 http://localhost:8080/?cmd=yes&mode=text
+judo http get http://localhost:8080/?cmd=yes&mode=text
+judo json get http://localhost:8080/?cmd=yes&mode=json yes
+judo json consume http://localhost:8080/?cmd=yes&mode=json yes
+%uptime%
+%mute%
+%unmute%
+%checkout%
+%whereami%
+%checkin%
+%whereami%
+judo unknownroot
+judo
+@@HTTP characterize-http.txt
+@@TCP yes
+@@TCP evtrue
+@@TCP whoami
+@@TCP judo inset ls
+@@TCP nonexistent
+judo socket status
+judo server login bob pw1
+judo server setup localhost 8080 basic
+judo server stop
+judo server start
+judo server status
+@@HTTP characterize-http-auth.txt
+judo server setup localhost 8080 none
+judo server stop
+judo server start
+judo server status
+@@HTTP characterize-http-after.txt

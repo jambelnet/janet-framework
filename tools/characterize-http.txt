@@ -1,0 +1,18 @@
+# Paths requested against http://localhost:8080 (Invoke-WebRequest).
+/?cmd=yes
+/?cmd=yes&mode=json
+/?cmd=yes&mode=text
+/?cmd=yes&mode=html
+/?cmd=yes;no&mode=json
+/?cmd=evtrue&mode=json
+/?cmd=whoami&mode=json
+/?cmd=judo%20inset%20ls&mode=text
+/?cmd=nonexistent&mode=json
+/?cmd=judo%20schedule%20ls&mode=json
+~/www/
+~/www/index.html
+~/www/js/jubito.core.js
+/www/images/logo.png
+/www/favicon.ico
+/www/doesnotexist.html
+/favicon.ico

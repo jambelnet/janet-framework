@@ -1,51 +1,38 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- (c) J@mBeL.net 2010-2026, John Ambeliotis. Part of jaNET Framework, licensed under the GNU GPL version 3 or later (see LICENSE). -->
+<html lang="en">
 <head>
-    <title>Jubito</title>
-    <meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=9" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="favicon.ico" />
-    <link rel="stylesheet" href="themes/default.min.css" />
-    <link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile.structure-1.4.2.min.css" />
-    <script src="js/jubito.razberry.js"></script>
-    <script src="js/jquery-1.10.2.min.js"></script>
-    <script src="js/jquery.mobile-1.4.2.min.js"></script>
-    <script type="application/javascript">
-        $(document).on("pageinit", "#z-wave_main", function () {
-            getData();
-            setInterval(function () {
-                getData();
-            }, 1500);
-        });
-    </script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#00797a">
+    <title>Jubito - Z-Wave</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        .nav-bottom { position: fixed; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--border); }
+        .btn[aria-pressed="true"] { color: var(--primary-contrast); background: var(--primary); }
+        body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    </style>
 </head>
 <body>
-    <div data-role="page" id="z-wave_main">
-        <div data-theme="a" data-role="header">
-            <a data-role="button" data-inline="true" data-transition="slide" href="index.html" data-icon="back" data-iconpos="left">
-                Home
-            </a>
-            <h3>Z-Wave Devices</h3>
-        </div>
-        <div data-role="content">
-            <ul data-role="listview" data-inset="true" id="devices"></ul>
-        </div>
-        <div data-role="footer" data-position="fixed">
-            <div data-role="navbar">
-                <ul>
-                    <li>
-                        <a data-icon="plus" href="javascript:NetworkNodes('add')">Inclusion</a>
-                    </li>
-                    <li>
-                        <a data-icon="minus" href="javascript:NetworkNodes('remove')">Exclusion</a>
-                    </li>
-                    <li>
-                        <a data-icon="refresh" href="javascript:getData()">Refresh</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+    <header class="appbar">
+        <a class="brand" href="index.html"><img src="images/logo.png" alt="" width="30" height="30">Jubito</a>
+        <span class="spacer"></span>
+        <a class="btn" href="index.html">Home</a>
+    </header>
+    <main>
+        <section class="view" aria-label="Z-Wave devices">
+            <h1>Z-Wave Devices</h1>
+            <p class="empty" id="status">Loading...</p>
+            <ul class="cards" id="devices"></ul>
+        </section>
+    </main>
+    <div class="nav-bottom">
+        <button type="button" class="btn" id="addBtn" aria-pressed="false">Inclusion</button>
+        <button type="button" class="btn" id="removeBtn" aria-pressed="false">Exclusion</button>
+        <button type="button" class="btn" id="refreshBtn">Refresh</button>
     </div>
+    <script type="module" src="js/jubito.razberry.js"></script>
 </body>
 </html>
