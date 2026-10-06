@@ -1,7 +1,5 @@
 # jaNET Framework
 
-[![CI](https://github.com/jambelnet/janet-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/jambelnet/janet-framework/actions/workflows/ci.yml)
-
 ## Introduction
 
 A free and open source IoT framework that provides a set of built-in [functions](https://github.com/jambelnet/janet-framework/wiki/Built-in-functions), a native API ([judo API](https://github.com/jambelnet/janet-framework/wiki/judo-API)), and multiple providers, such as scheduler, evaluator, notification manager and others, to allow a 3rd party software (e.g. [Jubito](http://www.jubito.org), see details below) to exploit, in order to interact with multiple services, software applications and vendor hardware (especially open hardware, such as Arduino, Raspberry Pi, Banana Pi, etc). It is designed for interoperability, therefore, to be absolutely vendor-neutral as well as hardware/protocol-agnostic. It can operate on any device that is capable of running .NET (Linux, Windows, Mac, including single-board computers, such Raspberry Pi and Banana Pi).
@@ -10,7 +8,7 @@ A free and open source IoT framework that provides a set of built-in [functions]
 
 1. Clone the repository and build it with the [.NET SDK](https://dotnet.microsoft.com/download) (`dotnet build jaNETFramework.sln`).
    The '*www*' directory is copied next to the program automatically.
-2. Run the application (`dotnet run --project jaNETProgram`, or *jaNETProgram.exe* from *jaNETProgram/bin/Debug/net10.0*) and access Jubito UI (*http://localhost:8080/www/*)[*1*] in your browser.
+2. Run the application (`dotnet run --project jaNETProgram`, or *jaNETProgram.exe* from *jaNETProgram/bin/Debug/net10.0*) and access Jubito UI (*http://localhost:8080/www/*) in your browser.
    To deploy, use `dotnet publish jaNETProgram -c Release`.
 
 [*1*] Default built-in web server provided by the framework is listening to localhost on port 8080.
@@ -262,4 +260,5 @@ Tech blog: http://jubitoblog.blogspot.com \
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
-![screenshot](https://1.bp.blogspot.com/-zckBAkF6q9k/V_nE97h0_BI/AAAAAAAAJDU/6fXFVP5eSOEj9cTG5XMDgVVLL10ySnLWQCLcB/s640/dashboard-main.png)
+<img width="345" height="730" alt="image" src="https://github.com/user-attachments/assets/ae8a0787-704e-44f7-80ce-6a8a16619b2a" />
+
