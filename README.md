@@ -23,6 +23,8 @@ i.e.
 
 ## Console
 
+<img width="995" height="525" alt="image" src="https://github.com/user-attachments/assets/5af842e6-0677-4aa5-b6f4-a34857c85b9a" />
+
 At a terminal the console shows a banner, an overview of the running services, a coloured prompt with command
 history (Up/Down), Tab completion for `judo` commands, `%functions%` and instruction sets, a grey hint taken from the history,
 tables for `judo schedule`/`inset`/`event` listings and a spinner for slow commands. Ctrl+L clears the screen, Ctrl+D quits.
