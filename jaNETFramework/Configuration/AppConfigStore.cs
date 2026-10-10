@@ -109,6 +109,7 @@ internal sealed class AppConfigStore
 
     /// <summary>URL of the weather service.</summary>
     public string WeatherUrl => Section("System", "Others")?.Element("Weather")?.Value ?? string.Empty;
+    public string WeatherLocation => Section("System", "Others")?.Element("WeatherLocation")?.Value ?? string.Empty;
 
     /// <summary>Marker for commands received by mail, e.g. "jaNET" for &lt;jaNET&gt;command&lt;/jaNET&gt;.</summary>
     public string MailKeyword => Section("System", "Comm")?.Element("MailKeyword")?.Value ?? string.Empty;
@@ -282,6 +283,9 @@ internal sealed class AppConfigStore
             if (!string.IsNullOrWhiteSpace(url)) Ensure(doc, "System", "Others", "Weather").Value = url;
         });
     }
+
+    public string UpdateWeatherLocation(string location) => Modify(Added, doc =>
+        Ensure(doc, "System", "Others", "WeatherLocation").Value = location);
 
     static XElement ToElement(InstructionSetEntry e) {
         // attribute order is part of the file format: id, img, descr, shortdescr, header, categ, ref

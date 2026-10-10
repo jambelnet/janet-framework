@@ -186,7 +186,7 @@ public class WeatherTests
         Assert.Equal("60", w.CurrentHumidity);
         Assert.Equal("1012.4", w.CurrentPressure);
         Assert.Equal("Athens", w.CurrentCity);
-        Assert.Equal("http://openweathermap.org/img/w/02d.png", w.WeatherIcon);
+        Assert.Equal("https://openweathermap.org/img/wn/02d@2x.png", w.WeatherIcon);
         Assert.Equal("Thursday", w.TodayDay);
         Assert.Equal("Friday", w.TomorrowDay);
     }

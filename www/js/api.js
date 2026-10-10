@@ -29,6 +29,22 @@ async function request(cmd, mode) {
     }
 }
 
+/** Sends settings without the legacy URL decoder changing passwords or file paths. */
+export async function runRawText(command) {
+    try {
+        const res = await fetch('../api/command', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command }), cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        setOnline(true);
+        return await res.text();
+    } catch (error) {
+        setOnline(false);
+        throw error;
+    }
+}
+
 /** Runs a command and returns its output as plain text. */
 export async function runText(cmd) {
     return (await request(cmd, 'text')).text();

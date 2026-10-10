@@ -138,7 +138,9 @@ public class JudoCommandTests
         Assert.Equal("pop.example.org\r\nuser2\r\nsecret2\r\n995\r\nFalse", t.Run("judo pop3 settings"));
 
         t.Run("judo gmail set me@example.org secret3");
-        Assert.Equal("me@example.org\r\nsecret3", t.Run("judo gmail settings"));
+        Assert.Equal("me@example.org\r\nsecret3\r\nhttps://mail.google.com/mail/feed/atom\r\nsmtp.gmail.com\r\n587\r\nTrue\r\npop.gmail.com\r\n995\r\nTrue\r\nimap.gmail.com\r\n993\r\nTrue", t.Run("judo gmail settings"));
+        Assert.Equal("smtp.gmail.com\r\nme@example.org\r\nsecret3\r\n587\r\nTrue", t.Run("judo smtp settings"));
+        Assert.Equal("pop.gmail.com\r\nme@example.org\r\nsecret3\r\n995\r\nTrue", t.Run("judo pop3 settings"));
 
         t.Run("judo sms set 1234 smsuser smspass");
         Assert.Equal("1234\r\nsmsuser\r\nsmspass", t.Run("judo sms settings"));
@@ -158,10 +160,10 @@ public class JudoCommandTests
     }
 
     [Fact]
-    public void SendingMailWithoutInternetSaysSo() {
+    public void SendingMailWithoutConfigurationExplainsWhy() {
         using var t = new TestHost();
 
-        Assert.Equal("Mail could not be sent", t.Run("judo mail send a@x.org b@y.org Subject Message"));
+        Assert.Equal("Mail could not be sent. SMTP is not configured.", t.Run("judo mail send a@x.org b@y.org Subject Message"));
     }
 
     [Fact]

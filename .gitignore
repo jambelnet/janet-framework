@@ -166,3 +166,6 @@ $RECYCLE.BIN/
 
 # output of tools/publish.py
 artifacts/
+
+# Local connection and browser verification artifacts
+.verification/

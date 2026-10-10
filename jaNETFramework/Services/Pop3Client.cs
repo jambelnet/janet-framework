@@ -18,86 +18,51 @@
     You should have received a copy of the GNU General Public License
     along with jaNET Framework. If not, see <http://www.gnu.org/licenses/>. */
 
+using MailKit.Security;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
+using System.Linq;
+using System.Threading;
 
 namespace jaNET.Services;
 
 internal sealed record Pop3Message(long Number, long Bytes, string Text);
 
-internal sealed class Pop3Exception : Exception
-{
-    public Pop3Exception(string response) : base(response) { }
-}
-
-/// <summary>A minimal POP3 client (no TLS): list, retrieve and delete messages.</summary>
+/// <summary>POP3 transport with certificate validation, implicit TLS and STARTTLS.</summary>
 internal sealed class Pop3Client : IDisposable
 {
-    readonly TcpClient _tcp = new();
-    StreamReader? _reader;
-    StreamWriter? _writer;
+    readonly MailKit.Net.Pop3.Pop3Client _client = new() { Timeout = 10000 };
+    readonly CancellationTokenSource _limit = new(TimeSpan.FromSeconds(30));
+    readonly HashSet<long> _deleted = new();
+    IList<int>? _sizes;
 
-    public void Connect(string server, int port, string username, string password) {
-        _tcp.Connect(server, port);
-
-        Stream stream = _tcp.GetStream();
-        _reader = new StreamReader(stream, Encoding.ASCII);
-        _writer = new StreamWriter(stream, Encoding.ASCII) { NewLine = "\r\n", AutoFlush = true };
-
-        ExpectOk(ReadLine());
-        Send("USER " + username);
-        Send("PASS " + password);
+    public void Connect(string server, int port, string username, string password, bool ssl = false) {
+        var tls = !ssl ? SecureSocketOptions.None
+            : port == 110 ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect;
+        _client.Connect(server, port, tls, _limit.Token);
+        _client.Authenticate(username, password, _limit.Token);
     }
 
-    /// <summary>Number and size of every message in the mailbox.</summary>
     public List<(long Number, long Bytes)> List() {
-        Send("LIST");
-
-        var result = new List<(long, long)>();
-        string line;
-        while ((line = ReadLine()) != ".") {
-            string[] values = line.Split(' ');
-            result.Add((long.Parse(values[0]), long.Parse(values[1])));
-        }
-        return result;
+        _sizes ??= _client.GetMessageSizes(_limit.Token);
+        return _sizes.Select((size, index) => (Number: (long)index + 1, Bytes: (long)size))
+            .Where(message => !_deleted.Contains(message.Number)).ToList();
     }
 
     public Pop3Message Retrieve(long number, long bytes) {
-        Send("RETR " + number);
-
-        var text = new StringBuilder();
-        string line;
-        while ((line = ReadLine()) != ".")
-            text.Append(line.StartsWith("..", StringComparison.Ordinal) ? line.Substring(1) : line).Append("\r\n");
-
-        return new Pop3Message(number, bytes, text.ToString());
+        var message = _client.GetMessage(checked((int)number - 1), _limit.Token);
+        return new Pop3Message(number, bytes, message.Subject + "\r\n" + (message.TextBody ?? message.HtmlBody ?? string.Empty));
     }
 
-    public void Delete(long number) => Send("DELE " + number);
-
-    public void Quit() {
-        try { Send("QUIT"); } catch (Exception e) when (e is IOException || e is Pop3Exception || e is InvalidOperationException) { }
+    public void Delete(long number) {
+        _client.DeleteMessage(checked((int)number - 1), _limit.Token);
+        _deleted.Add(number);
     }
 
-    void Send(string command) {
-        if (_writer == null) throw new InvalidOperationException("Not connected.");
+    public void Quit() => _client.Disconnect(true, _limit.Token);
 
-        _writer.WriteLine(command);
-        ExpectOk(ReadLine());
+    public void Dispose() {
+        _client.Dispose();
+        _limit.Dispose();
     }
-
-    string ReadLine() {
-        if (_reader == null) throw new InvalidOperationException("Not connected.");
-        return _reader.ReadLine() ?? throw new Pop3Exception("The server closed the connection.");
-    }
-
-    static void ExpectOk(string response) {
-        if (!response.StartsWith("+OK", StringComparison.Ordinal))
-            throw new Pop3Exception(response);
-    }
-
-    public void Dispose() => _tcp.Dispose();
 }

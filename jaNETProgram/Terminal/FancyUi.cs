@@ -171,45 +171,24 @@ sealed class FancyUi : IUi
         AnsiConsole.Write(new Text(output + Environment.NewLine, new Style(color)));
     }
 
-    // One table per chapter: what it is for, the command, and the other verbs that do the same. [arguments] are yellow and quoted or
-    // locked text is green. A narrow window gets a list instead of a table.
+    // Keep the full terminal width available for long signatures instead of squeezing them into table columns.
     static void RenderHelp(HelpData help) {
-        bool narrow = AnsiConsole.Profile.Width < 70;
-
         foreach (HelpSection section in help.Sections) {
-            if (narrow) {
-                AnsiConsole.Write(new Rule("[aqua bold]" + Markup.Escape(section.Title) + "[/]").LeftJustified());
-                foreach (HelpTopic topic in section.Topics) {
-                    AnsiConsole.Write(new Text(topic.Title + Environment.NewLine, new Style(Color.White, decoration: Decoration.Bold)));
-                    foreach (HelpCommand command in topic.Commands) {
-                        AnsiConsole.Write(CommandLine(command.Syntax, "  "));
-                        AnsiConsole.WriteLine();
-                        if (command.Aliases.Count > 0)
-                            AnsiConsole.Write(new Text("    also: " + string.Join(", ", command.Aliases) + Environment.NewLine, new Style(Color.Grey)));
-                    }
+            AnsiConsole.WriteLine();
+            AnsiConsole.Write(new Rule("[aqua bold]" + Markup.Escape(section.Title) + "[/]").LeftJustified());
+            foreach (HelpTopic topic in section.Topics) {
+                AnsiConsole.WriteLine();
+                AnsiConsole.Write(new Text(topic.Title + Environment.NewLine, new Style(Color.White, decoration: Decoration.Bold)));
+                foreach (HelpCommand command in topic.Commands) {
+                    AnsiConsole.Write(CommandLine(command.Syntax, "  "));
+                    AnsiConsole.WriteLine();
+                    if (command.Aliases.Count > 0)
+                        AnsiConsole.Write(new Text("    Aliases: " + string.Join(", ", command.Aliases) + Environment.NewLine, new Style(Color.Grey)));
                 }
-                continue;
             }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .BorderColor(Color.Grey)
-                .Title("[aqua bold]" + Markup.Escape(section.Title) + "[/]")
-                .ShowRowSeparators()
-                .AddColumn(new TableColumn("[bold]For[/]"))
-                .AddColumn(new TableColumn("[bold]Command[/]"))
-                .AddColumn(new TableColumn("[bold]Same as[/]"));
-
-            // one row per command, so that a long command that wraps keeps its aliases beside it; the topic is named on its first row
-            foreach (HelpTopic topic in section.Topics)
-                for (int i = 0; i < topic.Commands.Count; i++)
-                    table.AddRow(new Text(i == 0 ? topic.Title : string.Empty, new Style(Color.White, decoration: Decoration.Bold)),
-                                 CommandLine(topic.Commands[i].Syntax, string.Empty),
-                                 new Text(string.Join(", ", topic.Commands[i].Aliases), new Style(Color.Grey)));
-
-            AnsiConsole.Write(table);
         }
 
+        if (help.Notes.Count > 0) AnsiConsole.WriteLine();
         foreach (string note in help.Notes)
             AnsiConsole.Write(new Text(note + Environment.NewLine, new Style(Color.Grey)));
     }

@@ -18,6 +18,7 @@
     <None Include="PackageReadme.md" Pack="true" PackagePath="\" />
     <!-- the web UI travels with the package; buildTransitive/jaNETFramework.targets copies it into the output of the consuming project -->
     <None Include="buildTransitive\jaNETFramework.targets" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="buildTransitive\jaNETFramework.Speech.targets" Pack="true" PackagePath="buildTransitive\" />
     <None Include="..\www\**\*" Pack="true" PackagePath="buildTransitive\www\" Visible="false" />
   </ItemGroup>
 
@@ -27,6 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.18.1" />
+    <PackageReference Include="Vosk" Version="0.3.38" ExcludeAssets="build;buildTransitive" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
     <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
     <PackageReference Include="System.IO.Ports" Version="10.0.0" />
@@ -39,5 +42,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="jaNETFramework.Tests" />
   </ItemGroup>
+
+  <Import Project="buildTransitive\jaNETFramework.Speech.targets" />
 
 </Project>

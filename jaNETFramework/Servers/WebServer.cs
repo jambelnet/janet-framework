@@ -22,6 +22,7 @@ using jaNET.Configuration;
 using jaNET.Hosting;
 using jaNET.Infrastructure;
 using jaNET.Scripting;
+using jaNET.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +31,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -61,20 +63,27 @@ internal sealed class WebServer : IServer, IDisposable
     readonly Func<IInstructionExecutor> _executor;
     readonly ILog _log;
     readonly CertificateProvider _certificates;
+    readonly SpeechService _speech;
+    readonly bool _ownsSpeech;
+    readonly Func<bool> _isMuted;
     readonly object _gate = new();
+    readonly AsyncLocal<HttpResponse?> _commandResponse = new();
 
     WebApplication? _app;
     volatile ServiceProblem? _problem;
     volatile ServerCertificate? _certificate;
 
     public WebServer(AppConfigStore config, ISettingsStore settings, AppPaths paths, Func<IInstructionExecutor> executor, ILog log,
-                     CertificateProvider? certificates = null) {
+                     CertificateProvider? certificates = null, SpeechService? speech = null, Func<bool>? isMuted = null) {
         _config = config;
         _settings = settings;
         _paths = paths;
         _executor = executor;
         _log = log;
         _certificates = certificates ?? new CertificateProvider(paths, settings);
+        _speech = speech ?? new SpeechService(settings, paths);
+        _ownsSpeech = speech == null;
+        _isMuted = isMuted ?? (() => false);
     }
 
     public bool IsRunning => _app != null;
@@ -144,7 +153,32 @@ internal sealed class WebServer : IServer, IDisposable
         }
     }
 
-    public void Dispose() => Stop();
+    public void Dispose() {
+        Stop();
+        if (_ownsSpeech) _speech.Dispose();
+    }
+
+    // A settings command must finish its HTTP response before its own listener is stopped.
+    internal bool RestartAfterResponse() {
+        HttpResponse? response = _commandResponse.Value;
+        if (response == null) return false;
+        response.Headers.Connection = "close";
+        response.OnCompleted(() => {
+            _ = Task.Run(async () => {
+                // Let Kestrel finish closing the response connection before disposing its transports.
+                await Task.Delay(150).ConfigureAwait(false);
+                Stop(); Start();
+            });
+            return Task.CompletedTask;
+        });
+        return true;
+    }
+
+    string ExecuteCommand(HttpResponse response, string command, ResponseFormat format) {
+        _commandResponse.Value = response;
+        try { return _executor().Run(command, format); }
+        finally { _commandResponse.Value = null; }
+    }
 
     static int ParsePort(string port) =>
         int.TryParse(port, out int value) && value is > 0 and <= 65535 ? value : throw new FormatException($"'{port}' is not a port number.");
@@ -158,7 +192,7 @@ internal sealed class WebServer : IServer, IDisposable
         }
     }
 
-    // "localhost" is this computer (both IPv4 and IPv6); + * and 0.0.0.0 are every network card; an address is that one; a name is looked up
+    // An explicit LAN address also gets a loopback listener for local browser microphone access.
     static void Listen(KestrelServerOptions kestrel, string host, int port, System.Security.Cryptography.X509Certificates.X509Certificate2? certificate) {
         void Configure(ListenOptions options) {
             options.Protocols = HttpProtocols.Http1;
@@ -167,7 +201,10 @@ internal sealed class WebServer : IServer, IDisposable
 
         if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase)) kestrel.ListenLocalhost(port, Configure);
         else if (host is "+" or "*" or "0.0.0.0" or "::" or "[::]") kestrel.ListenAnyIP(port, Configure);
-        else if (IPAddress.TryParse(host.Trim('[', ']'), out IPAddress? address)) kestrel.Listen(address, port, Configure);
+        else if (IPAddress.TryParse(host.Trim('[', ']'), out IPAddress? address)) {
+            kestrel.Listen(address, port, Configure);
+            if (!IPAddress.IsLoopback(address)) kestrel.ListenLocalhost(port, Configure);
+        }
         else {
             IPAddress[] addresses;
             try {
@@ -217,10 +254,20 @@ internal sealed class WebServer : IServer, IDisposable
                 response.Headers.Location = redirectTo;
                 body = Array.Empty<byte>();
             }
+            else if (path.StartsWith("/api/speech", StringComparison.Ordinal)) {
+                body = await SpeechResponse(context, path).ConfigureAwait(false);
+            }
             else if (path == InstructionsPath) {
                 response.ContentType = "application/json; charset=utf-8";
                 response.Headers.CacheControl = "no-store";
                 body = Encoding.UTF8.GetBytes(InstructionsJson());
+            }
+            else if (path == "/api/command" && HttpMethods.IsPost(request.Method)) {
+                using JsonDocument document = await JsonDocument.ParseAsync(request.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
+                string command = document.RootElement.GetProperty("command").GetString() ?? string.Empty;
+                response.ContentType = MimeTypes.ForCommand(ResponseFormat.Text);
+                response.Headers.CacheControl = "no-store";
+                body = Encoding.UTF8.GetBytes(ExecuteCommand(response, command, ResponseFormat.Text));
             }
             else if (mapPath.Contains("?cmd=")) {
                 ResponseFormat format = ResponseFormat.Html;
@@ -229,12 +276,14 @@ internal sealed class WebServer : IServer, IDisposable
 
                 string command = CommandMarkers.Replace(mapPath.Substring(mapPath.LastIndexOf("?cmd=", StringComparison.Ordinal)), string.Empty);
                 response.ContentType = MimeTypes.ForCommand(format);
-                body = Encoding.UTF8.GetBytes(_executor().Run(command, format));
+                response.Headers.CacheControl = "no-store";
+                body = Encoding.UTF8.GetBytes(ExecuteCommand(response, command, format));
             }
             else {
                 EnsureServable(mapPath);
                 body = await File.ReadAllBytesAsync(mapPath).ConfigureAwait(false);
                 response.ContentType = MimeTypes.ForFile(mapPath);
+                response.Headers.CacheControl = "no-cache";
             }
         }
         catch (UnauthorizedAccessException) {
@@ -277,6 +326,63 @@ internal sealed class WebServer : IServer, IDisposable
 
     static bool IsThisComputer(IPAddress? address) =>
         address == null || IPAddress.IsLoopback(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address);
+
+    async Task<byte[]> SpeechResponse(HttpContext context, string path) {
+        HttpRequest request = context.Request;
+        HttpResponse response = context.Response;
+        response.Headers.CacheControl = "no-store";
+        response.ContentType = "application/json; charset=utf-8";
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        byte[] Json(object value) => JsonSerializer.SerializeToUtf8Bytes(value, options);
+        if (path == "/api/speech" && HttpMethods.IsGet(request.Method)) return Json(_speech.Status(_isMuted()));
+        if (!HttpMethods.IsPost(request.Method)) { response.StatusCode = 405; return Json(new { error = "Use POST for this speech endpoint." }); }
+        string origin = request.Headers.Origin.ToString();
+        if ((origin.Length > 0 && origin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
+            response.StatusCode = 403; return Json(new { error = "Speech requests must come from this jaNET page." });
+        }
+        try {
+            if (path == "/api/speech/settings") {
+                SpeechSettings settings = await JsonSerializer.DeserializeAsync<SpeechSettings>(request.Body, options, context.RequestAborted).ConfigureAwait(false)
+                    ?? throw new ArgumentException("Enter speech settings.");
+                string result = _speech.Save(settings);
+                if (result != "Settings saved.") throw new InvalidOperationException(result);
+                return Json(new { message = result });
+            }
+            if (path == "/api/speech/recognize") {
+                using var stream = new MemoryStream();
+                await request.Body.CopyToAsync(stream, context.RequestAborted).ConfigureAwait(false);
+                string text = await _speech.Recognize(stream.ToArray(), context.RequestAborted).ConfigureAwait(false);
+                return Json(new { text });
+            }
+            using JsonDocument document = await JsonDocument.ParseAsync(request.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
+            if (path == "/api/speech/synthesize") {
+                if (_isMuted()) {
+                    response.StatusCode = 409;
+                    return Json(new { error = "Speech synthesis is muted. Run unmute to enable it." });
+                }
+                byte[] audio = await _speech.Synthesize(document.RootElement.GetProperty("text").GetString() ?? "", context.RequestAborted).ConfigureAwait(false);
+                response.ContentType = "audio/wav";
+                return audio;
+            }
+            if (path == "/api/speech/model") {
+                string result = await _speech.InstallModel(document.RootElement.GetProperty("language").GetString() ?? "", context.RequestAborted).ConfigureAwait(false);
+                if (result != "Settings saved.") throw new InvalidOperationException(result);
+                return Json(new { message = result, status = _speech.Status(_isMuted()) });
+            }
+            response.StatusCode = 404; return Json(new { error = "Unknown speech endpoint." });
+        }
+        catch (Exception e) when (e is ArgumentException || e is JsonException || e is KeyNotFoundException || e is Microsoft.AspNetCore.Http.BadHttpRequestException) {
+            response.StatusCode = 400; return Json(new { error = e.Message });
+        }
+        catch (OperationCanceledException) when (!context.RequestAborted.IsCancellationRequested) {
+            response.StatusCode = 503; return Json(new { error = "The speech request timed out. Try again or check the selected engine/model." });
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception e) {
+            _log.Write("Speech: " + e.Message);
+            response.StatusCode = 503; return Json(new { error = e.Message });
+        }
+    }
 
     // "/www" is the folder of the web UI without the slash that makes its relative links (css/app.css, js/...) work, and "/" has nothing to show:
     // send both to "/www/". Commands (?cmd=...) and every other path are left alone.

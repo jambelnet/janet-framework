@@ -63,14 +63,14 @@ public class WebUiSourceTests
     }
 
     [Fact]
-    public void TheSettingsGroupsStartCollapsed() {
+    public void TheSettingsGroupsAreExclusiveAndStartCollapsed() {
         string index = Path.Combine(WwwFolder() ?? string.Empty, "index.html");
         if (!File.Exists(index)) return;
 
         string html = File.ReadAllText(index, Encoding.UTF8);
 
-        Assert.Contains("<details class=\"group\">", html);
-        Assert.DoesNotContain("<details class=\"group\" open>", html);
+        foreach (string id in new[] { "instructions-group", "scheduler-group", "settings-group", "about-group" })
+            Assert.Contains("<details class=\"group\" id=\"" + id + "\" name=\"settings-sections\">", html);
     }
 
     [Fact]

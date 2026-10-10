@@ -1,0 +1,12 @@
+<Project>
+  <!-- Vosk's upstream targets select the build host, not the publish target. -->
+  <PropertyGroup>
+    <_JanetVoskRoot>$(NuGetPackageRoot)vosk\0.3.38\build\lib\</_JanetVoskRoot>
+    <_JanetVoskPlatform Condition="'$(RuntimeIdentifier)' == 'win-x64' or ('$(RuntimeIdentifier)' == '' and '$(NETCoreSdkRuntimeIdentifier)' == 'win-x64')">win-x64</_JanetVoskPlatform>
+    <_JanetVoskPlatform Condition="'$(RuntimeIdentifier)' == 'linux-x64' or ('$(RuntimeIdentifier)' == '' and '$(NETCoreSdkRuntimeIdentifier)' == 'linux-x64')">linux-x64</_JanetVoskPlatform>
+    <_JanetVoskPlatform Condition="'$(RuntimeIdentifier)' == 'osx-x64' or '$(RuntimeIdentifier)' == 'osx-arm64' or ('$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOsPlatform('OSX')))">osx-universal</_JanetVoskPlatform>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_JanetVoskPlatform)' != ''">
+    <Content Include="$(_JanetVoskRoot)$(_JanetVoskPlatform)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Pack="false" />
+  </ItemGroup>
+</Project>

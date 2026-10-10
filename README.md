@@ -188,10 +188,56 @@ next to the program; put a `www` folder in the data folder to use your own versi
 All system configuration are described in *System* tag within *AppConfig.xml*.\
 They can manipulated by judo API, but I suggest you doing it, either by editing the XML or by the web UI (*Menu->Settings*).
 
-**Weather:** the weather functions (`%todayconditions%`, `%currenttemp%`, ...) read the OpenWeatherMap "current weather" API. No API key is shipped:
+**Weather:** select Open-Meteo (no API key) or keep your existing OpenWeatherMap endpoint in Settings > Weather > Setup.
+For Luxembourg, Open-Meteo uses latitude `49.6116`, longitude `6.1319`, and location `Luxembourg, LU`. The command-line equivalent is:
+
+```text
+judo weather openmeteo 49.6116 6.1319 <lock>Luxembourg, LU</lock>
+```
+
+The existing weather functions and instruction sets work with both providers. Open-Meteo also supplies tomorrow's forecast.
+Switching providers preserves the saved OpenWeatherMap key. OpenWeatherMap's existing `/data/2.5/weather` URL remains supported. No API key is shipped:
 create a free key at <https://openweathermap.org/api> and save it with `judo weather key <your key>`. The key is kept encrypted in
 `.weathersettings` and put into the request when it is made; the URL in `AppConfig.xml` keeps `APPID=YOUR_OPENWEATHERMAP_API_KEY`. A key that an
-older version left in the URL is moved there when jaNET starts. Until a key is set the weather functions stay empty.
+older version left in the URL is moved there when jaNET starts. OpenWeatherMap requires that key; Open-Meteo does not.
+
+## Local speech
+
+Open Home > Ask Jubito > Voice settings (the gear), or Settings > Voice > Setup.
+
+* **Playback on this device:** uses installed local OS voices through the browser, with voice selection, playback speed and optional spoken replies. No extra server engine is needed. Chrome may need a moment to populate the voice list. Remote/cloud browser voices are excluded.
+* **Recognition:** click Download for the small English (40 MB) Vosk model. It is stored in the jaNET data folder and loaded on first use, not at startup. Small models typically need around 300 MB RAM; this is suitable for a home-assistant computer, not an ESP32. See the [official model sizes and licenses](https://alphacephei.com/vosk/models).
+* **Microphone:** open jaNET on `localhost`, or use HTTPS with a certificate trusted by that device. A self-signed certificate warning is not equivalent to trusted HTTPS. Allow the browser microphone prompt. The microphone inside the command field starts recording; it becomes a square to finish recording and transcribe (maximum 20 seconds). The cross beside the recording/transcription status cancels and discards the capture. Review the transcript before pressing Send. Audio is processed by your jaNET server, not a cloud recognition service. Recognition only produces text; it never executes a command automatically.
+* **Read aloud:** the speaker appears beside a completed answer, not beside an empty command. Click it to read that answer; during playback it changes to a square with the tooltip "Stop reading". This only stops audio, never a running command. Voice settings control the voice, speed and automatic spoken replies.
+* **Speech on the box:** install [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for small, fast synthesis, or [Piper](https://github.com/OHF-Voice/piper1-gpl) for a more natural local voice. Select the executable path in Voice settings. Piper additionally needs a `.onnx` voice model with its matching `.onnx.json` beside it. Use Test voice to check the configuration.
+* **Mute/unmute:** the Mute and Unmute instructions (or `%mute%` and `%unmute%`) control both server speech and browser playback. Mute stops active browser audio and disables Read aloud and Test voice until unmuted. Other open devices pick up changes within five seconds. Unmute restores playback permission; automatic spoken replies still follow the per-device Voice settings checkbox. The `{mute}` command prefix silences only that server command, not the global speech switch.
+
+When the server is bound to an explicit LAN IP, it also listens on localhost using the same ports. This makes `http://localhost:<httpPort>/www/` available on the server PC without changing LAN access or certificate trust.
+
+Speech engines and models are optional. Browser playback remains available when the server engine is off. Vosk native libraries are included for Windows x64, Linux x64 and macOS; Linux ARM/ARM64 deployments need a matching `libvosk.so` installed separately. The old `jspeech.exe`, Festival and `say` synthesis calls are no longer used. Voice settings are encrypted in `.speechsettings`; browser voice preferences stay on each device.
+
+### Install Your Own Language
+
+1. Open the [official Vosk model list](https://alphacephei.com/vosk/models), choose your language, check its license and download a compatible model ZIP. Prefer a small model when available; not every language has one.
+2. Extract the ZIP on the **computer running jaNET**, not just the phone/browser. Keep the entire extracted model together. For example, `C:\Models\vosk-model-small-de-0.15\am\final.mdl` must exist.
+3. In Voice settings, set **Vosk model folder** to the full extracted folder path, such as `C:\Models\vosk-model-small-de-0.15` or `/opt/models/vosk-model-small-de-0.15`. Select the folder containing `am`, `conf` and the other model files, not the ZIP or its parent folder. Click Save.
+4. Record a short phrase in that language. Only one recognition model is active at a time; there is no automatic language detection. Changing this setting affects every device using that jaNET server.
+
+Recognition languages and spoken voices are independent. To add a browser playback language, install its speech voice through your device's OS language/speech settings, then reload Jubito and choose the local voice in Voice settings. If the browser exposes no local voice for it, configure an eSpeak NG voice or a Piper model instead. The built-in recognition download list now contains English only; user-installed Vosk languages remain supported.
+
+## Home And Commands
+
+**Customize Home:** click the plus icon beside the greeting. Search for an instruction and check it to pin its card to Home; uncheck it to remove the pin without deleting the instruction. Cards run the same action and display the same reference value as Dashboard cards. Pins are saved in this browser's local storage, separately on each device; clearing site data clears them.
+
+**Create a new Home item:** in Customize Home, select New instruction, enter a unique Name and its Action, then Save. The newly created instruction is automatically pinned. The optional Add to Dashboard section accepts Category, Header, descriptions, thumbnail URL and a live Reference. Category and Header are both required to also display it on the Dashboard tab. Existing Settings > Instructions > Add New Instruction Set still works; pin that instruction afterward through Customize Home. Arbitrary HTML widgets still require editing the web UI rather than the instruction picker.
+
+**Natural command matching:** Ask Jubito accepts instruction IDs and friendly Headers, ignoring spaces, underscores, hyphens, case and punctuation. Thus `who am I?` matches an existing `whoami` instruction. Give custom instructions clear Headers such as `Kitchen light on`; the Header becomes an exact spoken/typed name. Built-in phrases include `who am I`, `what is my name`, `where am I`, `what is my status`, `what time is it`, `weather`, `check in` and `check out`. Existing `judo ...` commands and `%function%` expressions remain available.
+
+Partial names produce suggested commands instead of running a guess. Click the intended suggestion to execute it. Duplicate normalized names also require a choice. This is lightweight local matching, not a general-purpose chatbot or a language-model agent; it does not infer arbitrary actions, translate phrases, or automatically execute microphone transcripts. For other recognition languages, use instruction IDs/Headers in that language or existing jaNET syntax.
+
+Home uses a green status dot for present and red for absent. The larger calendar icon is centered beside the clock, with a matching sky background: daytime from 06:00 to 19:59 and night otherwise, using the jaNET server's clock rather than calculated sunrise/sunset. Temperature, humidity and pressure share a single group without separator lines. The weather tile selects an illustrated sky from the provider's current condition code (clear, clouds, overcast, rain, storm, snow, fog or clear night); night conditions are dimmed. This is condition-based artwork, not a live camera image. Unavailable weather does not display a misleading sky. Both OpenWeatherMap and Open-Meteo feed the same UI; switch providers in Settings > Weather without deleting your saved OpenWeatherMap key.
+
+Assistant replies and response dialogs use readable message blocks with distinct completion, pending and error states. Terminal output remains plain text, and command help keeps its searchable layout. The blue speaker button is aligned on the right of the assistant reply, matching Send; it changes to Stop reading during playback. Styling does not change the command output or execution behavior.
 
 ## Modernization
 
@@ -262,5 +308,5 @@ Tech blog: http://jubitoblog.blogspot.com \
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
-<img width="345" height="730" alt="image" src="https://github.com/user-attachments/assets/ae8a0787-704e-44f7-80ce-6a8a16619b2a" />
+<img width="350" height="735" alt="image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisERFydUs5XrJ8UCUEO1y4tGRResOVsN3SWrsj9rg2J7qyv9GMm1geC3B9L29bmBn9_hjG7hCIxOcV5TbVuAA8LexL3M_IMyOxr4jrF-ZG7rge_2v6E8quuLC0F_0DaZ9WmgMdYyqQJ2QTWtNubs2JXm_Ig8HfZsDNs3qFbH6cs9v_NXG7uTRaP7El-gI/s1600/image.png" />
 

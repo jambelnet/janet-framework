@@ -47,7 +47,7 @@ public sealed class JanetHostOptions
     /// <summary>What to do when "%exit%" is received. Default: end the process.</summary>
     public Action? ExitProcess { get; set; }
 
-    /// <summary>Speaks the answers of instructions. Default: the speech of the system (jspeech.exe on Windows, festival or say elsewhere).</summary>
+    /// <summary>Speaks the answers of instructions. Default: configured eSpeak NG or Piper.</summary>
     public ISpeaker? Speaker { get; set; }
 
     /// <summary>
@@ -84,6 +84,7 @@ public sealed class JanetHost : IDisposable
     readonly IMqttService _mqtt;
     readonly SchedulerService _scheduler;
     readonly UserPresence _presence;
+    readonly SpeechService _speech;
     bool _started;
 
     /// <summary>Creates the host; nothing runs until <see cref="Start"/>. Throws <see cref="ArgumentException"/> when a custom command or function clashes with an existing name.</summary>
@@ -105,7 +106,8 @@ public sealed class JanetHost : IDisposable
         IHttpFetcher http = parts.Http ?? new HttpFetcher();
         var internet = new InternetConnection(http);
         _info = new AppInfo(http, clock);
-        ISpeaker speaker = parts.Speaker ?? options.Speaker ?? new SystemSpeaker(_paths, processes);
+        _speech = new SpeechService(_settings, _paths);
+        ISpeaker speaker = parts.Speaker ?? options.Speaker ?? new SystemSpeaker(_speech, log);
 
         // The pieces refer to each other (an event runs instructions, instructions start events, ...):
         // they get the executor, the dispatcher and so on lazily, once everything exists.
@@ -130,7 +132,7 @@ public sealed class JanetHost : IDisposable
         evaluator = new ConditionEvaluator(() => resolver, executor);
         runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log);
 
-        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log);
+        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted);
         _socket = parts.Socket ?? new TcpSocketServer(_config, executor, log);
         _serial = parts.Serial ?? new SerialPortService(_config, executor, log);
         _mqtt = parts.Mqtt ?? new MqttService(_config, _settings, executor, log);
@@ -145,9 +147,9 @@ public sealed class JanetHost : IDisposable
             new SocketCommand(_socket, _config),
             new ServerCommand(_web, _config, _settings, () => (_web as WebServer)?.Certificate),
             new ScheduleCommand(_scheduler),
-            new SmtpCommand(_settings),
-            new Pop3Command(_settings),
-            new GmailCommand(_settings),
+            new SmtpCommand(_settings, mail),
+            new Pop3Command(_settings, mail),
+            new GmailCommand(_settings, mail),
             new MailCommand(mail),
             new MailHeadersCommand(_config),
             new SmsCommand(_settings, new SmsClient(_settings)),
@@ -321,7 +323,7 @@ public sealed class JanetHost : IDisposable
     public void Stop() => _lifetime.RequestStop();
 
     /// <summary>Stops the web server, socket server, serial port and scheduler (the process keeps running).</summary>
-    public void Dispose() => StopServices();
+    public void Dispose() { StopServices(); _speech.Dispose(); }
 
     void StopServices() {
         _scheduler.Dispose();

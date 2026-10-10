@@ -74,18 +74,24 @@ internal sealed class DynDnsClient
 
     /// <summary>The public IP address as seen from the Internet.</summary>
     public async Task<string> CheckIpAsync() {
-        string page = await _http.GetAsync("http://checkip.dyndns.org").ConfigureAwait(false);
+        string page = await _http.GetAsync("https://checkip.dyndns.org").ConfigureAwait(false);
         return Regex.Match(page, @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b").Value;
     }
 
     public async Task UpdateAsync(DynDnsSettings settings) {
         try {
-            string uri = $"http://dynupdate.no-ip.com/nic/update?hostname={settings.Hostname}&myip={await CheckIpAsync().ConfigureAwait(false)}";
+            string ip = await CheckIpAsync().ConfigureAwait(false);
+            string uri = "https://dynupdate.no-ip.com/nic/update?hostname=" + Uri.EscapeDataString(settings.Hostname) +
+                         "&myip=" + Uri.EscapeDataString(ip);
 
             using var handler = new HttpClientHandler { Credentials = new NetworkCredential(settings.Username, settings.Password) };
             using var client = new HttpClient(handler);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "jaNETFramework/1.0 admin@localhost");
             using HttpResponseMessage response = await client.GetAsync(uri).ConfigureAwait(false);
-            await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (!body.StartsWith("good ", StringComparison.OrdinalIgnoreCase) && !body.StartsWith("nochg ", StringComparison.OrdinalIgnoreCase))
+                _log.Write($"obj [ DynDns.DynamicUpdate ] No-IP answered: [ {body.Trim()} ]");
         }
         catch (Exception e) {
             _log.Write($"obj [ DynDns.DynamicUpdate <Exception> ] Exception Message: [ {e.Message} ]");

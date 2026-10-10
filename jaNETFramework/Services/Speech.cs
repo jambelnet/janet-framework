@@ -35,37 +35,40 @@ public interface ISpeaker
 }
 
 /// <summary>
-/// Speaks through what the system offers: jspeech.exe next to the program on Windows,
-/// festival or say on Linux and macOS. Does nothing when none of them is installed.
+/// Speaks through configured eSpeak NG or Piper. No legacy helper executables or shell interpolation.
 /// </summary>
 internal sealed class SystemSpeaker : ISpeaker
 {
     static readonly object Gate = new();
 
-    readonly AppPaths _paths;
-    readonly ProcessRunner _processes;
+    readonly SpeechService _speech;
+    readonly ILog _log;
 
-    public SystemSpeaker(AppPaths paths, ProcessRunner processes) {
-        _paths = paths;
-        _processes = processes;
-    }
+    public SystemSpeaker(SpeechService speech, ILog log) { _speech = speech; _log = log; }
 
     public bool Muted { get => _muted; set => _muted = value; }
     volatile bool _muted;
 
     public void Say(string text) {
         lock (Gate) {
-            text = text.Replace("_", " ");
-
-            if (OperatingSystem.IsWindows()) {
-                string speech = _paths.ProgramFile("jspeech.exe");
-                if (File.Exists(speech))
-                    _processes.Run(speech, text);
-            }
-            else if (File.Exists("/usr/bin/festival"))
-                _processes.RunCommandLine($"festival -b '(SayText \"{text}\")'");
-            else
-                _processes.RunCommandLine("say " + text);
+            if (Muted || _speech.Settings.Engine == "off") return;
+            string file = Path.Combine(Path.GetTempPath(), "janet-playback-" + Guid.NewGuid().ToString("N") + ".wav");
+            try {
+                byte[] audio = _speech.Synthesize(text.Replace("_", " "), default).GetAwaiter().GetResult();
+                File.WriteAllBytes(file, audio);
+                string? player = SpeechService.FindExecutable(OperatingSystem.IsWindows() ? "powershell" : OperatingSystem.IsMacOS() ? "afplay" : "aplay");
+                if (player == null) { _log.Write("Speech: no audio player found; use browser playback or install aplay."); return; }
+                var start = new System.Diagnostics.ProcessStartInfo(player) { UseShellExecute = false, CreateNoWindow = true };
+                if (OperatingSystem.IsWindows()) {
+                    start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive");
+                    start.ArgumentList.Add("-Command");
+                    start.ArgumentList.Add("$p=New-Object System.Media.SoundPlayer; $p.SoundLocation=$env:JANET_AUDIO; $p.PlaySync()");
+                    start.Environment["JANET_AUDIO"] = file;
+                } else start.ArgumentList.Add(file);
+                using var process = System.Diagnostics.Process.Start(start);
+                if (process != null && !process.WaitForExit(30_000)) process.Kill(entireProcessTree: true);
+            } catch (Exception e) { _log.Write("Speech: " + e.Message); }
+            finally { try { File.Delete(file); } catch (IOException) { } }
         }
     }
 }

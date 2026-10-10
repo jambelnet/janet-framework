@@ -21,13 +21,16 @@
 using jaNET.Configuration;
 using jaNET.Scripting;
 using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mail;
+using MailKit;
+using MailKit.Net.Imap;
+using MailKit.Search;
+using MailKit.Security;
+using MimeKit;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace jaNET.Services;
 
@@ -36,107 +39,163 @@ internal sealed class MailService
 {
     readonly ISettingsStore _settings;
     readonly AppConfigStore _config;
-    readonly InternetConnection _internet;
     readonly Func<IInstructionExecutor> _executor;
+    readonly Func<GmailSettings, GmailSnapshot> _readGmail;
+    readonly object _gmailGate = new();
+    GmailSettings? _cachedSettings;
+    GmailSnapshot? _gmailSnapshot;
+    DateTime _gmailChecked;
 
-    public MailService(ISettingsStore settings, AppConfigStore config, InternetConnection internet, Func<IInstructionExecutor> executor) {
+    public MailService(ISettingsStore settings, AppConfigStore config, InternetConnection internet, Func<IInstructionExecutor> executor,
+                       Func<GmailSettings, GmailSnapshot>? readGmail = null) {
         _settings = settings;
         _config = config;
-        _internet = internet;
         _executor = executor;
+        _readGmail = readGmail ?? ReadGmail;
+    }
+
+    public string SmtpError { get; private set; } = string.Empty;
+    public string Pop3Error { get; private set; } = string.Empty;
+
+    static string Password(string host, string password) =>
+        host.EndsWith(".gmail.com", StringComparison.OrdinalIgnoreCase) ? password.Replace(" ", string.Empty) : password;
+
+    static SecureSocketOptions SmtpTls(MailServerSettings settings) =>
+        !settings.Ssl ? SecureSocketOptions.None : settings.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
+
+    static string Error(string service, Exception exception, string password) {
+        string reason = exception is MailKit.Security.AuthenticationException
+            ? "Sign-in was rejected. For Gmail, use a Google app password, not your Google account password."
+            : exception is OperationCanceledException ? "The connection timed out."
+            : exception.Message;
+        if (!string.IsNullOrEmpty(password)) reason = reason.Replace(password, "[redacted]");
+        return service + ": " + reason;
     }
 
     public bool Send(string from, string to, string subject, string body) {
-        if (!_internet.IsAvailable()) return false;
-
+        MailServerSettings? smtp = _settings.LoadSmtp();
+        if (smtp == null) { SmtpError = "SMTP is not configured."; return false; }
         try {
-            MailServerSettings? smtp = _settings.LoadSmtp();
-            if (smtp == null) return false;       // not configured
-
-            using var mail = new MailMessage(from, to, subject, body);
-            using var client = new SmtpClient(smtp.Host) {
-                Port = smtp.Port,
-                Credentials = new NetworkCredential(smtp.Username, smtp.Password),
-                EnableSsl = smtp.Ssl
-            };
-            client.Send(mail);
+            using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var client = new MailKit.Net.Smtp.SmtpClient { Timeout = 10000 };
+            client.Connect(smtp.Host, smtp.Port, SmtpTls(smtp), limit.Token);
+            if (!string.IsNullOrEmpty(smtp.Username))
+                client.Authenticate(smtp.Username, Password(smtp.Host, smtp.Password), limit.Token);
+            var message = new MimeMessage();
+            message.From.AddRange(InternetAddressList.Parse(from));
+            message.To.AddRange(InternetAddressList.Parse(to));
+            message.Subject = subject;
+            message.Body = new TextPart("plain") { Text = body };
+            client.Send(message, limit.Token);
+            client.Disconnect(true, limit.Token);
+            SmtpError = string.Empty;
             return true;
         }
-        catch (Exception) {
-            return false;
-        }
+        catch (Exception e) { SmtpError = Error("SMTP", e, smtp.Password); return false; }
     }
 
-    /// <summary>
-    /// Runs the commands that arrived as &lt;keyword&gt;command&lt;/keyword&gt; in the subject or body of a message
-    /// (and deletes those messages) and returns the number of messages that are left.
-    /// </summary>
-    public int Pop3Check() {
+    // Connection tests authenticate only: they never send mail or execute mailbox commands.
+    public string TestSmtp() {
+        MailServerSettings? smtp = _settings.LoadSmtp();
+        if (smtp == null) return "SMTP is not configured.";
         try {
-            MailServerSettings? pop3 = _settings.LoadPop3();
-            if (pop3 == null) return 0;
+            using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var client = new MailKit.Net.Smtp.SmtpClient { Timeout = 10000 };
+            client.Connect(smtp.Host, smtp.Port, SmtpTls(smtp), limit.Token);
+            if (!string.IsNullOrEmpty(smtp.Username))
+                client.Authenticate(smtp.Username, Password(smtp.Host, smtp.Password), limit.Token);
+            client.Disconnect(true, limit.Token);
+            return "SMTP connection and authentication succeeded.";
+        }
+        catch (Exception e) { return Error("SMTP", e, smtp.Password); }
+    }
 
+    public string TestPop3() {
+        MailServerSettings? pop3 = _settings.LoadPop3();
+        if (pop3 == null) return "POP3 is not configured.";
+        try {
+            using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var client = new MailKit.Net.Pop3.Pop3Client { Timeout = 10000 };
+            client.Connect(pop3.Host, pop3.Port, !pop3.Ssl ? SecureSocketOptions.None
+                : pop3.Port == 110 ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect, limit.Token);
+            client.Authenticate(pop3.Username, Password(pop3.Host, pop3.Password), limit.Token);
+            int count = client.Count;
+            client.Disconnect(true, limit.Token);
+            return $"POP3 connection and authentication succeeded. Messages: {count}.";
+        }
+        catch (Exception e) { return Error("POP3", e, pop3.Password); }
+    }
+
+    public int Pop3Check() {
+        MailServerSettings? pop3 = _settings.LoadPop3();
+        if (pop3 == null) return 0;
+        try {
             using var client = new Pop3Client();
-            client.Connect(pop3.Host, pop3.Port, pop3.Username, pop3.Password);
-
+            client.Connect(pop3.Host, pop3.Port, pop3.Username, Password(pop3.Host, pop3.Password), pop3.Ssl);
             string keyword = _config.MailKeyword;
             if (keyword.Length > 0) {
                 foreach ((long number, long bytes) in client.List()) {
                     Pop3Message message = client.Retrieve(number, bytes);
-                    if (!message.Text.Contains("<" + keyword + ">")) continue;
-
-                    Match command = Regex.Match(message.Text.Replace("\r\n", " "), "(<" + keyword + ">)(.*?)(?=</" + keyword + ">)");
-                    _executor().Run(command.ToString().ToLowerInvariant().Replace("<" + keyword + ">", string.Empty));
+                    Match command = Regex.Match(message.Text.Replace("\r\n", " "),
+                        "<" + Regex.Escape(keyword) + ">(.*?)</" + Regex.Escape(keyword) + ">");
+                    if (!command.Success) continue;
+                    _executor().Run(command.Groups[1].Value);
                     client.Delete(number);
                 }
             }
-
             int remaining = client.List().Count;
             client.Quit();
+            Pop3Error = string.Empty;
             return remaining;
         }
-        catch (Exception) {
-            return 0;
-        }
+        catch (Exception e) { Pop3Error = Error("POP3", e, pop3.Password); return 0; }
     }
 
-    /// <summary>The number of unread Gmail messages, or a listing of them (sender, subject, date) when <paramref name="countOnly"/> is false.</summary>
-    public string GmailCheck(bool countOnly) {
-        try {
-            var feed = new XmlDocument();
-            feed.LoadXml(FetchGmailFeed());
-            XmlNodeList entries = feed.GetElementsByTagName("entry");
-
-            if (countOnly) return entries.Count.ToString();
-
-            var output = new StringBuilder();
-            for (int i = 0; i < entries.Count; ++i) {
-                var entry = (XmlElement)entries[i]!;
-                output.AppendFormat("Message {0}\r\n", i + 1);
-                output.AppendFormat("Subject: {0}\r\n", entry["title"]!.InnerText);
-                output.AppendFormat("From: {0} <{1}>\r\n", entry["author"]!["name"]!.InnerText, entry["author"]!["email"]!.InnerText);
-                output.AppendFormat("Date: {0}\r\n", DateTime.Parse(entry["modified"]!.InnerText));
+    /// <summary>Unread INBOX messages, without marking them read. Errors are distinct from an empty inbox.</summary>
+    public string GmailCheck(bool countOnly, bool force = false) {
+        GmailSettings? gmail = _settings.LoadGmail();
+        if (gmail == null) return countOnly ? "0" : "Gmail is not configured.";
+        lock (_gmailGate) {
+            if (force || _gmailSnapshot == null || gmail != _cachedSettings || DateTime.UtcNow - _gmailChecked >= TimeSpan.FromSeconds(15)) {
+                try { _gmailSnapshot = _readGmail(gmail); }
+                catch (Exception e) { _gmailSnapshot = new GmailSnapshot(0, Error("Gmail", e, gmail.Password), true); }
+                _cachedSettings = gmail;
+                _gmailChecked = DateTime.UtcNow;
             }
-            output.Append("Total: " + entries.Count);
-            return output.ToString();
-        }
-        catch (Exception) {
-            return "0";
+            if (_gmailSnapshot.Failed) return _gmailSnapshot.Headers;
+            return countOnly ? _gmailSnapshot.Count.ToString(CultureInfo.InvariantCulture) : _gmailSnapshot.Headers;
         }
     }
 
-    string FetchGmailFeed() {
-        GmailSettings gmail = _settings.LoadGmail() ?? throw new InvalidOperationException("Gmail is not configured.");
-        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(gmail.Username + ":" + gmail.Password));
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, "https://mail.google.com/mail/feed/atom");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-
-        using HttpResponseMessage response = HttpFetcher.Client.SendAsync(request).GetAwaiter().GetResult();
-        response.EnsureSuccessStatusCode();
-        return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+    static GmailSnapshot ReadGmail(GmailSettings gmail) {
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var client = new ImapClient { Timeout = 10000 };
+        client.Connect(gmail.ImapHost, gmail.ImapPort, !gmail.ImapSsl ? SecureSocketOptions.None
+            : gmail.ImapPort == 143 ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect, limit.Token);
+        client.Authenticate(gmail.Username, Password(gmail.ImapHost, gmail.Password), limit.Token);
+        client.Inbox.Open(FolderAccess.ReadOnly, limit.Token);
+        var unread = client.Inbox.Search(SearchQuery.NotSeen, limit.Token);
+        var output = new StringBuilder();
+        if (unread.Count > 0) {
+            // Fetch envelopes only; no body download and no read flag changes. Bound the reader output.
+            var summaries = client.Inbox.Fetch(unread.Skip(Math.Max(0, unread.Count - 50)).ToList(), MessageSummaryItems.Envelope, limit.Token);
+            int number = 0;
+            foreach (var summary in summaries.Reverse()) {
+                output.AppendLine($"Message {++number}");
+                if (summary.Envelope == null) continue;
+                output.AppendLine("Subject: " + summary.Envelope.Subject);
+                output.AppendLine("From: " + summary.Envelope.From);
+                output.AppendLine("Date: " + summary.Envelope.Date?.ToString("u"));
+                output.AppendLine();
+            }
+        }
+        output.Append("Total unread: " + unread.Count);
+        client.Disconnect(true, limit.Token);
+        return new GmailSnapshot(unread.Count, output.ToString());
     }
 }
+
+internal sealed record GmailSnapshot(int Count, string Headers, bool Failed = false);
 
 /// <summary>Mails the output of an instruction to the configured address while nobody is at home.</summary>
 internal sealed class MailNotifier
@@ -161,7 +220,7 @@ internal sealed class MailNotifier
 
     public void Notify(string output) {
         // the cheap local checks first: the Internet probe is a network request
-        if (_presence.IsPresent || string.IsNullOrWhiteSpace(output) || !_settings.Exists(SettingsFiles.Smtp) || !_internet.IsAvailable())
+        if (_presence.IsPresent || string.IsNullOrWhiteSpace(output) || !_settings.Exists(SettingsFiles.Smtp))
             return;
 
         MailHeaderSettings headers = _config.MailHeaders;

@@ -143,7 +143,20 @@ internal sealed class SettingsStore : ISettingsStore
 
 internal sealed record MailServerSettings(string Host, string Username, string Password, int Port, bool Ssl);
 
-internal sealed record GmailSettings(string Username, string Password);
+internal sealed record GmailSettings(string Username, string Password, string FeedUrl, string SmtpHost, int SmtpPort, bool SmtpSsl,
+                                     string Pop3Host, int Pop3Port, bool Pop3Ssl,
+                                     string ImapHost = "imap.gmail.com", int ImapPort = 993, bool ImapSsl = true);
+
+internal static class GmailDefaults
+{
+    public const string FeedUrl = "https://mail.google.com/mail/feed/atom";
+    public const string SmtpHost = "smtp.gmail.com";
+    public const int SmtpPort = 587;
+    public const bool SmtpSsl = true;
+    public const string Pop3Host = "pop.gmail.com";
+    public const int Pop3Port = 995;
+    public const bool Pop3Ssl = true;
+}
 
 internal sealed record SmsSettings(string Api, string Username, string Password);
 
@@ -169,10 +182,11 @@ internal static class SettingsFiles
     public const string WebLogin = ".htaccess";
     public const string Scheduler = ".scheduler";
     public const string Weather = ".weathersettings";
+    public const string Speech = ".speechsettings";
     public const string Tls = ".tlssettings";
     public const string Mqtt = ".mqttsettings";
 
-    public static readonly string[] All = { Smtp, Pop3, Gmail, Sms, DynDns, WebLogin, Scheduler, Weather, Tls, Mqtt };
+    public static readonly string[] All = { Smtp, Pop3, Gmail, Sms, DynDns, WebLogin, Scheduler, Weather, Speech, Tls, Mqtt };
 
     /// <summary>User name and password for the MQTT broker, or null when none are set.</summary>
     public static (string User, string Password)? LoadMqttLogin(this ISettingsStore store) {
@@ -191,7 +205,22 @@ internal static class SettingsFiles
 
     public static GmailSettings? LoadGmail(this ISettingsStore store) {
         IReadOnlyList<string>? v = store.Load(Gmail);
-        return v == null ? null : new GmailSettings(v[0], v[1]);
+        if (v == null) return null;
+
+        string username = v.Count > 0 ? v[0] : string.Empty;
+        string password = v.Count > 1 ? v[1] : string.Empty;
+        string feedUrl = v.Count > 2 && v[2].Length > 0 ? v[2] : GmailDefaults.FeedUrl;
+        string smtpHost = v.Count > 3 && v[3].Length > 0 ? v[3] : GmailDefaults.SmtpHost;
+        int smtpPort = v.Count > 4 && int.TryParse(v[4], out int sp) ? sp : GmailDefaults.SmtpPort;
+        bool smtpSsl = v.Count > 5 && bool.TryParse(v[5], out bool ss) ? ss : GmailDefaults.SmtpSsl;
+        string pop3Host = v.Count > 6 && v[6].Length > 0 ? v[6] : GmailDefaults.Pop3Host;
+        int pop3Port = v.Count > 7 && int.TryParse(v[7], out int pp) ? pp : GmailDefaults.Pop3Port;
+        bool pop3Ssl = v.Count > 8 && bool.TryParse(v[8], out bool ps) ? ps : GmailDefaults.Pop3Ssl;
+
+        string imapHost = v.Count > 9 && v[9].Length > 0 ? v[9] : "imap.gmail.com";
+        int imapPort = v.Count > 10 && int.TryParse(v[10], out int ip) ? ip : 993;
+        bool imapSsl = v.Count > 11 && bool.TryParse(v[11], out bool tls) ? tls : true;
+        return new GmailSettings(username, password, feedUrl, smtpHost, smtpPort, smtpSsl, pop3Host, pop3Port, pop3Ssl, imapHost, imapPort, imapSsl);
     }
 
     public static SmsSettings? LoadSms(this ISettingsStore store) {

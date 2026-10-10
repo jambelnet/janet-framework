@@ -369,7 +369,7 @@ public class SettingsStoreTests
         store.Save(SettingsFiles.Gmail, "me@example.org\r\nsecret");
 
         Assert.Equal(new MailServerSettings("smtp.example.org", "user", "secret", 587, true), store.LoadSmtp());
-        Assert.Equal(new GmailSettings("me@example.org", "secret"), store.LoadGmail());
+        Assert.Equal(new GmailSettings("me@example.org", "secret", GmailDefaults.FeedUrl, GmailDefaults.SmtpHost, GmailDefaults.SmtpPort, GmailDefaults.SmtpSsl, GmailDefaults.Pop3Host, GmailDefaults.Pop3Port, GmailDefaults.Pop3Ssl), store.LoadGmail());
     }
 
     [Fact]

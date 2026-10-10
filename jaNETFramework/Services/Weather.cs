@@ -87,7 +87,7 @@ internal interface IWeatherSource
     WeatherReport Current();
 }
 
-/// <summary>Reads the OpenWeatherMap "current weather" answer of the configured URL. Answers are reused for 30 seconds.</summary>
+/// <summary>Reads OpenWeatherMap or Open-Meteo at the configured URL. Answers are reused for 30 seconds.</summary>
 internal sealed class OpenWeatherSource : IWeatherSource
 {
     static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(30);
@@ -105,6 +105,7 @@ internal sealed class OpenWeatherSource : IWeatherSource
 
     WeatherReport? _report;
     DateTime _fetchedAt;
+    string _cacheKey = string.Empty;
 
     public OpenWeatherSource(AppConfigStore config, IHttpFetcher http, IClock clock, ISettingsStore? settings = null) {
         _config = config;
@@ -115,10 +116,12 @@ internal sealed class OpenWeatherSource : IWeatherSource
 
     public WeatherReport Current() {
         lock (_gate) {
-            if (_report != null && _clock.Now - _fetchedAt < Lifetime) return _report;
+            string key = _config.WeatherUrl + "\n" + _config.WeatherLocation + "\n" + (_settings == null ? "" : WeatherKey.Stored(_settings));
+            if (_report != null && key == _cacheKey && _clock.Now - _fetchedAt < Lifetime) return _report;
 
             _report = Fetch();
             _fetchedAt = _clock.Now;
+            _cacheKey = key;
             return _report;
         }
     }
@@ -131,7 +134,11 @@ internal sealed class OpenWeatherSource : IWeatherSource
         };
 
         try {
-            string url = WeatherKey.Apply(_config.WeatherUrl, _settings == null ? null : WeatherKey.Stored(_settings));
+            string endpoint = _config.WeatherUrl;
+            bool meteo = Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? uri) &&
+                uri.Host.Equals("api.open-meteo.com", StringComparison.OrdinalIgnoreCase);
+            string url = meteo ? endpoint : WeatherKey.Apply(endpoint, _settings == null ? null : WeatherKey.Stored(_settings));
+            if (meteo) return ReadMeteo(_http.Get(url), report);
             Root? root = url.Length == 0 ? null : JsonSerializer.Deserialize<Root>(_http.Get(url), JsonOptions);
             if (root?.Main == null || root.Weather == null || root.Weather.Count == 0) return report;
 
@@ -147,13 +154,53 @@ internal sealed class OpenWeatherSource : IWeatherSource
                 CurrentTemp = Number(root.Main.Temp),
                 CurrentHumidity = root.Main.Humidity.ToString(CultureInfo.CurrentCulture),
                 CurrentPressure = root.Main.Pressure.ToString(CultureInfo.InvariantCulture),
-                WeatherIcon = "http://openweathermap.org/img/w/" + root.Weather[0].Icon + ".png"
+                WeatherIcon = "https://openweathermap.org/img/wn/" + root.Weather[0].Icon + "@2x.png"
             };
         }
         catch (Exception) {
             // no connection, no or an unusable answer: the functions stay empty
             return report;
         }
+    }
+
+    WeatherReport ReadMeteo(string json, WeatherReport fallback) {
+        using JsonDocument document = JsonDocument.Parse(json);
+        JsonElement root = document.RootElement;
+        if (!root.TryGetProperty("current", out JsonElement current) || !current.TryGetProperty("temperature_2m", out JsonElement temperature) ||
+            temperature.ValueKind != JsonValueKind.Number) return fallback;
+        string Number(JsonElement source, string name) => source.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out double n)
+            ? Math.Round(n, 1).ToString(CultureInfo.InvariantCulture) : string.Empty;
+        int code = current.TryGetProperty("weather_code", out JsonElement weatherCode) && weatherCode.ValueKind == JsonValueKind.Number && weatherCode.TryGetInt32(out int c) ? c : -1;
+        (string conditions, string icon) Weather(int value) => value switch {
+            0 => ("Clear", "01"), 1 or 2 => ("Partly cloudy", "02"), 3 => ("Overcast", "04"),
+            45 or 48 => ("Fog", "50"), 51 or 53 or 55 or 56 or 57 => ("Drizzle", "09"),
+            61 or 63 or 65 or 66 or 67 or 80 or 81 or 82 => ("Rain", "10"),
+            71 or 73 or 75 or 77 or 85 or 86 => ("Snow", "13"), 95 or 96 or 99 => ("Thunderstorm", "11"),
+            _ => ("Unknown", "03")
+        };
+        var today = Weather(code);
+        string Daily(string name, int index) {
+            if (!root.TryGetProperty("daily", out JsonElement daily) || !daily.TryGetProperty(name, out JsonElement values) ||
+                values.ValueKind != JsonValueKind.Array || values.GetArrayLength() <= index) return string.Empty;
+            JsonElement value = values[index];
+            return value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out double n)
+                ? Math.Round(n, 1).ToString(CultureInfo.InvariantCulture) : value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";
+        }
+        string Day(int index, string defaultDay) => DateTime.TryParse(Daily("time", index), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date)
+            ? date.DayOfWeek.ToString() : defaultDay;
+        string tomorrow = int.TryParse(Daily("weather_code", 1), out int tomorrowCode) ? Weather(tomorrowCode).conditions : string.Empty;
+        bool night = current.TryGetProperty("is_day", out JsonElement isDay) && isDay.ValueKind == JsonValueKind.Number && isDay.TryGetInt32(out int day) && day == 0;
+        // OpenWeatherMap's main.pressure is sea-level pressure; preserve that meaning across providers.
+        string pressure = Number(current, "pressure_msl");
+        if (pressure.Length == 0) pressure = Number(current, "surface_pressure");
+        return new WeatherReport {
+            CurrentTemp = Number(current, "temperature_2m"), CurrentHumidity = Number(current, "relative_humidity_2m"),
+            CurrentPressure = pressure, CurrentCity = _config.WeatherLocation,
+            TodayConditions = today.conditions, TodayLow = Daily("temperature_2m_min", 0), TodayHigh = Daily("temperature_2m_max", 0),
+            TodayDay = Day(0, fallback.TodayDay), TomorrowDay = Day(1, fallback.TomorrowDay),
+            TomorrowConditions = tomorrow, TomorrowLow = Daily("temperature_2m_min", 1), TomorrowHigh = Daily("temperature_2m_max", 1),
+            WeatherIcon = "https://openweathermap.org/img/wn/" + today.icon + (night ? "n" : "d") + "@2x.png"
+        };
     }
 
     sealed class Root

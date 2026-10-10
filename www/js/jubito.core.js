@@ -2,8 +2,11 @@
 // Jubito web UI - the application layer that sits on top of the jaNET Framework judo API.
 // Plain ES modules, no libraries. See css/app.css for the layout and index.html for the markup.
 
-import { runText, runJson, loadInstructionSets, onConnection } from './api.js';
+import { runText, runRawText, runJson, loadInstructionSets, onConnection } from './api.js';
 import { createGauge } from './gauge.js';
+import { renderResponse } from './help.js';
+import { wireVoice } from './voice.js';
+import { resolveIntent } from './intents.js';
 
 const byId = id => document.getElementById(id);
 const val = id => byId(id).value;
@@ -16,11 +19,36 @@ const WEATHER_INTERVAL = 60000;
 const DEGREE = String.fromCharCode(176);      // the degree sign, written as a code so that no file encoding can damage it
 
 let currentView = 'page0';
+let currentSettingsSection = 'settings-group';
 let gauges = {};
 let instructionSets = [];     // from /api/instructions
 let selectedCategory = null;
 const cmdHistory = [];        // terminal command history
 let historyIndex = 0;
+let voice;
+const activity = [];
+let lastGmailCount = null;
+let homePins = [];
+let addingToHome = false;
+try { const saved = JSON.parse(localStorage.getItem('jubito-home-pins') ?? '[]'); if (Array.isArray(saved)) homePins = [...new Set(saved.filter(id => typeof id === 'string'))]; } catch { }
+
+function addActivity(message) {
+    activity.unshift({ message, time: new Date() });
+    if (activity.length > 20) activity.pop();
+    renderActivity();
+}
+
+function renderActivity() {
+    const list = byId('activityList');
+    list.replaceChildren(...activity.slice(0, 5).map(item => {
+        const li = document.createElement('li');
+        const text = document.createElement('span'); text.textContent = item.message;
+        const time = document.createElement('time'); time.dateTime = item.time.toISOString();
+        const minutes = Math.floor((Date.now() - item.time.getTime()) / 60000);
+        time.textContent = minutes < 1 ? 'Just now' : minutes + ' min ago'; li.append(text, time); return li;
+    }));
+    if (!activity.length) { const li = document.createElement('li'); li.className = 'activity-empty'; li.textContent = 'No activity yet.'; list.append(li); }
+}
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -49,10 +77,11 @@ function toast(message) {
     toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
-function showResult(text, title = 'Response') {
-    byId('responseTitle').textContent = title;
-    byId('responseText').textContent = text;
+function showResult(text, title = 'Response', command = '') {
+    const help = renderResponse(byId('responseText'), text, command);
+    byId('responseTitle').textContent = help ? 'Command help' : title;
     const dialog = byId('responseDialog');
+    dialog.classList.toggle('help-dialog', help);
     if (!dialog.open) dialog.showModal();
 }
 
@@ -77,7 +106,7 @@ async function send(cmd) {
 
 async function sendAndShow(cmd) {
     const data = await send(cmd);
-    if (data !== null) showResult(data);
+    if (data !== null) showResult(data, 'Response', cmd);
     return data;
 }
 
@@ -118,13 +147,27 @@ function nextTheme() {
 
 /* ------------------------------------------------------------------ routing */
 
-function show(id) {
-    currentView = id;
-    for (const view of VIEWS) byId(view).hidden = view !== id;
-    document.querySelectorAll('[data-nav]').forEach(a => {
-        if (a.dataset.nav === id) a.setAttribute('aria-current', 'page');
+function updateNavigation() {
+    document.querySelectorAll('nav [data-nav], nav [data-section]').forEach(a => {
+        const selected = a.dataset.section
+            ? currentView === 'page3' && a.dataset.section === currentSettingsSection
+            : a.dataset.nav === currentView;
+        if (selected) a.setAttribute('aria-current', 'page');
         else a.removeAttribute('aria-current');
     });
+}
+
+function selectSettingsSection(id) {
+    currentSettingsSection = id;
+    byId('page3').querySelectorAll('details.group').forEach(group => { group.open = group.id === id; });
+    updateNavigation();
+}
+
+function show(id, section = currentSettingsSection) {
+    currentView = id;
+    for (const view of VIEWS) byId(view).hidden = view !== id;
+    if (id === 'page3') selectSettingsSection(section);
+    else updateNavigation();
     window.scrollTo(0, 0);
     if (id === 'page2' && matchMedia('(pointer: fine)').matches) byId('textinput1').focus();
     refresh();
@@ -140,6 +183,7 @@ function route() {
 
 function refresh() {
     if (document.hidden) return;
+    voice?.refreshMute();
     if (currentView === 'page0') refreshHome();
     else if (currentView === 'page1') refreshReferences();
     else if (currentView === 'page3') refreshSettingsState();
@@ -149,13 +193,17 @@ async function refreshHome() {
     runJson('%day%&%date%&%calendaryear%&%time24%').then(data => {
         byId('header').hidden = false;
         byId('time').textContent = data.time24.Value;
+        const hour = Number(data.time24.Value.split(':')[0]);
+        document.querySelector('.tile-time').dataset.period = hour >= 6 && hour < 20 ? 'day' : 'night';
         byId('date').textContent = data.day.Value + '\n' + data.date.Value + ', ' + data.calendaryear.Value;
 
     }).catch(() => {});
 
     runJson('%salute%&%whoami%&%whereami%').then(data => {
-        byId('userstat').textContent =
-            'Good ' + data.salute.Value + ' ' + data.whoami.Value + '\nYour status is set to ' + data.whereami.Value;
+        byId('greeting').textContent = 'Good ' + data.salute.Value + ', ' + data.whoami.Value;
+        const presence = data.whereami.Value.trim().toLowerCase();
+        byId('presenceText').textContent = 'Your status is set to ' + data.whereami.Value;
+        byId('userstat').dataset.presence = presence;
     }).catch(() => {});
 
     // Indoor widget
@@ -163,13 +211,13 @@ async function refreshHome() {
     // http://jubitoblog.blogspot.com/2014/06/arduino-temperature-and-humidity-using.html
     runJson('judo%20serial%20send%20dhttemp&judo%20serial%20send%20humid').then(data => {
         const temp = data.judo_serial_send_dhttemp.Value;
-        if (temp !== 'Serial port state: False') {
+        if (isNumeric(temp)) {
             const humid = data.judo_serial_send_humid.Value;
             byId('indoordiv').hidden = false;
             byId('indoor').textContent = 'Indoor: ' + temp + DEGREE + 'C ' + humid + '%';
             gauges.indoortemp.refresh(temp);
             gauges.indoorhumid.refresh(humid);
-        }
+        } else byId('indoordiv').hidden = true;
     }).catch(() => {});
 }
 
@@ -178,19 +226,33 @@ async function refreshGmail() {
         const data = await runJson('%gmailcount%&%gmailreader%');
         const count = clean(data.gmailcount.Value);
         const badge = byId('gmail-badge');
-        badge.textContent = count === '0' ? '' : count;
+        const failed = !/^\d+$/.test(count);
+        badge.textContent = failed ? '!' : count;
+        badge.title = failed ? count : count + ' unread messages';
+        badge.setAttribute('aria-label', badge.title);
+        if (!failed && lastGmailCount !== null && Number(count) > lastGmailCount) addActivity('New email received');
+        if (!failed) lastGmailCount = Number(count);
         byId('gmailreader').textContent = data.gmailreader.Value;
-    } catch { /* offline indicator is handled by the api module */ }
+    } catch {
+        const badge = byId('gmail-badge');
+        badge.textContent = '!';
+        badge.title = 'Gmail could not be checked. jaNET is unreachable.';
+        badge.setAttribute('aria-label', badge.title);
+        byId('gmailreader').textContent = badge.title;
+    }
 }
 
 async function refreshWeather() {
     try {
         const data = await runJson('%currentcity%&%todayconditions%&%weathericon%&%currenttemperature%&%currenthumidity%&%currentpressure%');
         if (data.currenttemperature.Value.length <= 0) {
+            setWeatherScene('');
             byId('conditions').textContent = 'Unavailable';
             byId('location').hidden = true;
             byId('weather-ico').hidden = true;
+            byId('weatherdiv').hidden = true;
         } else {
+            setWeatherScene(data.weathericon.Value);
             byId('conditions').textContent = data.currenttemperature.Value + DEGREE + 'C';
             const loc = byId('location');
             loc.hidden = false;
@@ -206,12 +268,31 @@ async function refreshWeather() {
             gauges.curhumid.refresh(data.currenthumidity.Value);
             gauges.curpres.refresh(data.currentpressure.Value);
         }
-    } catch { /* ignore, retried on the next interval */ }
+    } catch {
+        setWeatherScene('');
+        byId('conditions').textContent = 'Unavailable'; byId('location').hidden = true;
+        byId('weather-ico').hidden = true; byId('weatherdiv').hidden = true;
+    }
+}
+
+function setWeatherScene(iconUrl) {
+    const code = String(iconUrl).match(/\/(\d{2})([dn])(?:@2x)?\.png(?:\?.*)?$/);
+    const tile = byId('weathertile');
+    const scenes = { '01': ['clear', 0, 0], '02': ['clouds', 100, 0], '03': ['clouds', 100, 0], '04': ['overcast', 0, 1],
+        '09': ['rain', 100, 1], '10': ['rain', 100, 1], '11': ['storm', 0, 2], '13': ['snow', 100, 2], '50': ['fog', 0, 3] };
+    let scene = code ? scenes[code[1]] : null;
+    if (code?.[1] === '01' && code[2] === 'n') scene = ['night', 100, 3];
+    tile.dataset.scene = scene?.[0] ?? 'unavailable';
+    tile.dataset.night = String(code?.[2] === 'n');
+    tile.style.setProperty('--sky-x', (scene?.[1] ?? 0) + '%');
+    tile.style.setProperty('--sky-y', ((scene?.[2] ?? 0) * 100 / 3) + '%');
 }
 
 async function refreshReferences() {
-    for (const el of document.querySelectorAll('#customul [data-ref]')) {
-        const text = await send('{mute}' + el.dataset.ref).catch(() => null);
+    const values = new Map();
+    for (const el of document.querySelectorAll('#customul [data-ref], #homePins [data-ref]')) {
+        if (!values.has(el.dataset.ref)) values.set(el.dataset.ref, await send('{mute}' + el.dataset.ref).catch(() => null));
+        const text = values.get(el.dataset.ref);
         if (text !== null) el.textContent = text;
     }
 }
@@ -224,6 +305,7 @@ async function refreshSettingsState() {
 
 function startPolling() {
     setInterval(refresh, HOME_INTERVAL);
+    setInterval(renderActivity, 60000);
     setInterval(() => { if (!document.hidden) refreshGmail(); }, GMAIL_INTERVAL);
     setInterval(() => { if (!document.hidden) refreshWeather(); }, WEATHER_INTERVAL);
     document.addEventListener('visibilitychange', () => {
@@ -280,6 +362,7 @@ async function loadXml() {
     if (selectedCategory !== null) select.value = selectedCategory;
 
     renderCards();
+    renderHomePins();
     refreshReferences();
 }
 
@@ -290,7 +373,11 @@ function renderCards() {
         s.header !== null && !s.id.includes('*') && s.categ === selectedCategory &&
         (filter === '' || (s.header + ' ' + s.shortdescr + ' ' + s.descr).toLowerCase().includes(filter)));
 
-    list.replaceChildren(...items.map(s => {
+    list.replaceChildren(...items.map(instructionCard));
+    byId('customul-empty').hidden = items.length > 0;
+}
+
+function instructionCard(s) {
         const li = document.createElement('li');
         const button = document.createElement('button');
         button.type = 'button';
@@ -304,14 +391,13 @@ function renderCards() {
             img.loading = 'lazy';
             button.append(img);
         } else {
-            const spacer = document.createElement('span');
-            spacer.className = 'noimg';
-            button.append(spacer);
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); icon.classList.add('noimg'); icon.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); use.setAttribute('href', '#i-dashboard'); icon.append(use); button.append(icon);
         }
 
         const body = document.createElement('span');
         const h = document.createElement('h3');
-        h.textContent = s.header;
+        h.textContent = s.header || s.id;
         const p1 = document.createElement('p');
         const strong = document.createElement('strong');
         strong.textContent = s.shortdescr;
@@ -323,14 +409,39 @@ function renderCards() {
 
         const value = document.createElement('span');
         value.className = 'value';
-        if (s.ref !== null) value.dataset.ref = s.ref;
+        if (s.ref) value.dataset.ref = s.ref;
         button.append(value);
 
         li.append(button);
         return li;
-    }));
+}
 
-    byId('customul-empty').hidden = items.length > 0;
+function renderHomePins() {
+    const items = homePins.map(id => instructionSets.find(item => item.id === id)).filter(Boolean);
+    byId('homePins').replaceChildren(...items.map(instructionCard));
+    byId('homePins').hidden = !items.length;
+}
+
+function saveHomePins(next) {
+    try { localStorage.setItem('jubito-home-pins', JSON.stringify(next)); }
+    catch { toast('Home changes could not be saved. Allow local browser storage.'); return false; }
+    homePins = next; renderHomePins(); refreshReferences(); return true;
+}
+
+function renderHomeOptions() {
+    const filter = val('homeFilter').trim().toLowerCase();
+    const items = instructionSets.filter(item => item.id && !item.id.startsWith('*') &&
+        [item.id, item.header, item.categ].join(' ').toLowerCase().includes(filter));
+    byId('homePinOptions').replaceChildren(...items.map(item => {
+        const label = document.createElement('label');
+        const input = document.createElement('input'); input.type = 'checkbox'; input.checked = homePins.includes(item.id);
+        input.addEventListener('change', () => {
+            if (!saveHomePins(input.checked ? [...homePins, item.id] : homePins.filter(id => id !== item.id))) input.checked = !input.checked;
+        });
+        const name = document.createElement('span'); name.textContent = item.header ? item.header + ' (' + item.id + ')' : item.id;
+        label.append(input, name); return label;
+    }));
+    byId('homePinEmpty').hidden = items.length > 0;
 }
 
 /* ------------------------------------------------------------------ commands */
@@ -340,20 +451,88 @@ async function runCommand(cmd) {
     if (!cmd) return;
     const data = await send(cmd);
     if (data === null) return;
+    await voice.refreshMute();
+    if (cmd === '%checkin%' || cmd === encodeURIComponent('%checkin%')) addActivity('Checked in');
+    else if (cmd === '%checkout%' || cmd === encodeURIComponent('%checkout%')) addActivity('Checked out');
 
     if (currentView === 'page2') {
-        byId('response-p2').textContent = data !== '' ? data : 'Operation completed.';
+        renderResponse(byId('response-p2'), data !== '' ? data : 'Operation completed.', cmd);
     } else if (data !== '') {
-        showResult(data);
+        showResult(data, 'Response', cmd);
     } else if (currentView !== 'page0') {
         showResult('Operation completed.');
     }
     if (currentView === 'page0') refreshHome();
 }
 
+async function askJubito(event) {
+    event.preventDefault();
+    const input = val('askInput').trim();
+    if (!input) return;
+    const match = resolveIntent(input, instructionSets);
+    const choices = byId('intentChoices'); choices.replaceChildren(); choices.hidden = true;
+    const response = byId('askResponse'); response.hidden = false;
+    voice.stop();
+    if (!match.command) {
+        voice.clearResponse();
+        renderResponse(response, match.suggestions.length ? 'Which command did you mean?' : 'No matching command found.', '', { state: match.suggestions.length ? 'choice' : 'error' });
+        choices.replaceChildren(...match.suggestions.map(item => {
+            const button = document.createElement('button'); button.type = 'button'; button.className = 'btn';
+            button.textContent = item.label + (match.suggestions.filter(other => other.label === item.label).length > 1 ? ' (' + item.command + ')' : '');
+            button.title = 'Run ' + item.command;
+            button.addEventListener('click', () => { choices.hidden = true; executeAssistant(item.command); }); return button;
+        }));
+        choices.hidden = !match.suggestions.length; return;
+    }
+    await executeAssistant(match.command);
+}
+
+async function executeAssistant(command) {
+    const response = byId('askResponse'); response.hidden = false;
+    voice.clearResponse();
+    const button = byId('askForm').querySelector('[type="submit"]'); button.disabled = true;
+    renderResponse(response, 'Running your command...', '', { state: 'busy' });
+    try {
+        const text = await runRawText('{mute}' + command);
+        renderResponse(response, text || 'Operation completed.', command);
+        addActivity('Assistant command completed');
+        await voice.response(text || 'Operation completed.');
+        if (command.includes('checkin') || command.includes('checkout')) refreshHome();
+    } catch (error) { const message = 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
+    finally { button.disabled = false; }
+}
+
+function weatherFields() {
+    const meteo = val('weatherProvider') === 'openmeteo';
+    byId('weatherLegacyFields').hidden = meteo; byId('weatherMeteoFields').hidden = !meteo;
+    byId('weatherURI').required = !meteo;
+    ['weatherLatitude', 'weatherLongitude', 'weatherLocation'].forEach(id => { byId(id).required = meteo; });
+}
+
+function weatherCredit(endpoint) {
+    const meteo = endpoint.includes('api.open-meteo.com/');
+    const link = byId('weather-credit'); link.textContent = meteo ? 'Open-Meteo' : 'OpenWeather';
+    link.href = meteo ? 'https://open-meteo.com/' : 'https://openweathermap.org/';
+}
+
+async function loadWeatherSettings() {
+    const endpoint = await send('judo weather settings') ?? '';
+    setVal('weatherURI', endpoint); setVal('weatherApiKey', ''); weatherCredit(endpoint);
+    try {
+        const url = new URL(endpoint);
+        setVal('weatherProvider', url.hostname === 'api.open-meteo.com' ? 'openmeteo' : 'legacy');
+        if (url.hostname === 'api.open-meteo.com') {
+            setVal('weatherLatitude', url.searchParams.get('latitude') ?? '49.6116');
+            setVal('weatherLongitude', url.searchParams.get('longitude') ?? '6.1319');
+            setVal('weatherLocation', await send('judo weather location') ?? '');
+        }
+    } catch { setVal('weatherProvider', 'legacy'); }
+    weatherFields();
+}
+
 function clearPage() {
     setVal('textinput1', '');
-    byId('response-p2').textContent = '';
+    renderResponse(byId('response-p2'), '');
     byId('textinput1').focus();
 }
 
@@ -380,6 +559,33 @@ function terminalKeys(event) {
 /* ------------------------------------------------------------------ settings forms */
 
 const enc = encodeURIComponent;
+const locked = text => '<lock>' + text + '</lock>';
+
+async function saveRaw(command) {
+    try { return await runRawText(command); }
+    catch { toast('The settings request failed.'); return null; }
+}
+
+async function saveMail(command) {
+    const result = await saveRaw(command);
+    if (result !== null) showResult(result);
+    return result === 'Settings saved.';
+}
+
+async function loadMailSettings(id) {
+    const kind = id.replace('Settings', '');
+    const values = (await send('judo ' + kind + ' settings') ?? '').split(/\r?\n/);
+    const fields = kind === 'gmail'
+        ? ['gmailUsername', 'gmailPassword', null, 'gmailSmtpHost', 'gmailSmtpPort', 'chkGmailSmtpSSL',
+            'gmailPop3Host', 'gmailPop3Port', 'chkGmailPop3SSL', 'gmailImapHost', 'gmailImapPort', 'chkGmailImapSSL']
+        : [kind + 'Host', kind + 'Username', kind + 'Password', kind + 'Port', 'chk' + (kind === 'smtp' ? 'Smtp' : 'Pop3') + 'SSL'];
+    fields.forEach((field, index) => {
+        if (!field || values[index] === undefined) return;
+        const input = byId(field);
+        if (input.type === 'checkbox') input.checked = values[index].toLowerCase() === 'true';
+        else if (values[index] !== '0') input.value = values[index];
+    });
+}
 const underscored = text => text.replace(/ /g, '_');
 
 async function reloadAfter(promise) {
@@ -392,14 +598,19 @@ const actions = {
         await sendAndShow('judo sms send ' + val('phonenumber') + ' `' + val('smsText') + '`');
     },
     async gmailSettings() {
-        await sendAndShow('judo gmail set ' + val('gmailUsername') + ' ' + enc(val('gmailPassword')));
+        const saved = await saveMail('judo gmail set ' + locked(val('gmailUsername')) + ' ' + locked(val('gmailPassword')) +
+            ' ' + locked('https://mail.google.com/mail/feed/atom') + ' ' + locked(val('gmailSmtpHost')) + ' ' + val('gmailSmtpPort') + ' ' + byId('chkGmailSmtpSSL').checked +
+            ' ' + locked(val('gmailPop3Host')) + ' ' + val('gmailPop3Port') + ' ' + byId('chkGmailPop3SSL').checked +
+            ' ' + locked(val('gmailImapHost')) + ' ' + val('gmailImapPort') + ' ' + byId('chkGmailImapSSL').checked);
+        if (saved) refreshGmail();
+        return saved;
     },
     async smtpSettings() {
-        await sendAndShow('judo smtp set ' + val('smtpHost') + ' ' + val('smtpUsername') + ' ' + enc(val('smtpPassword')) +
+        return saveMail('judo smtp set ' + locked(val('smtpHost')) + ' ' + locked(val('smtpUsername')) + ' ' + locked(val('smtpPassword')) +
             ' ' + val('smtpPort') + ' ' + byId('chkSmtpSSL').checked);
     },
     async pop3Settings() {
-        await sendAndShow('judo pop3 set ' + val('pop3Host') + ' ' + val('pop3Username') + ' ' + enc(val('pop3Password')) +
+        return saveMail('judo pop3 set ' + locked(val('pop3Host')) + ' ' + locked(val('pop3Username')) + ' ' + locked(val('pop3Password')) +
             ' ' + val('pop3Port') + ' ' + byId('chkPop3SSL').checked);
     },
     async mailheaderSettings() {
@@ -414,6 +625,38 @@ const actions = {
     async serverSettings() {
         await sendAndShow('judo server set ' + val('serverHost') + ' ' + val('serverPort') + ' ' + val('serverAuth'));
     },
+    async httpsSettings() {
+        const mode = val('httpsMode');
+        if (mode === 'custom' && !val('httpsCertFile').trim()) { toast('Enter the PFX certificate file.'); return false; }
+        const certificate = mode === 'custom' ? ' ' + locked(val('httpsCertFile')) + ' ' + locked(val('httpsCertPassword'))
+            : mode === 'default' ? ' default' : '';
+        const result = await saveRaw(mode === 'off' ? 'judo server https off' : 'judo server https on ' + val('httpsPort') + certificate);
+        if (result === null) return false;
+        if (!result.startsWith('HTTPS: ')) { showResult(result); return false; }
+        let status = result;
+        if (result.includes('Applying HTTPS settings.')) {
+            for (let attempt = 0; attempt < 20; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 250));
+                try {
+                    status = await runText('judo server https status');
+                    if (mode === 'off' || status.includes('Certificate:')) break;
+                } catch { /* listener is restarting */ }
+            }
+        }
+        byId('httpsResult').textContent = status;
+        const link = byId('httpsLink');
+        link.hidden = mode === 'off' || !status.includes('Certificate:');
+        if (!link.hidden) {
+            const url = new URL(window.location.href);
+            url.protocol = 'https:';
+            url.port = val('httpsPort');
+            url.pathname = '/www/';
+            url.search = '';
+            url.hash = '';
+            link.href = url.href;
+        }
+        return false;
+    },
     async socketSettings() {
         await sendAndShow('judo socket set ' + val('socketHost') + ' ' + val('socketPort'));
     },
@@ -425,7 +668,23 @@ const actions = {
         await sendAndShow('judo serial set ' + val('serialPort') + ' ' + val('serialBaud'));
     },
     async weatherSettings() {
-        await sendAndShow('judo weather set <lock>' + val('weatherURI') + '</lock>');
+        const meteo = val('weatherProvider') === 'openmeteo';
+        let result;
+        if (meteo) {
+            result = await saveRaw('judo weather openmeteo ' + val('weatherLatitude') + ' ' + val('weatherLongitude') + ' ' + locked(val('weatherLocation')));
+        } else {
+            const endpoint = val('weatherURI');
+            try { if (!['http:', 'https:'].includes(new URL(endpoint).protocol)) throw new Error(); }
+            catch { toast('Enter an HTTP or HTTPS weather endpoint.'); return false; }
+            if (val('weatherApiKey').trim()) {
+                const saved = await saveRaw('judo weather key ' + locked(val('weatherApiKey').trim()));
+                if (saved !== 'Settings saved.') { toast(saved ?? 'Weather key could not be saved.'); return false; }
+            }
+            result = await saveRaw('judo weather set ' + locked(endpoint));
+        }
+        if (result === null || result.startsWith('Weather:') || result.startsWith('Unable')) { toast(result ?? 'Weather settings could not be saved.'); return false; }
+        weatherCredit(meteo ? 'https://api.open-meteo.com/' : val('weatherURI'));
+        addActivity('Weather settings updated'); await refreshWeather(); toast('Weather settings saved.');
     },
     async dyndnsSettings() {
         await sendAndShow('judo noip set ' + val('dyndnsHostname') + ' ' + val('dyndnsUsername') + ' ' + enc(val('dyndnsPassword')));
@@ -483,6 +742,7 @@ const actions = {
     },
     async saveInset() {
         const id = underscored(val('insetName'));
+        if (instructionSets.some(item => item.id === id || item.id === '*' + id)) { toast('An instruction with that name already exists. Choose a unique name.'); return false; }
         let cmd;
         if (val('insetCateg') !== '' && val('insetHeader') !== '') {
             cmd = 'judo inset add ' + id + ' <lock>' + val('insetAction') + '</lock> `' + val('insetCateg') + '` `' + val('insetHeader') +
@@ -492,9 +752,12 @@ const actions = {
         }
         const data = await send(cmd);
         if (data === null) return false;
-        if (data.includes('Element added.')) clearInsetFields();
+        const added = data.includes('Element added.');
+        if (added) clearInsetFields();
         toast(data);
         await loadXml();
+        if (!added) return false;
+        if (addingToHome) { saveHomePins([...new Set([...homePins, id])]); addingToHome = false; }
     },
     async removeElement() {
         const id = underscored(val('elementNameRemove'));
@@ -650,7 +913,7 @@ function wire() {
     byId('themeBtn').addEventListener('click', nextTheme);
 
     // data-run: run a command; data-open: open a dialog; data-close; data-settings; data-schedule ...
-    document.addEventListener('click', event => {
+    document.addEventListener('click', async event => {
         const t = event.target;
         if (t instanceof HTMLDialogElement) { t.close(); return; }      // click on the backdrop
 
@@ -666,6 +929,19 @@ function wire() {
             const id = el.dataset.open;
             if (id === 'changeSchedule') enumScheduleNames();
             if (id === 'popupGmailReader') refreshGmail();
+            if (['gmailSettings', 'smtpSettings', 'pop3Settings'].includes(id)) await loadMailSettings(id);
+            if (id === 'httpsSettings') {
+                const status = await send('judo server https status');
+                if (status !== null) {
+                    byId('httpsResult').textContent = status;
+                    const port = status.match(/:(\d+)\/www\//);
+                    if (port) setVal('httpsPort', port[1]);
+                    setVal('httpsMode', status.startsWith('HTTPS: off') ? 'off' : 'on');
+                }
+                byId('httpsLink').hidden = true;
+            }
+            if (id === 'weatherSettings') await loadWeatherSettings();
+            if (id === 'voiceSettings') await voice.loadSettings();
             openDialog(id);
         }
     });
@@ -683,6 +959,21 @@ function wire() {
     byId('cmdform').addEventListener('submit', event => { event.preventDefault(); submitTerminal(); });
     byId('textinput1').addEventListener('keydown', terminalKeys);
     byId('clearBtn').addEventListener('click', clearPage);
+    byId('askForm').addEventListener('submit', askJubito);
+    byId('clearActivity').addEventListener('click', () => { activity.length = 0; renderActivity(); });
+    byId('customizeHome').addEventListener('click', async () => { await loadXml(); renderHomeOptions(); openDialog('homeSettings'); });
+    byId('homeFilter').addEventListener('input', renderHomeOptions);
+    byId('newHomeInstruction').addEventListener('click', () => {
+        byId('homeSettings').close(); addingToHome = true; openDialog('addInset');
+    });
+    byId('addInset').addEventListener('close', () => { addingToHome = false; });
+    byId('weatherProvider').addEventListener('change', weatherFields);
+    document.querySelectorAll('[data-section]').forEach(link => link.addEventListener('click', () => {
+        show('page3', link.dataset.section); byId(link.dataset.section).scrollIntoView({ block: 'start' });
+    }));
+    byId('page3').querySelectorAll('details.group').forEach(group => group.addEventListener('toggle', () => {
+        if (group.open) selectSettingsSection(group.id);
+    }));
 
     byId('ddCategories').addEventListener('change', () => { selectedCategory = val('ddCategories'); renderCards(); refreshReferences(); });
     byId('filter-input').addEventListener('input', renderCards);
@@ -720,6 +1011,9 @@ function init() {
     applyTheme(currentTheme());
     createGauges();
     wire();
+    voice = wireVoice(text => { setVal('askInput', text); byId('askInput').focus(); addActivity('Voice command transcribed'); }, toast);
+    addActivity('Interface connected');
+    send('judo weather settings').then(endpoint => { if (endpoint) weatherCredit(endpoint); });
 
     fillSelect('insetlistFunc', Object.entries(BUILTIN_FUNCTIONS), false);
     updateScheduleDivs();

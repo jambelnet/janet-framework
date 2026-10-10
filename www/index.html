@@ -28,16 +28,26 @@
         <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></symbol>
         <symbol id="i-auto" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18V4a8 8 0 0 1 0 16z"/></symbol>
         <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></symbol>
+        <symbol id="i-send" viewBox="0 0 24 24"><path d="m3 3 19 9-19 9v-7l13-2-13-2V3z"/></symbol>
+        <symbol id="i-volume" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm12-2v2a4 4 0 0 1 0 6v2a6 6 0 0 0 0-10zm3-3v2a8 8 0 0 1 0 12v2a10 10 0 0 0 0-16z"/></symbol>
+        <symbol id="i-stop" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></symbol>
+        <symbol id="i-add" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/></g></symbol>
+        <symbol id="i-completed" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></g></symbol>
     </svg>
 
     <header class="appbar">
         <a class="brand" href="#page0"><img src="images/logo.png" alt="" width="30" height="30">Jubito</a>
+        <span class="framework-name">jaNET framework</span>
         <span class="spacer"></span>
         <nav class="nav" aria-label="Main">
             <a href="#page0" data-nav="page0"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a>
             <a href="#page1" data-nav="page1"><svg class="icon"><use href="#i-dashboard"/></svg><span>Dashboard</span></a>
             <a href="#page2" data-nav="page2"><svg class="icon"><use href="#i-terminal"/></svg><span>Terminal</span></a>
-            <a href="#page3" data-nav="page3"><svg class="icon"><use href="#i-settings"/></svg><span>Settings</span></a>
+            <a href="#page3" class="secondary-nav" data-section="instructions-group"><svg class="icon"><use href="#i-dashboard"/></svg><span>Instructions</span></a>
+            <a href="#page3" class="secondary-nav" data-section="scheduler-group"><svg class="icon"><use href="#i-auto"/></svg><span>Scheduler</span></a>
+            <a href="#page3" data-nav="page3" data-section="settings-group"><svg class="icon"><use href="#i-settings"/></svg><span>Settings</span></a>
         </nav>
         <span class="conn" id="conn" data-state="online" role="status">Connected</span>
         <button type="button" class="icon-btn theme-btn" id="themeBtn" title="Theme: follows the system (click to change)" aria-label="Theme: follows the system. Click to change.">
@@ -48,15 +58,15 @@
     <main>
         <!-- HOME -->
         <section class="view" id="page0" aria-label="Home">
+            <div class="home-heading"><div><h1 id="greeting">Welcome home</h1><p id="userstat"><span class="presence-dot" aria-hidden="true"></span><span id="presenceText">Checking your status...</span></p></div><button type="button" class="icon-btn" id="customizeHome" title="Customize Home" aria-label="Customize Home"><svg class="icon"><use href="#i-add"/></svg></button></div>
             <div class="tiles" id="header" hidden>
                 <div class="tile tile-time">
-                    <div class="big" id="time"></div>
-                    <div class="mid" id="date"></div>
+                    <svg class="tile-icon" aria-hidden="true"><use href="#i-calendar"/></svg>
+                    <div class="tile-copy"><div class="big" id="time"></div><div class="mid" id="date"></div></div>
                 </div>
-                <div class="tile tile-weather" id="weathertile">
-                    <div class="big" id="conditions"></div>
-                    <div class="mid" id="location"></div>
+                <div class="tile tile-weather" id="weathertile" data-scene="unavailable">
                     <div id="weather-ico"></div>
+                    <div class="tile-copy"><div class="big" id="conditions"></div><div class="mid" id="location"></div><a id="weather-credit" href="https://openweathermap.org/" target="_blank" rel="noopener">OpenWeather</a></div>
                 </div>
             </div>
 
@@ -78,15 +88,25 @@
                 </div>
             </div>
 
-            <div class="tile tile-status" id="userstat-tile">
-                <div class="mid" id="userstat">&nbsp;</div>
-            </div>
-
             <div class="actions">
                 <button type="button" class="action" data-run="%checkin%"><img src="images/checkin.png" alt="">Check in</button>
                 <button type="button" class="action" data-run="%checkout%"><img src="images/checkout.png" alt="">Check out</button>
-                <button type="button" class="action" data-open="popupGmailReader"><img src="images/gmail.png" alt="">Gmail<span class="badge" id="gmail-badge" aria-label="unread messages"></span></button>
-                <a class="action" href="#page3"><img src="images/settings.png" alt="">Settings</a>
+                <button type="button" class="action" data-open="popupGmailReader"><img src="images/gmail.png" alt="">Gmail<span class="badge" id="gmail-badge" aria-label="Checking unread messages" title="Checking unread messages">...</span></button>
+                <a class="action" href="#page3" data-section="settings-group"><img src="images/settings.png" alt="">Settings</a>
+            </div>
+            <ul class="cards home-pins" id="homePins" aria-label="Pinned instructions" hidden></ul>
+            <div class="home-bottom">
+                <section class="assistant" aria-labelledby="assistantTitle">
+                    <div class="section-head"><h2 id="assistantTitle">Ask Jubito</h2><button class="icon-btn" type="button" data-open="voiceSettings" title="Voice settings" aria-label="Voice settings"><svg class="icon"><use href="#i-settings"/></svg></button></div>
+                    <form id="askForm" class="ask-line" autocomplete="off">
+                        <div class="command-entry"><label for="askInput" class="sr-only">Command or question</label><input id="askInput" type="text" placeholder="Type a command or question..." autocapitalize="off" required><button type="button" class="icon-btn mic-btn" id="micBtn" title="Record a voice command" aria-label="Record a voice command" aria-pressed="false"><svg class="icon"><use href="#i-mic"/></svg></button></div>
+                        <button type="submit" class="icon-btn send-btn primary-icon-btn" title="Send" aria-label="Send"><svg class="icon"><use href="#i-send"/></svg></button>
+                    </form>
+                    <div class="voice-status-row"><span id="voiceStatus" role="status">Ready</span><button type="button" class="icon-btn" id="cancelCaptureBtn" title="Cancel recording or transcription" aria-label="Cancel recording or transcription" hidden><svg class="icon"><use href="#i-close"/></svg></button></div>
+                    <div class="answer-line"><div id="askResponse" class="assistant-response" aria-live="polite" hidden></div><button type="button" class="icon-btn primary-icon-btn" id="speakBtn" title="Read response aloud" aria-label="Read response aloud" hidden><svg class="icon"><use href="#i-volume"/></svg></button></div>
+                    <div id="intentChoices" class="intent-choices" hidden></div>
+                </section>
+                <section class="activity" aria-labelledby="activityTitle"><div class="section-head"><h2 id="activityTitle">Recent activity</h2><button type="button" class="activity-clear" id="clearActivity">Clear</button></div><ul id="activityList"><li class="activity-empty">No activity yet.</li></ul></section>
             </div>
         </section>
 
@@ -115,12 +135,12 @@
                 <button type="submit" class="btn primary">Send</button>
                 <button type="button" class="btn" id="clearBtn">Clear</button>
             </form>
-            <pre class="output" id="response-p2" aria-live="polite"></pre>
+            <div class="output" id="response-p2" aria-live="polite"></div>
         </section>
 
         <!-- SETTINGS -->
         <section class="view" id="page3" aria-label="Settings" hidden>
-            <details class="group">
+            <details class="group" id="instructions-group" name="settings-sections">
                 <summary>INSTRUCTIONS</summary>
                 <ul class="menu-list">
                     <li><button type="button" class="menu-item" data-open="addLauncher"><strong>Add New Launcher</strong><small>Run a program, make a judo API call, call a system function, make an evaluation or create a simple sentence to use the reflective value</small></button></li>
@@ -132,7 +152,7 @@
                 </ul>
             </details>
 
-            <details class="group">
+            <details class="group" id="scheduler-group" name="settings-sections">
                 <summary>SCHEDULER</summary>
                 <ul class="menu-list">
                     <li><button type="button" class="menu-item" data-open="addSchedule">Add New</button></li>
@@ -144,13 +164,15 @@
                 </ul>
             </details>
 
-            <details class="group">
+            <details class="group" id="settings-group" name="settings-sections">
                 <summary>SETTINGS</summary>
                 <ul class="menu-list">
                     <li class="divider">WEB SERVER</li>
                     <li><button type="button" class="menu-item" data-settings="server">View Settings</button></li>
                     <li><button type="button" class="menu-item" data-open="webserverLogin">Setup Username/Password</button></li>
                     <li><button type="button" class="menu-item" data-open="webserverSettings">Setup Host/Port/Authentication</button></li>
+                    <li><button type="button" class="menu-item" data-settings="server https">View HTTPS Settings</button></li>
+                    <li><button type="button" class="menu-item" data-open="httpsSettings">Setup HTTPS</button></li>
                     <li class="divider">SOCKET SERVER</li>
                     <li><button type="button" class="menu-item" data-settings="socket">View Settings</button></li>
                     <li><button type="button" class="menu-item" data-open="socketSettings">Setup Host/Port</button></li>
@@ -176,13 +198,15 @@
                     <li class="divider">WEATHER</li>
                     <li><button type="button" class="menu-item" data-settings="weather">View Settings</button></li>
                     <li><button type="button" class="menu-item" data-open="weatherSettings">Setup</button></li>
+                    <li class="divider">VOICE</li>
+                    <li><button type="button" class="menu-item" data-open="voiceSettings">Speech &amp; recognition</button></li>
                     <li class="divider">DYNAMIC DNS</li>
                     <li><button type="button" class="menu-item" data-settings="dyndns">View Settings</button></li>
                     <li><button type="button" class="menu-item" data-open="dyndnsSettings">Setup</button></li>
                 </ul>
             </details>
 
-            <details class="group">
+            <details class="group" id="about-group" name="settings-sections">
                 <summary>ABOUT</summary>
                 <div class="about" id="sysinfo"></div>
             </details>
@@ -195,7 +219,7 @@
 
     <dialog id="responseDialog" aria-labelledby="responseTitle">
         <div class="dialog-head"><h2 id="responseTitle">Response</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
-        <div class="dialog-body"><pre class="result" id="responseText"></pre><div class="btn-row"><button type="button" class="btn" data-close>Close</button></div></div>
+        <div class="dialog-body"><div class="result" id="responseText"></div><div class="btn-row"><button type="button" class="btn" data-close>Close</button></div></div>
     </dialog>
 
     <dialog id="popupGmailReader" aria-labelledby="gmailTitle">
@@ -231,6 +255,25 @@
         </form>
     </dialog>
 
+
+    <dialog id="httpsSettings" aria-labelledby="t-httpsSettings">
+        <form data-submit="httpsSettings" autocomplete="off">
+            <div class="dialog-head"><h2 id="t-httpsSettings">HTTPS Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+            <div class="dialog-body">
+                <label for="httpsMode">Mode</label>
+                <select id="httpsMode"><option value="on">On</option><option value="off">Off</option><option value="default">Use self-signed certificate</option><option value="custom">Use PFX certificate</option></select>
+                <label for="httpsPort">HTTPS port</label>
+                <input id="httpsPort" type="number" min="1" max="65535" value="8443" required>
+                <label for="httpsCertFile">PFX certificate file</label>
+                <input id="httpsCertFile" type="text" autocapitalize="off">
+                <label for="httpsCertPassword">Certificate password</label>
+                <input id="httpsCertPassword" type="password" autocomplete="new-password">
+                <pre id="httpsResult" class="result" role="status"></pre>
+                <a id="httpsLink" class="btn" target="_blank" rel="noopener" hidden>Open HTTPS</a>
+                <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
+            </div>
+        </form>
+    </dialog>
     <dialog id="socketSettings" aria-labelledby="t-socketSettings">
         <form data-submit="socketSettings">
             <div class="dialog-head"><h2 id="t-socketSettings">Socket Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
@@ -272,9 +315,32 @@
         <form data-submit="weatherSettings">
             <div class="dialog-head"><h2 id="t-weatherSettings">Weather Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
             <div class="dialog-body">
-                <label for="weatherURI">URI</label>
-                <input id="weatherURI" type="url" autocapitalize="off" required>
+                <label for="weatherProvider">Provider</label><select id="weatherProvider"><option value="legacy">OpenWeatherMap / existing endpoint</option><option value="openmeteo">Open-Meteo</option></select>
+                <div id="weatherLegacyFields"><label for="weatherURI">Endpoint</label><input id="weatherURI" type="url" autocapitalize="off"><label for="weatherApiKey">API key</label><input id="weatherApiKey" type="password" autocomplete="new-password" placeholder="Leave blank to keep saved key"></div>
+                <div id="weatherMeteoFields" hidden><div class="field-pair"><div><label for="weatherLatitude">Latitude</label><input id="weatherLatitude" type="number" min="-90" max="90" step="any" value="49.6116"></div><div><label for="weatherLongitude">Longitude</label><input id="weatherLongitude" type="number" min="-180" max="180" step="any" value="6.1319"></div></div><label for="weatherLocation">Location</label><input id="weatherLocation" type="text" value="Luxembourg"><p class="provider-note">Open-Meteo needs no API key. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo</a></p></div>
                 <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="voiceSettings" aria-labelledby="t-voiceSettings">
+        <form id="voiceForm"><div class="dialog-head"><h2 id="t-voiceSettings">Voice</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+            <div class="dialog-body">
+                <label for="voicePlayback">Playback</label><select id="voicePlayback"><option value="browser">This browser / device voices</option><option value="server">Server engine audio</option></select>
+                <label for="browserVoice">Device voice</label><select id="browserVoice"></select>
+                <label for="voiceRate">Speaking speed <output id="voiceRateValue">1.0</output></label><input id="voiceRate" type="range" min="0.6" max="1.5" step="0.1" value="1">
+                <label class="check"><input type="checkbox" id="voiceReplies">Speak assistant responses</label>
+                <div class="voice-engine-fields"><label for="speechEngine">Box speech engine</label><select id="speechEngine"><option value="espeak">eSpeak NG (lightweight)</option><option value="piper">Piper (neural voice)</option><option value="off">Off</option></select>
+                    <label for="speechExecutable">Executable path</label><input id="speechExecutable" type="text" value="espeak-ng" autocomplete="off">
+                    <label for="speechVoice">eSpeak voice</label><input id="speechVoice" type="text" value="en">
+                    <label for="piperModel">Piper model (.onnx)</label><input id="piperModel" type="text" autocomplete="off">
+                </div>
+                <h3 class="form-section-title">Offline recognition</h3>
+                <label for="recognitionModel">Vosk model folder</label><input id="recognitionModel" type="text" autocomplete="off">
+                <div class="model-download"><label for="modelLanguage" class="sr-only">Model language</label><select id="modelLanguage"><option value="en">English (40 MB)</option></select><button type="button" class="btn" id="downloadVoiceModel">Download model</button></div>
+                <p id="voiceSetupStatus" role="status" class="provider-note"></p>
+                <a class="provider-note" href="https://alphacephei.com/vosk/models" target="_blank" rel="noopener">Other Vosk languages &amp; models</a>
+                <div class="btn-row"><button type="button" class="btn" id="testVoice">Test voice</button><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
     </dialog>
@@ -286,9 +352,9 @@
                 <label for="dyndnsHostname">Hostname</label>
                 <input id="dyndnsHostname" type="text" autocapitalize="off" required>
                 <label for="dyndnsUsername">Username</label>
-                <input id="dyndnsUsername" type="text" autocomplete="off" autocapitalize="off">
+                <input id="dyndnsUsername" type="text" autocomplete="off" autocapitalize="off" required>
                 <label for="dyndnsPassword">Password</label>
-                <input id="dyndnsPassword" type="password" autocomplete="new-password">
+                <input id="dyndnsPassword" type="password" autocomplete="new-password" required>
                 <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
@@ -326,11 +392,27 @@
         <form data-submit="gmailSettings" autocomplete="off">
             <div class="dialog-head"><h2 id="t-gmailSettings">GMail Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
             <div class="dialog-body">
-                <label for="gmailUsername">Username</label>
+                <label for="gmailUsername">Gmail address</label>
                 <input id="gmailUsername" type="text" autocomplete="off" autocapitalize="off" required>
-                <label for="gmailPassword">Password</label>
+                <label for="gmailPassword">Google app password</label>
                 <input id="gmailPassword" type="password" autocomplete="new-password" required>
-                <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
+                <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">Create a Google app password</a>
+                <label for="gmailImapHost">IMAP host</label>
+                <input id="gmailImapHost" type="text" value="imap.gmail.com" autocapitalize="off" required>
+                <label for="gmailImapPort">IMAP port</label>
+                <input id="gmailImapPort" type="number" min="1" max="65535" value="993" required>
+                <div class="check"><input type="checkbox" id="chkGmailImapSSL" checked><label for="chkGmailImapSSL">IMAP SSL/TLS</label></div>
+                <label for="gmailSmtpHost">SMTP host</label>
+                <input id="gmailSmtpHost" type="text" value="smtp.gmail.com" autocapitalize="off" required>
+                <label for="gmailSmtpPort">SMTP port</label>
+                <input id="gmailSmtpPort" type="text" inputmode="numeric" value="587" required>
+                <div class="check"><input type="checkbox" id="chkGmailSmtpSSL" checked><label for="chkGmailSmtpSSL">SMTP TLS (465: SSL; 587: STARTTLS)</label></div>
+                <label for="gmailPop3Host">POP3 host</label>
+                <input id="gmailPop3Host" type="text" value="pop.gmail.com" autocapitalize="off" required>
+                <label for="gmailPop3Port">POP3 port</label>
+                <input id="gmailPop3Port" type="text" inputmode="numeric" value="995" required>
+                <div class="check"><input type="checkbox" id="chkGmailPop3SSL" checked><label for="chkGmailPop3SSL">POP3 SSL/TLS</label></div>
+                <div class="btn-row"><button type="button" class="btn" data-run="judo gmail test">Test Saved Settings</button><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
     </dialog>
@@ -347,8 +429,8 @@
                 <input id="smtpPassword" type="password" autocomplete="new-password" required>
                 <label for="smtpPort">Port</label>
                 <input id="smtpPort" type="text" inputmode="numeric" required>
-                <div class="check"><input type="checkbox" id="chkSmtpSSL"><label for="chkSmtpSSL">SSL</label></div>
-                <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
+                <div class="check"><input type="checkbox" id="chkSmtpSSL"><label for="chkSmtpSSL">TLS (465: SSL; 587: STARTTLS)</label></div>
+                <div class="btn-row"><button type="button" class="btn" data-run="judo smtp test">Test Saved Settings</button><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
     </dialog>
@@ -365,8 +447,8 @@
                 <input id="pop3Password" type="password" autocomplete="new-password" required>
                 <label for="pop3Port">Port</label>
                 <input id="pop3Port" type="text" inputmode="numeric" value="110" required>
-                <div class="check"><input type="checkbox" id="chkPop3SSL" disabled><label for="chkPop3SSL">SSL is not supported</label></div>
-                <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
+                <div class="check"><input type="checkbox" id="chkPop3SSL"><label for="chkPop3SSL">SSL/TLS</label></div>
+                <div class="btn-row"><button type="button" class="btn" data-run="judo pop3 test">Test Saved Settings</button><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
     </dialog>
@@ -510,6 +592,11 @@
                 <div class="btn-row"><button type="submit" class="btn primary">Save</button><button type="button" class="btn" id="clearEvalBtn">Clear</button></div>
             </div>
         </form>
+    </dialog>
+
+    <dialog id="homeSettings" aria-labelledby="t-homeSettings">
+        <div class="dialog-head"><h2 id="t-homeSettings">Customize Home</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+        <div class="dialog-body"><label for="homeFilter">Instructions</label><input id="homeFilter" type="search" placeholder="Search instructions..."><div id="homePinOptions" class="home-pin-options"></div><p id="homePinEmpty" class="muted" hidden>No matching instructions.</p><div class="btn-row"><button type="button" class="btn" id="newHomeInstruction">New instruction</button><button type="button" class="btn primary" data-close>Done</button></div></div>
     </dialog>
 
     <dialog id="addInset" aria-labelledby="t-addInset">

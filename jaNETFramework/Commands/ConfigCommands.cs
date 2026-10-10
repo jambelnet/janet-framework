@@ -21,6 +21,7 @@
 using jaNET.Configuration;
 using jaNET.Services;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace jaNET.Commands;
@@ -90,6 +91,19 @@ internal sealed class WeatherCommand : JudoCommand
     public WeatherCommand(AppConfigStore config, ISettingsStore settings) {
         On(i => config.UpdateWeatherUrl(i.Args[3]), "add", "new", "set", "setup");
         On(i => config.WeatherUrl, "settings");
+        On(i => i.Count > 3 ? config.UpdateWeatherLocation(i.Args[3]) : config.WeatherLocation, "location");
+        On(i => {
+            if (i.Count < 5 || !double.TryParse(i.Args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out double latitude) ||
+                !double.TryParse(i.Args[4], NumberStyles.Float, CultureInfo.InvariantCulture, out double longitude) ||
+                !double.IsFinite(latitude) || !double.IsFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
+                return "Weather: enter a latitude from -90 to 90 and longitude from -180 to 180.";
+            string url = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude.ToString(CultureInfo.InvariantCulture) +
+                "&longitude=" + longitude.ToString(CultureInfo.InvariantCulture) +
+                "&current=temperature_2m,relative_humidity_2m,pressure_msl,surface_pressure,weather_code,is_day" +
+                "&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=2";
+            if (i.Count > 5) config.UpdateWeatherLocation(i.Args[5]);
+            return config.UpdateWeatherUrl(url);
+        }, "openmeteo");
         On(i => i.Count > 3
                 ? settings.Save(SettingsFiles.Weather, i.Args[3])
                 : "Weather API key: " + (WeatherKey.Stored(settings) == null ? "not set" : "set"), "key");

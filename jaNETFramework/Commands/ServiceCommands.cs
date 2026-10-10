@@ -166,6 +166,13 @@ internal sealed class ServerCommand : JudoCommand
                 string port = i.Count > 4 ? i.Args[4] : _config.Comm.HttpsPort.Length > 0 ? _config.Comm.HttpsPort : "8443";
                 if (!int.TryParse(port, out int number) || number is < 1 or > 65535) return $"'{port}' is not a port number.";
                 if (port == _config.Comm.HttpPort) return $"Port {port} is already the plain http port; choose another for https.";
+                if (i.Count > 5) {
+                    string certificate = i.Args[5];
+                    bool selfSigned = certificate.Equals("default", StringComparison.OrdinalIgnoreCase);
+                    if (!selfSigned && !System.IO.File.Exists(certificate)) return $"The file {certificate} does not exist.";
+                    _config.Update(new CommUpdate { Certificate = selfSigned ? CommUpdate.Clear : certificate });
+                    _settings.Save(SettingsFiles.Tls, i.Count > 6 ? i.Args[6] : string.Empty);
+                }
                 _config.Update(new CommUpdate { HttpsPort = port });
                 return Restart();
             case "off" or "disable" or "stop":
@@ -183,13 +190,15 @@ internal sealed class ServerCommand : JudoCommand
                 _settings.Save(SettingsFiles.Tls, i.Count > 5 ? i.Args[5] : string.Empty);
                 return Restart();
             default:
-                return HttpsStatus();
+                return HttpsStatus() + Reason.For(_web.IsRunning, _web.Problem);
         }
     }
 
     // the listeners are made when the server starts: a change of https needs a restart to take effect
     string Restart() {
         if (_web.IsRunning) {
+            if (_web is WebServer server && server.RestartAfterResponse())
+                return HttpsStatus() + "\r\nApplying HTTPS settings.";
             _web.Stop();
             _web.Start();
         }
@@ -201,6 +210,8 @@ internal sealed class ServerCommand : JudoCommand
         if (comm.HttpsPort.Length == 0) return "HTTPS: off";
 
         string host = comm.Hostname.Length > 0 ? comm.Hostname : "localhost";
+        if (host is "+" or "*" or "0.0.0.0" or "::" or "[::]") host = "localhost";
+        if (host.Contains(':') && !host.StartsWith('[')) host = "[" + host + "]";
         string text = $"HTTPS: on, https://{host}:{comm.HttpsPort}/www/";
         ServerCertificate? certificate = _certificate();
 

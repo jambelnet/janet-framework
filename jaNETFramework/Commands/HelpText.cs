@@ -73,9 +73,9 @@ internal static class HelpText
                                 "         + judo pop3 set [Host] [Username] [Password] [Port] [Ssl]\r\n" +
                                 "         + judo pop3 settings\r\n" +
                                 "     2.3 Gmail Settings\r\n" +
-                                "         + judo gmail add [Username] [Password]\r\n" +
-                                "         + judo gmail setup [Username] [Password]\r\n" +
-                                "         + judo gmail set [Username] [Password]\r\n" +
+                                "         + judo gmail add [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]\r\n" +
+                                "         + judo gmail setup [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]\r\n" +
+                                "         + judo gmail set [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]\r\n" +
                                 "         + judo gmail settings\r\n" +
                                 "     2.4 Mail Header Settings\r\n" +
                                 "         + judo mailheaders set `[From]` `[To]` `[Subject]`\r\n" +
@@ -305,7 +305,12 @@ internal static class HelpText
                                 "         + judo weather settings\r\n" +
                                 "     11.3 API Key (kept encrypted)\r\n" +
                                 "         + judo weather key [Key]\r\n" +
-                                "         + judo weather key";
+                                "         + judo weather key\r\n" +
+                                "     11.4 Open-Meteo (no API key)\r\n" +
+                                "         + judo weather openmeteo [Latitude] [Longitude] <lock>[Location]</lock>\r\n" +
+                                "     11.5 Location Label\r\n" +
+                                "         + judo weather location <lock>[Location]</lock>\r\n" +
+                                "         + judo weather location";
             const
             string _ping = "12. Ping\r\n" +
                                 "     12.1 Default Timeout [ 1000ms ]\r\n" +
