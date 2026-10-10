@@ -332,9 +332,10 @@
                 <label for="browserVoice">Device voice</label><select id="browserVoice"></select>
                 <label for="voiceRate">Speaking speed <output id="voiceRateValue">1.0</output></label><input id="voiceRate" type="range" min="0.6" max="1.5" step="0.1" value="1">
                 <label class="check"><input type="checkbox" id="voiceReplies">Speak assistant responses</label>
-                <div class="voice-engine-fields"><label for="speechEngine">Box speech engine</label><select id="speechEngine"><option value="espeak">eSpeak NG (lightweight)</option><option value="piper">Piper (neural voice)</option><option value="off">Off</option></select>
+                <label class="check"><input type="checkbox" id="voiceEvents">Speak instruction and event responses</label>
+                <div class="voice-engine-fields"><label for="speechEngine">Box speech engine</label><select id="speechEngine"><option value="auto">Automatic (local voices)</option><option value="windows">Windows device voices</option><option value="espeak">eSpeak NG (lightweight)</option><option value="piper">Piper (neural voice)</option><option value="off">Off</option></select>
                     <label for="speechExecutable">Executable path</label><input id="speechExecutable" type="text" value="espeak-ng" autocomplete="off">
-                    <label for="speechVoice">eSpeak voice</label><input id="speechVoice" type="text" value="en">
+                    <label for="speechVoice">Voice / language</label><input id="speechVoice" type="text" value="en" placeholder="en or default">
                     <label for="piperModel">Piper model (.onnx)</label><input id="piperModel" type="text" autocomplete="off">
                 </div>
                 <h3 class="form-section-title">Offline recognition</h3>

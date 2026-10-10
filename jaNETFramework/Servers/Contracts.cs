@@ -51,7 +51,7 @@ internal interface ISerialService
 {
     bool IsOpen { get; }
 
-    /// <summary>Why the last <see cref="Open"/> failed; null while the port is open, after <see cref="Close"/> and before the first try.</summary>
+    /// <summary>Why opening or using the connection failed; null while healthy, after <see cref="Close"/> and before the first try.</summary>
     ServiceProblem? Problem => null;
 
     /// <param name="portName">Port to open, or empty for the configured one</param>
@@ -59,7 +59,7 @@ internal interface ISerialService
 
     void Close();
 
-    /// <summary>Sends a line (kind Send) and/or waits up to <paramref name="timeoutMs"/> for the answer line.</summary>
+    /// <summary>Sends a line (kind Send) and waits for its first non-event reply, or listens for one line, up to <paramref name="timeoutMs"/>.</summary>
     string Write(string message, SerialMessageKind kind, int timeoutMs = 1000);
 }
 

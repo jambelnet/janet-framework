@@ -211,6 +211,17 @@ public class JudoCommandTests
         Assert.Equal("COM9\r\n19200", t.Run("judo serial settings"));
     }
 
+    [Theory]
+    [InlineData("judo serial listen", "Listen::1000")]
+    [InlineData("judo serial monitor", "Monitor::1000")]
+    [InlineData("judo serial monitor 250", "Monitor::250")]
+    [InlineData("judo serial listen 0", "Listen::0")]
+    public void SerialListeningTimeoutIsOptional(string command, string expected) {
+        using var t = new TestHost();
+        Assert.Equal("42", t.Run(command));
+        Assert.Equal(expected, Assert.Single(t.Serial.Sent));
+    }
+
     [Fact]
     public void JsonAndXmlWebServices() {
         using var t = new TestHost();

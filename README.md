@@ -158,6 +158,64 @@ Use a `.tar.gz`, not a zip: a zip made on Windows has lost the "executable" flag
 
 Run the tests with `dotnet test jaNETFramework.sln` (489 tests) and check the behavior against the original program with `tools\compare.ps1`.
 
+## Serial (Arduino and ESP32 over USB)
+
+The board must run firmware that understands your commands and sends newline-terminated
+text replies. Connecting a board alone does not install firmware or discover its commands.
+Choose its actual COM/device port and match the baud rate used by `Serial.begin(...)`:
+
+```text
+judo serial close
+judo serial set COM3 9600             (Windows; replace COM3 with your board's port)
+judo serial open
+judo serial send ping 2000            (requires firmware that replies to ping)
+```
+
+On Linux, use the board's device path, such as `/dev/ttyACM0`, `/dev/ttyUSB0`, or a
+stable `/dev/serial/by-id/...` path. Your user needs access to that device (often the
+`dialout` group). Close the Arduino Serial Monitor or other software using the port.
+Some ESP32 boards need **USB CDC On Boot** enabled for their native USB connector;
+check the board's [Espressif USB instructions](https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/cdc_dfu_flash.html).
+Changes to serial settings take effect after closing and reopening the connection.
+
+To trigger a jaNET event, register its name and have the firmware send that name:
+
+```text
+judo event add button_pressed <lock>whoami</lock>
+```
+
+```cpp
+Serial.println("button_pressed");
+```
+
+Event names are case-sensitive; surrounding whitespace and CR/LF are ignored. An
+unknown line never becomes a command to execute. Registered event lines are queued
+separately from command replies, so an event handler can itself send a serial command
+and wait for its reply. Firmware should send a separate reply if a command also emits
+an event. Avoid using the same text as both an event name and a reply value.
+
+`judo serial listen` and `judo serial monitor` both wait for one incoming line, including
+an event line; they are not continuous consoles. Their optional timeout defaults to
+1000 ms. `send` waits for the first non-event, nonblank line received during its request.
+Requests are serialized, but the text protocol has no request IDs: unrelated non-event
+telemetry or late replies can still be mistaken for a reply. Use named events for
+unsolicited notifications, and keep firmware command replies ordered.
+
+Incoming data is never flushed by a transfer. Events run in order on a separate worker;
+the 256-entry queue logs overflow instead of blocking serial reads. A handler exceeding
+10 seconds produces a warning; arbitrary instruction code cannot be forcibly cancelled,
+so the next event waits for it to finish. Closing clears queued events and releases any
+pending request. An already-running instruction may finish after closing.
+
+If the board is unplugged or a serial read/write fails, the connection closes and reports
+a reason. Plug it back in, update the port if it changed, and run `judo serial open` again.
+jaNET does not automatically select or reconnect to an arbitrary device.
+
+Before relying on a physical setup, verify a command/reply, a board-generated event,
+an event handler that requests another reply, and unplug/reopen on the target OS.
+Automated tests simulate these serial paths; physical Arduino/ESP32 behavior still needs
+checking with your board, driver and firmware.
+
 ## MQTT (ESP32, Tasmota, ESPHome, Zigbee2MQTT, Home Assistant, ...)
 
 jaNET is an MQTT client: it listens to topics on a broker (Mosquitto, the one in Home Assistant, ...) and runs an instruction when a message arrives, and
@@ -258,12 +316,22 @@ Open Home > Ask Jubito > Voice settings (the gear), or Settings > Voice > Setup.
 * **Recognition:** click Download for the small English (40 MB) Vosk model. It is stored in the jaNET data folder and loaded on first use, not at startup. Small models typically need around 300 MB RAM; this is suitable for a home-assistant computer, not an ESP32. See the [official model sizes and licenses](https://alphacephei.com/vosk/models).
 * **Microphone:** open jaNET on `localhost`, or use HTTPS with a certificate trusted by that device. A self-signed certificate warning is not equivalent to trusted HTTPS. Allow the browser microphone prompt. The microphone inside the command field starts recording; it becomes a square to finish recording and transcribe (maximum 20 seconds). The cross beside the recording/transcription status cancels and discards the capture. Review the transcript before pressing Send. Audio is processed by your jaNET server, not a cloud recognition service. Recognition only produces text; it never executes a command automatically.
 * **Read aloud:** the speaker appears beside a completed answer, not beside an empty command. Click it to read that answer; during playback it changes to a square with the tooltip "Stop reading". This only stops audio, never a running command. Voice settings control the voice, speed and automatic spoken replies.
-* **Speech on the box:** install [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for small, fast synthesis, or [Piper](https://github.com/OHF-Voice/piper1-gpl) for a more natural local voice. Select the executable path in Voice settings. Piper additionally needs a `.onnx` voice model with its matching `.onnx.json` beside it. Use Test voice to check the configuration.
+* **Speech on the box:** **Automatic** (the default) uses eSpeak NG when installed, otherwise Windows' built-in modern WinRT speech voices on Windows 10/11, without extra downloads or the old `jspeech.exe`/SAPI helper. To use Windows voices explicitly, select **Windows device voices**. **Voice / language** accepts `default`, a language such as `en` or `en-US`, or an installed Windows voice name/ID. Install additional voices in Windows language/speech settings. On Linux/macOS install [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for small, fast synthesis, or choose [Piper](https://github.com/OHF-Voice/piper1-gpl) for a more natural local voice. Select the executable path in Voice settings. Piper additionally needs a `.onnx` voice model with its matching `.onnx.json` beside it. Linux box playback also needs `aplay` (Debian/Ubuntu: `sudo apt install espeak-ng alsa-utils`). **Server engine audio** + Test voice tests synthesis and playback in this browser; running a normal instruction tests the box's speaker. Explicit existing eSpeak/Piper/off settings are preserved: switch to Automatic to use Windows voices if your selected engine is missing.
+* **Automatic instruction speech:** **Speak instruction and event responses** is enabled by default on each browser. An open, visible Jubito page receives all the instruction output jaNET sends to its speaker, including ordinary instructions, check-in/check-out, scheduled, serial and other events, even when the box engine is off or not installed. Ask Jubito no longer silences the box when executing an instruction. Browser playback uses your installed local voice; server-engine playback needs configured Windows voices, eSpeak NG or Piper. Click or tap the page once to allow automatic audio. Answers play in order, not over each other. Closed/hidden pages do not replay old events when reopened. Turn this setting off on extra devices to avoid several devices speaking together. **Speak assistant responses** (also on by default for new preferences) additionally reads direct function/command responses in this browser; saved preferences are preserved. An instruction is not read twice by the browser.
 * **Mute/unmute:** the Mute and Unmute instructions (or `%mute%` and `%unmute%`) control both server speech and browser playback. Mute stops active browser audio and disables Read aloud and Test voice until unmuted. Other open devices pick up changes within five seconds. Unmute restores playback permission; automatic spoken replies still follow the per-device Voice settings checkbox. The `{mute}` command prefix silences only that server command, not the global speech switch.
 
 When the server is bound to an explicit LAN IP, it also listens on localhost using the same ports. This makes `http://localhost:<httpPort>/www/` available on the server PC without changing LAN access or certificate trust.
 
 Speech engines and models are optional. Browser playback remains available when the server engine is off. Vosk native libraries are included for Windows x64, Linux x64 and macOS; Linux ARM/ARM64 deployments need a matching `libvosk.so` installed separately. The old `jspeech.exe`, Festival and `say` synthesis calls are no longer used. Voice settings are encrypted in `.speechsettings`; browser voice preferences stay on each device.
+
+Presence events still use existing `AppConfig.xml` instructions. For example:
+
+```xml
+<event id="oncheckin">%unmute%; salute; weathertoday</event>
+<event id="oncheckout">judo sleep 5000; %unmute%; goodbye</event>
+```
+
+Events run only when presence changes. If already present, Check in does not greet again; Check out first. `%unmute%` must precede an instruction you want spoken: the old `goodbye; %unmute%` order cannot speak goodbye if already muted. The 5000 ms delay intentionally delays checkout. Widget refreshes and `{mute}`-prefixed instructions are not broadcast; an explicitly triggered event retains its own mute/unmute behavior. The authenticated speech-event endpoint keeps at most 32 messages for 60 seconds in memory, not on disk, and a newly opened page starts at the current event cursor.
 
 ### Install Your Own Language
 

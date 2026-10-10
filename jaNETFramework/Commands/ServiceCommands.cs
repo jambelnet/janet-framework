@@ -77,8 +77,8 @@ internal sealed class SerialCommand : JudoCommand
             _ => SerialMessageKind.None
         };
 
-        if ((kind == SerialMessageKind.Listen || kind == SerialMessageKind.Monitor) && i.Count > 3)
-            return _serial.Write(string.Empty, kind, Convert.ToInt32(i.Args[3]));
+        if (kind == SerialMessageKind.Listen || kind == SerialMessageKind.Monitor)
+            return _serial.Write(string.Empty, kind, i.Count > 3 ? Convert.ToInt32(i.Args[3]) : 1000);
         if (i.Count > 4)
             return _serial.Write(i.Args[3], kind, Convert.ToInt32(i.Args[4]));
         return _serial.Write(i.Args[3], kind);

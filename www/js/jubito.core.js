@@ -451,6 +451,7 @@ function renderHomeOptions() {
 // Runs a command; the answer goes to the terminal on its page and to a dialog everywhere else.
 async function runCommand(cmd) {
     if (!cmd) return;
+    await voice.eventsReady;
     let command = cmd;
     try { command = decodeURIComponent(cmd); } catch { }
     if (currentView === 'page2') {
@@ -504,14 +505,16 @@ async function executeAssistant(command) {
     const button = byId('askForm').querySelector('[type="submit"]'); button.disabled = true;
     renderResponse(response, 'Running your command...', '', { state: 'busy' });
     try {
-        const text = await runRawText('{mute}' + command);
+        await voice.eventsReady;
+        const text = await runRawText(command);
         const output = commandResponse(text, command);
         renderResponse(response, output, command);
         if (responseAppearance(output).state !== 'error') {
             if (val('askInput') === submitted) setVal('askInput', '');
             addActivity('Completed: ' + command);
         }
-        await voice.response(output);
+        const spokenByServer = !command.startsWith('%') && !command.startsWith('judo') && !command.startsWith('./');
+        await voice.response(output, spokenByServer);
         if (command.includes('checkin') || command.includes('checkout')) refreshHome();
     } catch (error) { const message = 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
     finally { button.disabled = false; assistantBusy = false; }

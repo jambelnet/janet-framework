@@ -24,63 +24,65 @@ using jaNET.Infrastructure;
 using jaNET.Scripting;
 using System;
 using System.IO;
-using System.IO.Ports;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace jaNET.Servers;
 
-/// <summary>
-/// The serial port (an Arduino, a Z-Wave stick, ...). Every line that arrives is remembered as the answer to the last request;
-/// if it equals the id of an event, that event is run (so a sensor can trigger an action by sending its name).
-/// </summary>
+/// <summary>A line-oriented serial connection with event execution separate from the reader.</summary>
 internal sealed class SerialPortService : ISerialService, IDisposable
 {
     const int EventTimeoutMs = 10000;
+    const int EventQueueSize = 256;
 
     readonly AppConfigStore _config;
     readonly Func<IInstructionExecutor> _executor;
     readonly ILog _log;
+    readonly Func<string, int, ISerialConnection> _connect;
     readonly object _gate = new();
     readonly object _writeGate = new();
-    readonly SerialPort _port = new();
-    readonly ManualResetEventSlim _lineArrived = new(false);
 
-    volatile string _lastLine = string.Empty;
+    volatile Session? _session;
     volatile ServiceProblem? _problem;
+    bool _disposed;
 
-    public SerialPortService(AppConfigStore config, Func<IInstructionExecutor> executor, ILog log) {
+    public SerialPortService(AppConfigStore config, Func<IInstructionExecutor> executor, ILog log,
+        Func<string, int, ISerialConnection>? connect = null) {
         _config = config;
         _executor = executor;
         _log = log;
+        _connect = connect ?? ((name, baud) => new SerialConnection(name, baud));
     }
 
-    public bool IsOpen => _port.IsOpen;
-
+    public bool IsOpen => _session?.Connection.IsOpen == true;
     public ServiceProblem? Problem => _problem;
 
     public void Open(string portName) {
         lock (_gate) {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (IsOpen) return;
+            _session?.Stop();
+            _session = null;
             string name = string.IsNullOrWhiteSpace(portName) ? _config.Comm.ComPort : portName;
+            ISerialConnection? connection = null;
 
             try {
-                if (_port.IsOpen) return;
-
-                // on Linux and macOS the port is a device file, on Windows it is called COMn; a name of the other kind
-                // (the default /dev/ttyACM0 on Windows) or a device that is not there means that nothing is plugged in
-                if (OperatingSystem.IsWindows() ? !ServiceProblems.IsPortNameOfThisSystem(name) : !File.Exists(name)) {
-                    _problem = ServiceProblems.SerialMissing(name);
-                    return;
-                }
-
-                _port.PortName = name;
-                _port.BaudRate = Convert.ToInt32(_config.Comm.BaudRate);
-                _port.Open();
-
+                connection = _connect(name, Convert.ToInt32(_config.Comm.BaudRate));
+                connection.Open();
+                var session = new Session(connection, name);
+                _session = session;
                 _problem = null;
-                new Thread(ReadLines) { IsBackground = true, Name = "jaNET serial" }.Start();
+                session.Worker = Task.Run(() => RunEvents(session));
+                new Thread(() => ReadLines(session)) { IsBackground = true, Name = "jaNET serial" }.Start();
+                _ = DisposeWhenFinished(session);
             }
-            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is ArgumentException || e is InvalidOperationException || e is FormatException) {
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is ArgumentException ||
+                                      e is InvalidOperationException || e is FormatException || e is OverflowException) {
+                _session?.Stop();
+                _session = null;
+                connection?.Dispose();
                 _log.Write($"obj [ SerialPortService.Open <{e.GetType().Name}> ] Exception Message: [ {e.Message} ]");
                 _problem = e is FileNotFoundException ? ServiceProblems.SerialMissing(name) : ServiceProblems.SerialPort(e, name);
             }
@@ -89,63 +91,158 @@ internal sealed class SerialPortService : ISerialService, IDisposable
 
     public void Close() {
         lock (_gate) {
-            if (_port.IsOpen) _port.Close();
+            Session? session = _session;
+            _session = null;
+            session?.Stop();
             _problem = null;
         }
     }
 
     public void Dispose() {
-        Close();
-        _port.Dispose();
-        _lineArrived.Dispose();
+        lock (_gate) {
+            if (_disposed) return;
+            Close();
+            _disposed = true;
+        }
     }
 
     public string Write(string message, SerialMessageKind kind, int timeoutMs = 1000) {
-        if (!_port.IsOpen) return $"Serial port state: {_port.IsOpen}";
-
-        try {
-            lock (_writeGate) {
-                _port.DiscardInBuffer();
-                _port.DiscardOutBuffer();
-                _lastLine = string.Empty;
-                _lineArrived.Reset();
-
-                if (kind == SerialMessageKind.Send)
-                    _port.WriteLine(message);
-
-                _lineArrived.Wait(timeoutMs);
-            }
-        }
-        catch (Exception e) when (e is IOException || e is InvalidOperationException || e is TimeoutException || e is UnauthorizedAccessException) {
-            // the port went away while we were talking to it: answer with what we have
-        }
-
-        return _lastLine;
-    }
-
-    void ReadLines() {
-        while (_port.IsOpen) {
+        ArgumentOutOfRangeException.ThrowIfNegative(timeoutMs);
+        lock (_writeGate) {
+            Session? session = _session;
+            if (session == null || !session.Connection.IsOpen) return "Serial port state: False";
+            var pending = new PendingRead(kind);
             try {
-                string line = _port.ReadLine().Replace("\r", string.Empty).Replace("SIGKILL", "\n");
-                if (line.Trim().Length > 0) {
-                    _lastLine = line;
-                    _lineArrived.Set();
+                // Register before writing so an immediate reply cannot be missed. Never flush sensor data.
+                lock (session.Gate) {
+                    if (session.Stopped) return string.Empty;
+                    session.Pending = pending;
+                    if (kind == SerialMessageKind.Send) session.Connection.WriteLine(message);
                 }
-                RunEventNamed(line);
+                return pending.Answer.Task.Wait(timeoutMs) ? pending.Answer.Task.Result : string.Empty;
             }
-            catch (Exception e) when (e is IOException || e is InvalidOperationException || e is TimeoutException || e is OperationCanceledException || e is UnauthorizedAccessException) {
-                // closing the port interrupts the blocking read; the loop condition ends the thread
+            catch (Exception e) when (e is IOException || e is InvalidOperationException || e is UnauthorizedAccessException) {
+                Fail(session, e);
+                return string.Empty;
+            }
+            catch (TimeoutException e) {
+                _log.Write($"obj [ SerialPortService.Write ] {e.Message}");
+                return string.Empty;
+            }
+            finally {
+                lock (session.Gate) {
+                    if (ReferenceEquals(session.Pending, pending)) session.Pending = null;
+                }
             }
         }
     }
 
-    void RunEventNamed(string name) {
-        if (name.Length == 0) return;
+    void ReadLines(Session session) {
+        try {
+            while (!session.Token.IsCancellationRequested) {
+                string line;
+                try {
+                    line = session.Connection.ReadLine().Replace("\r", string.Empty).Replace("SIGKILL", "\n");
+                }
+                catch (TimeoutException) {
+                    continue;
+                }
+                if (line.Trim().Length == 0 || session.Token.IsCancellationRequested) continue;
+                string name = line.Trim();
+                string? action = _config.EventActions(name).FirstOrDefault();
+                lock (session.Gate) {
+                    if (session.Stopped) break;
+                    PendingRead? pending = session.Pending;
+                    // Event notifications are not replies to a sent command; listen/monitor still see them.
+                    if (pending != null && (action == null || pending.Kind != SerialMessageKind.Send))
+                        pending.Answer.TrySetResult(line);
+                    if (action != null && !session.Events.Writer.TryWrite((name, action)))
+                        _log.Write($"obj [ SerialPortService ] Event queue is full; the event '{name}' was not queued.");
+                }
+            }
+        }
+        catch (Exception e) {
+            if (!session.Token.IsCancellationRequested) Fail(session, e);
+        }
+        finally {
+            session.Stop();
+            try { session.Connection.Dispose(); }
+            catch (Exception e) { _log.Write($"obj [ SerialPortService.Dispose ] {e.Message}"); }
+            session.ReaderFinished.TrySetResult();
+        }
+    }
 
-        string? action = _config.EventActions(name).FirstOrDefault();
-        if (action == null) return;
+    void Fail(Session session, Exception error) {
+        lock (_gate) {
+            if (!ReferenceEquals(_session, session)) return;
+            _session = null;
+            _problem = ServiceProblems.SerialPort(error, session.Name);
+            _log.Write($"obj [ SerialPortService ] Serial connection lost: {error.Message}");
+            session.Stop();
+        }
+    }
 
-        if (!TimeLimit.Run(() => _executor().Run(action), EventTimeoutMs))
-            _log.Write($"obj [ SerialPortService ] The event '{name}' took longer than {EventTimeoutMs / 1000} seconds.");
+    async Task RunEvents(Session session) {
+        try {
+            await foreach ((string name, string action) in session.Events.Reader.ReadAllAsync(session.Token).ConfigureAwait(false)) {
+                session.Token.ThrowIfCancellationRequested();
+                Task work = Task.Run(() => {
+                    if (session.Token.IsCancellationRequested) return;
+                    try { _executor().Run(action); }
+                    catch (Exception e) { _log.Write($"obj [ SerialPortService ] Event '{name}' failed: {e.Message}"); }
+                });
+                using var warning = CancellationTokenSource.CreateLinkedTokenSource(session.Token);
+                Task timeout = Task.Delay(EventTimeoutMs, warning.Token);
+                if (await Task.WhenAny(work, timeout).ConfigureAwait(false) == timeout && !session.Token.IsCancellationRequested)
+                    _log.Write($"obj [ SerialPortService ] The event '{name}' took longer than {EventTimeoutMs / 1000} seconds.");
+                // A timeout warns; it cannot cancel an instruction. Keep actions ordered instead of overlapping them.
+                await work.WaitAsync(session.Token).ConfigureAwait(false);
+                warning.Cancel();
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    static async Task DisposeWhenFinished(Session session) {
+        await Task.WhenAll(session.ReaderFinished.Task, session.Worker).ConfigureAwait(false);
+        session.StopSource.Dispose();
+    }
+
+    sealed class PendingRead(SerialMessageKind kind)
+    {
+        public SerialMessageKind Kind { get; } = kind;
+        public TaskCompletionSource<string> Answer { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    sealed class Session
+    {
+        public Session(ISerialConnection connection, string name) {
+            Connection = connection;
+            Name = name;
+            Token = StopSource.Token;
+        }
+        public ISerialConnection Connection { get; }
+        public string Name { get; }
+        public object Gate { get; } = new();
+        public CancellationTokenSource StopSource { get; } = new();
+        public CancellationToken Token { get; }
+        public Channel<(string Name, string Action)> Events { get; } = Channel.CreateBounded<(string, string)>(
+            new BoundedChannelOptions(EventQueueSize) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.Wait });
+        public TaskCompletionSource ReaderFinished { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task Worker { get; set; } = Task.CompletedTask;
+        public PendingRead? Pending { get; set; }
+        public bool Stopped { get; private set; }
+
+        public void Stop() {
+            lock (Gate) {
+                if (Stopped) return;
+                Stopped = true;
+                StopSource.Cancel();
+                Events.Writer.TryComplete();
+                Pending?.Answer.TrySetResult(string.Empty);
+            }
+            try { Connection.Close(); }
+            catch (Exception e) when (e is IOException || e is InvalidOperationException || e is UnauthorizedAccessException) { }
+        }
     }
 }

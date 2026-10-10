@@ -2,7 +2,7 @@
 
 const byId = id => document.getElementById(id);
 const PREFS = 'jubito-voice';
-let prefs = { playback: 'browser', voice: '', rate: 1, replies: false };
+let prefs = { playback: 'browser', voice: '', rate: 1, replies: true, events: true };
 try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREFS) ?? '{}') }; } catch { }
 
 export function encodeWave(samples) {
@@ -42,6 +42,12 @@ export function wireVoice(onTranscript, notify) {
     let playbackActive = false;
     let playbackGeneration = 0;
     let muted = false;
+    let synthesisReady = false;
+    let eventCursor = null;
+    let pollingEvents = false;
+    let eventPlayback = false;
+    let startingEvent = false;
+    const pendingEvents = [];
     const status = text => { byId('voiceStatus').textContent = text; };
 
     function playbackControl(active) {
@@ -84,8 +90,43 @@ export function wireVoice(onTranscript, notify) {
         audio?.pause(); audio = null;
         if (audioUrl) URL.revokeObjectURL(audioUrl);
         audioUrl = null;
+        eventPlayback = false;
         playbackControl(false);
         if (!recording && !starting && !processing) status('Ready');
+        queueMicrotask(playNextEvent);
+    }
+
+    async function playNextEvent() {
+        if (startingEvent || playbackActive || recording || starting || processing || muted || document.hidden || !prefs.events) return;
+        while (pendingEvents.length && Date.now() - pendingEvents[0].created > 60000) pendingEvents.shift();
+        if (!pendingEvents.length || navigator.userActivation?.hasBeenActive === false) return;
+        startingEvent = true;
+        const message = pendingEvents.shift();
+        responseText = message.text;
+        try { await say(message.text, false, true); }
+        finally { startingEvent = false; }
+    }
+
+    async function pollEvents() {
+        if (pollingEvents) return;
+        pollingEvents = true;
+        try {
+            const query = eventCursor ? '?session=' + encodeURIComponent(eventCursor.session) + '&after=' + eventCursor.lastId : '';
+            const result = await (await request('/events' + query)).json();
+            if (typeof result.session !== 'string' || !Number.isSafeInteger(result.lastId) || !Array.isArray(result.events)) return;
+            eventCursor = { session: result.session, lastId: result.lastId };
+            muted = result.muted;
+            if (muted) { pendingEvents.length = 0; if (playbackActive) stop(); }
+            else if (prefs.events && !document.hidden) {
+                for (const message of result.events) {
+                    if (typeof message.text === 'string' && message.text.trim()) pendingEvents.push({ text: message.text, created: Date.parse(message.created) });
+                }
+                if (pendingEvents.length > 32) pendingEvents.splice(0, pendingEvents.length - 32);
+                await playNextEvent();
+            }
+            playbackControl(playbackActive);
+        } catch { /* A missing connection must not cancel microphone or manual playback. */ }
+        finally { pollingEvents = false; }
     }
 
     async function refreshMute() {
@@ -93,14 +134,17 @@ export function wireVoice(onTranscript, notify) {
             const config = await (await request('')).json();
             if (typeof config.muted !== 'boolean') throw new Error('Reload jaNET to update speech controls.');
             muted = config.muted;
+            synthesisReady = config.synthesisReady === true;
+            if (muted) pendingEvents.length = 0;
             if (muted && playbackActive) stop();
             else playbackControl(playbackActive);
             return true;
         } catch { return false; }
     }
 
-    async function say(text, test = false) {
+    async function say(text, test = false, event = false) {
         stop();
+        eventPlayback = event;
         const generation = playbackGeneration;
         if (!await refreshMute()) {
             const message = 'Cannot check speech state. Check the jaNET connection.';
@@ -112,11 +156,14 @@ export function wireVoice(onTranscript, notify) {
             status(message); if (test) byId('voiceSetupStatus').textContent = message; return;
         }
         if (!text.trim()) { status('No response to read.'); return; }
-        const playback = test ? byId('voicePlayback').value : prefs.playback;
+        const deviceVoices = (window.speechSynthesis?.getVoices() ?? []).filter(voice => voice.localService);
+        const selectedPlayback = test ? byId('voicePlayback').value : prefs.playback;
+        const playback = selectedPlayback === 'browser' && !deviceVoices.length && synthesisReady ? 'server' : selectedPlayback;
         const rate = test ? Number(byId('voiceRate').value) : prefs.rate;
         const voiceId = test ? byId('browserVoice').value : prefs.voice;
         try {
             status('Speaking...');
+            eventPlayback = event;
             playbackControl(true);
             if (playback === 'server') {
                 const controller = new AbortController(); speechAbort = controller;
@@ -132,7 +179,7 @@ export function wireVoice(onTranscript, notify) {
                 await audio.play();
             } else {
                 if (!window.speechSynthesis) throw new Error('This browser does not support speech playback. Select server audio.');
-                const available = window.speechSynthesis.getVoices().filter(voice => voice.localService);
+                const available = deviceVoices;
                 if (!available.length) throw new Error('No local device voice is available. Install an OS voice, or select server audio.');
                 const utterance = new SpeechSynthesisUtterance(text.slice(0, 500));
                 utterance.voice = available.find(voice => voice.voiceURI === voiceId) ?? available.find(voice => voice.lang.startsWith(navigator.language.split('-')[0])) ?? available[0];
@@ -228,13 +275,13 @@ export function wireVoice(onTranscript, notify) {
         const server = byId('voicePlayback').value === 'server';
         byId('browserVoice').disabled = server;
         const engine = byId('speechEngine').value;
-        byId('speechExecutable').disabled = engine === 'off';
-        byId('speechVoice').disabled = engine !== 'espeak'; byId('piperModel').disabled = engine !== 'piper';
+        byId('speechExecutable').disabled = engine === 'off' || engine === 'windows';
+        byId('speechVoice').disabled = !['auto', 'windows', 'espeak'].includes(engine); byId('piperModel').disabled = engine !== 'piper';
     }
 
     async function loadSettings() {
         byId('voicePlayback').value = prefs.playback; byId('voiceRate').value = prefs.rate;
-        byId('voiceRateValue').value = Number(prefs.rate).toFixed(1); byId('voiceReplies').checked = prefs.replies; voices();
+        byId('voiceRateValue').value = Number(prefs.rate).toFixed(1); byId('voiceReplies').checked = prefs.replies; byId('voiceEvents').checked = prefs.events; voices();
         try {
             const config = await (await request('')).json();
             const map = { speechEngine: 'engine', speechExecutable: 'executable', speechVoice: 'voice', piperModel: 'piperModel', recognitionModel: 'recognitionModel' };
@@ -253,7 +300,8 @@ export function wireVoice(onTranscript, notify) {
     byId('voiceForm').addEventListener('submit', async event => {
         event.preventDefault();
         try {
-            await saveServer(); prefs = { playback: byId('voicePlayback').value, voice: byId('browserVoice').value, rate: Number(byId('voiceRate').value), replies: byId('voiceReplies').checked };
+            await saveServer(); prefs = { playback: byId('voicePlayback').value, voice: byId('browserVoice').value, rate: Number(byId('voiceRate').value), replies: byId('voiceReplies').checked, events: byId('voiceEvents').checked };
+            if (!prefs.events) pendingEvents.length = 0;
             try { localStorage.setItem(PREFS, JSON.stringify(prefs)); } catch { }
             byId('voiceSettings').close(); notify('Voice settings saved.');
         } catch (error) { byId('voiceSetupStatus').textContent = error.message; }
@@ -275,15 +323,20 @@ export function wireVoice(onTranscript, notify) {
         catch (error) { byId('voiceSetupStatus').textContent = error.message; }
     });
     byId('micBtn').addEventListener('click', record);
-    const cancelCapture = () => { captureGeneration++; recognitionAbort?.abort(); stop(); if (recording) finish(true); };
+    const cancelCapture = () => { pendingEvents.length = 0; captureGeneration++; recognitionAbort?.abort(); stop(); if (recording) finish(true); };
     byId('cancelCaptureBtn').addEventListener('click', cancelCapture);
-    byId('speakBtn').addEventListener('click', () => playbackActive ? stop() : say(responseText));
+    byId('speakBtn').addEventListener('click', () => { pendingEvents.length = 0; return playbackActive ? stop() : say(responseText); });
     byId('voiceRate').addEventListener('input', () => { byId('voiceRateValue').value = Number(byId('voiceRate').value).toFixed(1); });
     byId('voicePlayback').addEventListener('change', fields); byId('speechEngine').addEventListener('change', fields);
     window.speechSynthesis?.addEventListener('voiceschanged', voices); voices();
     document.addEventListener('visibilitychange', () => { if (document.hidden) cancelCapture(); });
     window.addEventListener('pagehide', cancelCapture);
+    document.addEventListener('pointerdown', () => queueMicrotask(playNextEvent));
+    document.addEventListener('keydown', () => queueMicrotask(playNextEvent));
+    const eventsReady = pollEvents();
+    const eventsTimer = setInterval(pollEvents, 1000);
+    window.addEventListener('pagehide', () => clearInterval(eventsTimer));
     refreshMute();
-    return { loadSettings, refreshMute, async response(text) { stop(); responseText = text; playbackControl(false); if (prefs.replies) await say(text); else await refreshMute(); },
-        clearResponse() { stop(); responseText = ''; playbackControl(false); }, stop };
+    return { loadSettings, refreshMute, eventsReady, async response(text, spokenByServer = false) { if (!eventPlayback) stop(); responseText = text; playbackControl(playbackActive); if (prefs.replies && !eventPlayback && !(spokenByServer && prefs.events)) await say(text); else await refreshMute(); },
+        clearResponse() { stop(); responseText = ''; playbackControl(false); }, stop() { pendingEvents.length = 0; stop(); } };
 }

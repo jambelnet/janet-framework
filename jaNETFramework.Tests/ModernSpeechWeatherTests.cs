@@ -2,6 +2,7 @@
  * Licensed under the GNU General Public License, version 3 or later; see LICENSE. */
 
 using jaNET.Configuration;
+using jaNET.Hosting;
 using jaNET.Services;
 using jaNET.Servers;
 using System;
@@ -161,13 +162,118 @@ public class ModernSpeechTests
     public async Task MissingModelOrEngineIsReportedWithoutLoadingOrDownloading() {
         using var app = new TempApp(); using var speech = new SpeechService(new SettingsStore(app.Paths, app.Log), app.Paths);
         Assert.Contains("No recognition model", (await Assert.ThrowsAsync<InvalidOperationException>(() => speech.Recognize(Wave(), CancellationToken.None))).Message);
-        speech.Save(new SpeechSettings(Executable: "does-not-exist-janet-test"));
+        speech.Save(new SpeechSettings(Engine: "espeak", Executable: "does-not-exist-janet-test"));
         Assert.Contains("not found", (await Assert.ThrowsAsync<InvalidOperationException>(() => speech.Synthesize("hello", CancellationToken.None))).Message);
         speech.Save(new SpeechSettings(Engine: "off"));
         await Assert.ThrowsAsync<InvalidOperationException>(() => speech.Synthesize("hello", CancellationToken.None));
         await Assert.ThrowsAsync<ArgumentException>(() => speech.InstallModel("unknown", CancellationToken.None));
         await Assert.ThrowsAsync<ArgumentException>(() => speech.InstallModel("fr", CancellationToken.None));
         Assert.False(Directory.Exists(Path.Combine(app.Directory, "speech-models")));
+    }
+}
+
+public class SpeechEventTests
+{
+    [Fact]
+    public async Task BuiltInWindowsVoicesGenerateRealAudioWithoutAnExternalEngine() {
+        if (!OperatingSystem.IsWindows()) return;
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        speech.Save(new SpeechSettings(Engine: "windows", Voice: "default"));
+        byte[] audio = await speech.Synthesize("Jubito speech is ready. Literal dollar $(value) and apostrophe ' stay text.", CancellationToken.None);
+        Assert.True(audio.Length > 44);
+        Assert.Equal("RIFF", Encoding.ASCII.GetString(audio, 0, 4));
+        Assert.Equal("WAVE", Encoding.ASCII.GetString(audio, 8, 4));
+    }
+
+    [Fact]
+    public void LongResponsesAreSplitWithoutDroppingTheirRemainder() {
+        string text = string.Join(" ", Enumerable.Repeat("weather", 250));
+        string[] chunks = SpeechService.Chunks(text).ToArray();
+        Assert.All(chunks, chunk => Assert.InRange(chunk.Length, 1, 500));
+        Assert.Equal(text, string.Join(" ", chunks));
+        Assert.Equal(new[] { new string('x', 500), new string('x', 500), new string('x', 201) }, SpeechService.Chunks(new string('x', 1201)));
+    }
+
+    [Fact]
+    public void FeedIsBoundedStartsLiveAndDoesNotDependOnAnInstalledEngine() {
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        speech.Save(new SpeechSettings(Engine: "off"));
+        SpeechMessages start = speech.Messages(null, null, false);
+        for (int i = 0; i < 40; i++) speech.Publish("message_" + i);
+        SpeechMessages live = speech.Messages(start.Session, start.LastId, false);
+        Assert.Equal(32, live.Events.Length);
+        Assert.Equal("message 8", live.Events[0].Text);
+        Assert.Equal("message 39", live.Events[^1].Text);
+        Assert.Empty(speech.Messages(null, null, false).Events);
+        Assert.Empty(speech.Messages("previous-server", 0, false).Events);
+        Assert.Empty(speech.Messages(start.Session, -1, false).Events);
+        Assert.Empty(speech.Messages(start.Session, 1000, false).Events);
+        Assert.Empty(speech.Messages(start.Session, 0, true).Events);
+        Assert.Empty(speech.Messages(start.Session, live.LastId, false).Events);
+        speech.Publish("___");
+        Assert.Equal(live.LastId, speech.Messages(null, null, false).LastId);
+    }
+
+    [Fact]
+    public async Task PresenceEventOutputsReachTheAuthenticatedBrowserFeedInOrder() {
+        using var app = new TempApp();
+        var settings = new MemorySettingsStore();
+        var speaker = new SilentSpeaker { Muted = true };
+        using var host = new JanetHost(new JanetHostOptions { RootDirectory = app.Directory }, new HostParts {
+            Settings = settings, Speaker = speaker, Clock = new FakeClock(), Http = new FakeHttp(), Weather = new FakeWeather(),
+            Socket = new FakeServer(), Serial = new FakeSerial(), Mqtt = new FakeMqtt(), Console = new FakeConsole()
+        });
+        host.Config.EnsureExists();
+        int port = Ports.Free();
+        host.Config.Update(new CommUpdate { Hostname = "localhost", HttpPort = port.ToString(), Authentication = "basic" });
+        settings.Save(SettingsFiles.WebLogin, "voice-test\r\npw");
+        settings.Save(SettingsFiles.Speech, JsonSerializer.Serialize(new SpeechSettings(Engine: "off")));
+        host.Start();
+        using var client = new HttpClient { BaseAddress = new Uri("http://localhost:" + port) };
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/speech/events")).StatusCode);
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes("voice-test:pw")));
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        SpeechMessages baseline = await client.GetFromJsonAsync<SpeechMessages>("/api/speech/events", options);
+        host.Config.RemoveEvent("oncheckin"); host.Config.RemoveEvent("oncheckout");
+        host.Config.AddEvent("oncheckout", "judo sleep 0; goodbye; %unmute%");
+        host.Config.AddEvent("oncheckin", "%unmute%; salute; weathertoday");
+        host.Execute("%checkout%");
+        speaker.Muted = true;
+        host.Execute("{mute}%checkin%");
+        string url = "/api/speech/events?session=" + baseline.Session + "&after=" + baseline.LastId;
+        SpeechMessages events = await client.GetFromJsonAsync<SpeechMessages>(url, options);
+        Assert.Equal(3, events.Events.Length);
+        Assert.Contains("Good bye", events.Events[0].Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Good morning", events.Events[1].Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Clouds", events.Events[2].Text);
+        Assert.Contains("11", events.Events[2].Text);
+        Assert.Contains("19", events.Events[2].Text);
+        host.Execute("%checkin%"); // No transition, no second greeting.
+        string next = "/api/speech/events?session=" + events.Session + "&after=" + events.LastId;
+        Assert.Empty((await client.GetFromJsonAsync<SpeechMessages>(next, options)).Events);
+        host.Execute("%mute%; salute");
+        Assert.Empty((await client.GetFromJsonAsync<SpeechMessages>(next, options)).Events);
+        host.Execute("{widget}salute");
+        Assert.Empty((await client.GetFromJsonAsync<SpeechMessages>(next, options)).Events);
+        host.Execute("%checkout%"); // goodbye before unmute is silent if already muted.
+        Assert.Empty((await client.GetFromJsonAsync<SpeechMessages>(next, options)).Events);
+        host.Config.RemoveEvent("oncheckout");
+        host.Config.AddEvent("oncheckout", "judo sleep 0; %unmute%; goodbye");
+        host.Execute("%checkin%");
+        SpeechMessages checkedIn = await client.GetFromJsonAsync<SpeechMessages>(next, options);
+        host.Execute("%mute%");
+        host.Execute("%checkout%");
+        string goodbyeUrl = "/api/speech/events?session=" + checkedIn.Session + "&after=" + checkedIn.LastId;
+        SpeechMessages goodbye = await client.GetFromJsonAsync<SpeechMessages>(goodbyeUrl, options);
+        Assert.Single(goodbye.Events);
+        Assert.Contains("Good bye", goodbye.Events[0].Text, StringComparison.OrdinalIgnoreCase);
+        // Ordinary instruction answers use the same feed; silent widget refreshes do not.
+        host.Execute("whoami");
+        SpeechMessages ordinary = await client.GetFromJsonAsync<SpeechMessages>(goodbyeUrl + "&ignored=1", options);
+        Assert.Equal(2, ordinary.Events.Length);
+        Assert.Contains(Environment.UserName, ordinary.Events[1].Text);
     }
 }
 

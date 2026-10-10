@@ -338,6 +338,14 @@ internal sealed class WebServer : IServer, IDisposable
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         byte[] Json(object value) => JsonSerializer.SerializeToUtf8Bytes(value, options);
         if (path == "/api/speech" && HttpMethods.IsGet(request.Method)) return Json(_speech.Status(_isMuted()));
+        if (path == "/api/speech/events" && HttpMethods.IsGet(request.Method)) {
+            string eventOrigin = request.Headers.Origin.ToString();
+            if ((eventOrigin.Length > 0 && eventOrigin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
+                response.StatusCode = 403; return Json(new { error = "Speech requests must come from this jaNET page." });
+            }
+            long? after = long.TryParse(request.Query["after"], out long cursor) ? cursor : null;
+            return Json(_speech.Messages(request.Query["session"], after, _isMuted()));
+        }
         if (!HttpMethods.IsPost(request.Method)) { response.StatusCode = 405; return Json(new { error = "Use POST for this speech endpoint." }); }
         string origin = request.Headers.Origin.ToString();
         if ((origin.Length > 0 && origin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {

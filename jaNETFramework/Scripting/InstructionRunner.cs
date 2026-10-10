@@ -43,14 +43,18 @@ internal sealed class InstructionRunner : IInstructionExecutor
     readonly ISpeaker _speaker;
     readonly MailNotifier _notifier;
     readonly ILog _log;
+    readonly Action<string>? _publishSpeech;
+    readonly object _speechGate = new();
+    Task _speechTail = Task.CompletedTask;
 
-    public InstructionRunner(AppConfigStore config, InstructionResolver resolver, Func<Commands.JudoDispatcher> judo, ISpeaker speaker, MailNotifier notifier, ILog log) {
+    public InstructionRunner(AppConfigStore config, InstructionResolver resolver, Func<Commands.JudoDispatcher> judo, ISpeaker speaker, MailNotifier notifier, ILog log, Action<string>? publishSpeech = null) {
         _config = config;
         _resolver = resolver;
         _judo = judo;
         _speaker = speaker;
         _notifier = notifier;
         _log = log;
+        _publishSpeech = publishSpeech;
     }
 
     public string Run(string input, ResponseFormat format = ResponseFormat.Text, bool silent = false) {
@@ -118,8 +122,17 @@ internal sealed class InstructionRunner : IInstructionExecutor
         if (!silent)
             _notifier.Notify(output);
 
-        if (!string.IsNullOrWhiteSpace(output) && !_speaker.Muted && !silent)
-            Task.Run(() => _speaker.Say(output));
+        if (!string.IsNullOrWhiteSpace(output) && !_speaker.Muted && !silent) {
+            lock (_speechGate) {
+                _publishSpeech?.Invoke(output);
+                Task previous = _speechTail;
+                _speechTail = Task.Run(async () => {
+                    await previous.ConfigureAwait(false);
+                    try { if (!_speaker.Muted) _speaker.Say(output); }
+                    catch (Exception error) { _log.Write("Speech: " + error.Message); }
+                });
+            }
+        }
 
         return output.Trim();
     }

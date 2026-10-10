@@ -6,6 +6,7 @@ using jaNET.Infrastructure;
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -17,8 +18,11 @@ using System.Threading.Tasks;
 
 namespace jaNET.Services;
 
-internal sealed record SpeechSettings(string Engine = "espeak", string Executable = "espeak-ng", string Voice = "en",
+internal sealed record SpeechSettings(string Engine = "auto", string Executable = "espeak-ng", string Voice = "en",
     string PiperModel = "", string RecognitionModel = "");
+
+internal sealed record SpeechMessage(long Id, string Text, DateTimeOffset Created);
+internal sealed record SpeechMessages(string Session, long LastId, bool Muted, SpeechMessage[] Events);
 
 /// <summary>Optional local speech engines. Models are loaded only when recognition is requested.</summary>
 internal sealed class SpeechService : IDisposable
@@ -30,6 +34,43 @@ internal sealed class SpeechService : IDisposable
     Vosk.Model? _model;
     string _modelPath = string.Empty;
     static readonly HttpClient Downloads = new() { Timeout = TimeSpan.FromMinutes(5) };
+    readonly object _messagesGate = new();
+    readonly Queue<SpeechMessage> _messages = new();
+    readonly string _session = Guid.NewGuid().ToString("N");
+    long _messageId;
+
+    internal void Publish(string text) {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        text = text.Replace('_', ' ').Trim();
+        if (text.Length == 0) return;
+        lock (_messagesGate) {
+            foreach (string chunk in Chunks(text)) {
+                _messages.Enqueue(new SpeechMessage(++_messageId, chunk, DateTimeOffset.UtcNow));
+                while (_messages.Count > 32) _messages.Dequeue();
+            }
+        }
+    }
+
+    internal static IEnumerable<string> Chunks(string text) {
+        text = text.Trim();
+        while (text.Length > 500) {
+            int end = text.LastIndexOf(' ', 499);
+            if (end < 250) end = 500;
+            yield return text[..end];
+            text = text[end..].TrimStart();
+        }
+        if (text.Length > 0) yield return text;
+    }
+
+    internal SpeechMessages Messages(string? session, long? after, bool muted) {
+        lock (_messagesGate) {
+            while (_messages.TryPeek(out SpeechMessage? first) && first.Created < DateTimeOffset.UtcNow.AddSeconds(-60)) _messages.Dequeue();
+            // A new page or restarted server starts at the live cursor, never replaying old greetings.
+            SpeechMessage[] events = !muted && session == _session && after.HasValue && after >= 0 && after <= _messageId
+                ? _messages.Where(message => message.Id > after).ToArray() : Array.Empty<SpeechMessage>();
+            return new SpeechMessages(_session, _messageId, muted, events);
+        }
+    }
 
     public SpeechService(ISettingsStore settings, AppPaths paths) { _settings = settings; _paths = paths; }
 
@@ -44,8 +85,9 @@ internal sealed class SpeechService : IDisposable
     }
 
     public string Save(SpeechSettings settings) {
-        if (settings.Engine is not ("espeak" or "piper" or "off")) throw new ArgumentException("Choose eSpeak NG, Piper, or off.");
-        if (settings.Engine != "off" && string.IsNullOrWhiteSpace(settings.Executable)) throw new ArgumentException("Enter the speech executable path.");
+        if (settings.Engine is not ("auto" or "windows" or "espeak" or "piper" or "off")) throw new ArgumentException("Choose automatic, Windows voices, eSpeak NG, Piper, or off.");
+        if (settings.Engine == "windows" && !OperatingSystem.IsWindows()) throw new ArgumentException("Windows voices require Windows. Choose eSpeak NG or Piper on this system.");
+        if (settings.Engine is "espeak" or "piper" && string.IsNullOrWhiteSpace(settings.Executable)) throw new ArgumentException("Enter the speech executable path.");
         if (settings.Engine == "piper" && string.IsNullOrWhiteSpace(settings.PiperModel)) throw new ArgumentException("Enter the Piper .onnx model path.");
         if (new[] { settings.Executable, settings.Voice, settings.PiperModel, settings.RecognitionModel }.Any(v => v == null || v.Length > 2048 || v.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0))
             throw new ArgumentException("Speech settings contain an invalid value.");
@@ -54,10 +96,50 @@ internal sealed class SpeechService : IDisposable
 
     public object Status(bool muted = false) {
         SpeechSettings s = Settings;
-        return new { settings = s, recognitionReady = File.Exists(Path.Combine(s.RecognitionModel, "am", "final.mdl")),
-            synthesisReady = s.Engine != "off" && FindExecutable(s.Executable) != null && (s.Engine != "piper" || File.Exists(s.PiperModel)),
+        return new { settings = s, effectiveEngine = EffectiveEngine(s), recognitionReady = File.Exists(Path.Combine(s.RecognitionModel, "am", "final.mdl")),
+            synthesisReady = SynthesisReady,
             modelLoaded = _model != null, muted };
     }
+
+    internal bool SynthesisReady {
+        get {
+            SpeechSettings settings = Settings;
+            string engine = EffectiveEngine(settings);
+            return engine == "windows" ? OperatingSystem.IsWindows() && FindExecutable("powershell") != null :
+                engine != "off" && FindExecutable(settings.Executable) != null &&
+                (settings.Engine != "piper" || File.Exists(settings.PiperModel));
+        }
+    }
+
+    static string EffectiveEngine(SpeechSettings settings) => settings.Engine == "auto"
+        ? OperatingSystem.IsWindows() && FindExecutable(settings.Executable) == null ? "windows" : "espeak"
+        : settings.Engine;
+
+    const string WindowsSynthesis = """
+        $ErrorActionPreference = 'Stop'
+        [Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
+        Add-Type -AssemblyName System.Runtime.WindowsRuntime
+        $null = [Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType=WindowsRuntime]
+        $null = [Windows.Media.SpeechSynthesis.SpeechSynthesisStream, Windows.Media.SpeechSynthesis, ContentType=WindowsRuntime]
+        $synth = New-Object Windows.Media.SpeechSynthesis.SpeechSynthesizer
+        if ($env:JANET_VOICE -and $env:JANET_VOICE -ne 'default') {
+            $voice = [Windows.Media.SpeechSynthesis.SpeechSynthesizer]::AllVoices | Where-Object {
+                $_.Id -eq $env:JANET_VOICE -or $_.DisplayName -eq $env:JANET_VOICE -or
+                $_.Language -eq $env:JANET_VOICE -or $_.Language.StartsWith($env:JANET_VOICE + '-')
+            } | Select-Object -First 1
+            if (!$voice) { throw 'The Windows voice/language is not installed. Install it in Windows Speech settings, or use default.' }
+            $synth.Voice = $voice
+        }
+        $method = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+            $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetGenericArguments().Count -eq 1 -and
+            $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
+        } | Select-Object -First 1
+        $task = $method.MakeGenericMethod([Windows.Media.SpeechSynthesis.SpeechSynthesisStream]).Invoke($null, @($synth.SynthesizeTextToStreamAsync([Console]::In.ReadToEnd())))
+        $stream = $task.GetAwaiter().GetResult()
+        $inputStream = [System.IO.WindowsRuntimeStreamExtensions]::AsStreamForRead($stream.GetInputStreamAt(0))
+        $file = [System.IO.File]::Create($env:JANET_AUDIO)
+        try { $inputStream.CopyTo($file) } finally { $file.Dispose(); $inputStream.Dispose(); $synth.Dispose() }
+        """;
 
     internal static string? FindExecutable(string name) {
         if (string.IsNullOrWhiteSpace(name)) return null;
@@ -67,6 +149,12 @@ internal sealed class SpeechService : IDisposable
             if (File.Exists(candidate)) return candidate;
             if (OperatingSystem.IsWindows() && File.Exists(candidate + ".exe")) return candidate + ".exe";
         }
+        if (OperatingSystem.IsWindows() && name is "espeak-ng" or "espeak-ng.exe") {
+            foreach (string folder in new[] { Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) }) {
+                string candidate = Path.Combine(folder, "eSpeak NG", "espeak-ng.exe");
+                if (File.Exists(candidate)) return candidate;
+            }
+        }
         return null;
     }
 
@@ -74,13 +162,19 @@ internal sealed class SpeechService : IDisposable
         if (string.IsNullOrWhiteSpace(text) || text.Length > 500) throw new ArgumentException("Enter between 1 and 500 characters to speak.");
         SpeechSettings settings = Settings;
         if (settings.Engine == "off") throw new InvalidOperationException("Server speech is switched off. Browser voices remain available.");
-        string executable = FindExecutable(settings.Executable) ?? throw new InvalidOperationException("Speech engine not found. Install eSpeak NG or Piper, then select its executable in Voice settings.");
+        string engine = EffectiveEngine(settings);
+        if (engine == "windows" && !OperatingSystem.IsWindows()) throw new InvalidOperationException("Windows voices require Windows.");
+        string executable = FindExecutable(engine == "windows" ? "powershell" : settings.Executable) ?? throw new InvalidOperationException("Speech engine not found. Choose automatic on Windows, or install eSpeak NG/Piper and select its executable in Voice settings.");
         if (settings.Engine == "piper" && !File.Exists(settings.PiperModel)) throw new InvalidOperationException("The Piper voice model was not found.");
         await _synthesisGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         string file = Path.Combine(Path.GetTempPath(), "janet-speech-" + Guid.NewGuid().ToString("N") + ".wav");
         try {
-            var start = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            if (settings.Engine == "piper") {
+            var start = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, StandardInputEncoding = Encoding.UTF8, RedirectStandardOutput = true, RedirectStandardError = true };
+            if (engine == "windows") {
+                start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive");
+                start.ArgumentList.Add("-Command"); start.ArgumentList.Add(WindowsSynthesis);
+                start.Environment["JANET_AUDIO"] = file; start.Environment["JANET_VOICE"] = settings.Voice;
+            } else if (settings.Engine == "piper") {
                 start.ArgumentList.Add("--model"); start.ArgumentList.Add(settings.PiperModel);
                 start.ArgumentList.Add("--output_file"); start.ArgumentList.Add(file);
             } else {
@@ -104,7 +198,9 @@ internal sealed class SpeechService : IDisposable
                     throw new InvalidOperationException("The speech engine timed out. Check the selected executable and voice model.", error);
                 throw;
             }
-            if (process.ExitCode != 0 || !File.Exists(file)) throw new InvalidOperationException("The speech engine failed. Check the executable, voice, and model in Voice settings.");
+            if (process.ExitCode != 0 || !File.Exists(file)) throw new InvalidOperationException(engine == "windows"
+                ? "Windows speech failed. Install the selected Windows speech language or set Voice / language to default."
+                : "The speech engine failed. Check the executable, voice, and model in Voice settings.");
             if (new FileInfo(file).Length > 8_000_000) throw new InvalidOperationException("The generated audio is too large.");
             byte[] audio = await File.ReadAllBytesAsync(file, cancellationToken).ConfigureAwait(false);
             if (audio.Length < 44 || Encoding.ASCII.GetString(audio, 0, 4) != "RIFF" || Encoding.ASCII.GetString(audio, 8, 4) != "WAVE")

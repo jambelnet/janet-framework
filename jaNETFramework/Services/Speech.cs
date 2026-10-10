@@ -21,6 +21,7 @@
 using jaNET.Infrastructure;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace jaNET.Services;
 
@@ -35,7 +36,7 @@ public interface ISpeaker
 }
 
 /// <summary>
-/// Speaks through configured eSpeak NG or Piper. No legacy helper executables or shell interpolation.
+/// Speaks through local Windows voices, eSpeak NG or Piper. No legacy helper executables or shell interpolation.
 /// </summary>
 internal sealed class SystemSpeaker : ISpeaker
 {
@@ -43,32 +44,62 @@ internal sealed class SystemSpeaker : ISpeaker
 
     readonly SpeechService _speech;
     readonly ILog _log;
+    readonly object _stateGate = new();
+    CancellationTokenSource? _playing;
 
     public SystemSpeaker(SpeechService speech, ILog log) { _speech = speech; _log = log; }
 
-    public bool Muted { get => _muted; set => _muted = value; }
+    public bool Muted {
+        get => _muted;
+        set {
+            lock (_stateGate) {
+                _muted = value;
+                if (value) _playing?.Cancel();
+            }
+        }
+    }
     volatile bool _muted;
 
     public void Say(string text) {
         lock (Gate) {
             if (Muted || _speech.Settings.Engine == "off") return;
+            using var cancellation = new CancellationTokenSource();
+            lock (_stateGate) {
+                if (Muted) return;
+                _playing = cancellation;
+            }
             string file = Path.Combine(Path.GetTempPath(), "janet-playback-" + Guid.NewGuid().ToString("N") + ".wav");
             try {
-                byte[] audio = _speech.Synthesize(text.Replace("_", " "), default).GetAwaiter().GetResult();
-                File.WriteAllBytes(file, audio);
-                string? player = SpeechService.FindExecutable(OperatingSystem.IsWindows() ? "powershell" : OperatingSystem.IsMacOS() ? "afplay" : "aplay");
-                if (player == null) { _log.Write("Speech: no audio player found; use browser playback or install aplay."); return; }
-                var start = new System.Diagnostics.ProcessStartInfo(player) { UseShellExecute = false, CreateNoWindow = true };
-                if (OperatingSystem.IsWindows()) {
-                    start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive");
-                    start.ArgumentList.Add("-Command");
-                    start.ArgumentList.Add("$p=New-Object System.Media.SoundPlayer; $p.SoundLocation=$env:JANET_AUDIO; $p.PlaySync()");
-                    start.Environment["JANET_AUDIO"] = file;
-                } else start.ArgumentList.Add(file);
-                using var process = System.Diagnostics.Process.Start(start);
-                if (process != null && !process.WaitForExit(30_000)) process.Kill(entireProcessTree: true);
-            } catch (Exception e) { _log.Write("Speech: " + e.Message); }
-            finally { try { File.Delete(file); } catch (IOException) { } }
+                foreach (string chunk in SpeechService.Chunks(text.Replace("_", " "))) {
+                    cancellation.Token.ThrowIfCancellationRequested();
+                    byte[] audio = _speech.Synthesize(chunk, cancellation.Token).GetAwaiter().GetResult();
+                    File.WriteAllBytes(file, audio);
+                    cancellation.Token.ThrowIfCancellationRequested();
+                    string? player = SpeechService.FindExecutable(OperatingSystem.IsWindows() ? "powershell" : OperatingSystem.IsMacOS() ? "afplay" : "aplay");
+                    if (player == null) { _log.Write("Speech: no audio player found; use browser playback or install aplay."); return; }
+                    var start = new System.Diagnostics.ProcessStartInfo(player) { UseShellExecute = false, CreateNoWindow = true };
+                    if (OperatingSystem.IsWindows()) {
+                        start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive");
+                        start.ArgumentList.Add("-Command");
+                        start.ArgumentList.Add("$ErrorActionPreference='Stop'; $p=New-Object System.Media.SoundPlayer; $p.SoundLocation=$env:JANET_AUDIO; $p.PlaySync()");
+                        start.Environment["JANET_AUDIO"] = file;
+                    } else start.ArgumentList.Add(file);
+                    using var process = System.Diagnostics.Process.Start(start);
+                    using var registration = cancellation.Token.Register(() => {
+                        try { if (process != null && !process.HasExited) process.Kill(entireProcessTree: true); }
+                        catch (Exception error) { _log.Write("Speech stop: " + error.Message); }
+                    });
+                    if (process != null) {
+                        if (!process.WaitForExit(30_000)) process.Kill(entireProcessTree: true);
+                        else if (!cancellation.IsCancellationRequested && process.ExitCode != 0) _log.Write("Speech: audio playback failed. Check the box's audio output.");
+                    }
+                }
+            } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+            catch (Exception e) { _log.Write("Speech: " + e.Message); }
+            finally {
+                lock (_stateGate) _playing = null;
+                try { File.Delete(file); } catch (IOException) { }
+            }
         }
     }
 }

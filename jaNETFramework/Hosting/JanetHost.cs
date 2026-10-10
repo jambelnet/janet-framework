@@ -47,7 +47,7 @@ public sealed class JanetHostOptions
     /// <summary>What to do when "%exit%" is received. Default: end the process.</summary>
     public Action? ExitProcess { get; set; }
 
-    /// <summary>Speaks the answers of instructions. Default: configured eSpeak NG or Piper.</summary>
+    /// <summary>Speaks the answers of instructions. Default: automatic local synthesis (eSpeak NG or built-in Windows voices), or configured Piper.</summary>
     public ISpeaker? Speaker { get; set; }
 
     /// <summary>
@@ -85,6 +85,8 @@ public sealed class JanetHost : IDisposable
     readonly SchedulerService _scheduler;
     readonly UserPresence _presence;
     readonly SpeechService _speech;
+    readonly bool _usesSystemSpeaker;
+    readonly SystemSpeaker? _systemSpeaker;
     bool _started;
 
     /// <summary>Creates the host; nothing runs until <see cref="Start"/>. Throws <see cref="ArgumentException"/> when a custom command or function clashes with an existing name.</summary>
@@ -108,6 +110,8 @@ public sealed class JanetHost : IDisposable
         _info = new AppInfo(http, clock);
         _speech = new SpeechService(_settings, _paths);
         ISpeaker speaker = parts.Speaker ?? options.Speaker ?? new SystemSpeaker(_speech, log);
+        _usesSystemSpeaker = speaker is SystemSpeaker;
+        _systemSpeaker = speaker as SystemSpeaker;
 
         // The pieces refer to each other (an event runs instructions, instructions start events, ...):
         // they get the executor, the dispatcher and so on lazily, once everything exists.
@@ -130,7 +134,7 @@ public sealed class JanetHost : IDisposable
                                    WithMqttFunctions(options.Functions));
         resolver = new InstructionResolver(functions, _config, () => evaluator!, () => judo!, processes);
         evaluator = new ConditionEvaluator(() => resolver, executor);
-        runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log);
+        runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log, _speech.Publish);
 
         _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted);
         _socket = parts.Socket ?? new TcpSocketServer(_config, executor, log);
@@ -207,6 +211,9 @@ public sealed class JanetHost : IDisposable
             AddProblem(notices, "Serial port", _serial.Problem);
             AddProblem(notices, "MQTT", _mqtt.Problem);
             notices.AddRange(SecurityNotices());
+            if (_usesSystemSpeaker && _speech.Settings.Engine != "off" && !_speech.SynthesisReady)
+                notices.Add(new HostNotice("Speech", NoticeLevel.Info,
+                    "Box speech engine is not installed/configured. Use browser/device voices for event greetings, or install eSpeak NG/Piper and select its executable in Voice settings."));
 
             if (WeatherKey.IsPlaceholder(_config.WeatherUrl) && WeatherKey.Stored(_settings) == null)
                 notices.Add(new HostNotice("Weather", NoticeLevel.Info,
@@ -326,6 +333,7 @@ public sealed class JanetHost : IDisposable
     public void Dispose() { StopServices(); _speech.Dispose(); }
 
     void StopServices() {
+        if (_systemSpeaker != null) _systemSpeaker.Muted = true;
         _scheduler.Dispose();
         _serial.Close();
         _mqtt.Stop();

@@ -42,8 +42,9 @@ Only `JanetHost`, `JanetHostOptions` and `JudoSyntax` are public; the rest is `i
 
 * **An interface only where tests need a second implementation.** The seams are the places where jaNET touches the outside world:
   `IClock`, `ILog`, `IHttpFetcher`, `ISpeaker`, `IWeatherSource`, `IConsoleControl`, `IServer`, `ISerialService`, `ISettingsStore`, plus
-  `IInstructionExecutor` (which also breaks the circle between events and instructions). Tests replace them through `HostParts`, so the whole
-  stack runs without network, sound, sockets or hardware. Everything else (`AppConfigStore`, `ProcessRunner`, `SchedulerService`, the commands)
+  `ISerialConnection` (the physical serial adapter), and `IInstructionExecutor` (which also breaks the circle between events and instructions).
+  Tests replace services through `HostParts`, so the whole stack runs without network, sound, sockets or hardware.
+  Everything else (`AppConfigStore`, `ProcessRunner`, `SchedulerService`, the commands)
   has one implementation and is used directly: no interface, no indirection.
 * **Names follow the product:** instruction set, launcher (`*name`), event, evaluator, judo command and built-in *function* (`%user%`) are the
   terms of the original documentation and the web UI, and the code uses the same words.
@@ -72,6 +73,13 @@ One version for everything: `<Version>` in `Directory.Build.props`. `AppInfo.Ver
 packages and `jaNETProgram --version` cannot disagree. `AppInfo.IsNewer` compares the version that the project site publishes with it as versions (not as digits).
 
 ## Tests
+
+`SerialPortService` owns a separate connection, reader and bounded event queue per open
+session. The reader fulfils the active request with its first eligible line and queues
+registered events without running instructions itself. One event worker executes actions
+in order. Close cancels that session and releases the pending request; reopening cannot
+reuse its transport or reader. `SerialTests` injects a simulated `ISerialConnection` into
+the real service to cover replies, events, failures and lifecycle races without hardware.
 
 * `dotnet test` - unit tests per class, host level tests with fakes (`TestHost`), and integration tests with real loopback sockets for the web and socket server.
 * `tools/compare.ps1` - replays about 120 console commands, web requests and socket requests against the built program and diffs the transcript with
