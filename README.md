@@ -21,6 +21,46 @@ i.e.
 
 [judo API doc](https://github.com/jambelnet/janet-framework/wiki/judo-API)
 
+## Build Scripts
+
+Install the [.NET SDK 10 or later](https://dotnet.microsoft.com/download) and clone this repository. Both scripts restore dependencies and build **Release** by default, including the web UI. Run them from the repository folder; they also work when called by absolute path from another folder. They do not start the server or change saved settings.
+
+**Windows (PowerShell):**
+
+```powershell
+.\build.ps1
+.\build.ps1 -Test
+.\build.ps1 -Test -Publish
+.\build.ps1 -Publish -Runtime linux-arm64
+.\build.ps1 -Configuration Debug
+```
+
+If PowerShell blocks this downloaded script, review it, then run `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1` with any desired options. This applies only to that process; do not change the machine-wide execution policy.
+
+**Linux (Bash; also supports macOS):**
+
+```bash
+bash ./build.sh
+bash ./build.sh --test
+bash ./build.sh --test --publish
+bash ./build.sh --publish --runtime linux-arm64
+bash ./build.sh --configuration Debug
+```
+
+`-Test` / `--test` runs the .NET suite and the web JavaScript tests and requires **Node.js 18 or later**. `-Publish` / `--publish` uses **dotnet publish directly**, without Python or another build dependency, and writes a deployable folder into `artifacts/publish/<runtime>/`. The default publish target matches your platform/processor; use the runtime option to cross-publish for another device. Publishing always uses Release; do not combine it with Debug.
+
+Published folders include the .NET and ASP.NET Core runtimes by default, along with the web UI, README and license notices. Copy the whole folder to the target device, then run `jaNETProgram.exe` on Windows or `./jaNETProgram` on Linux/macOS. If you built a Linux executable on Windows, run `chmod +x jaNETProgram` on Linux after copying it. Add `-FrameworkDependent` / `--framework-dependent` when publishing for a smaller folder that requires both runtimes installed on the target; its name ends in `-framework-dependent`. Supported targets are `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `linux-arm`, `osx-x64` and `osx-arm64`. Linux ARM voice recognition still needs a matching native Vosk library as described under Local speech.
+
+To run the local Release build on either system:
+
+```text
+dotnet run --project jaNETProgram -c Release --no-build
+```
+
+Open `http://localhost:8080/www/` (or your previously configured address/port). Local builds are in `jaNETProgram/bin/Release/net10.0/`; run `dotnet jaNETProgram.dll` from that folder on a machine with the runtimes installed. Use `-Help` / `--help` to list build-script options. For Linux services, see `deploy/janet.service`; building does not install or enable a service.
+
+To check changes to the build scripts themselves, run `node --test tools/test-build-scripts.mjs`. It uses isolated mock tools to verify command ordering, path quoting, architecture selection and failure propagation; each shell is checked when available on the test machine. A failed test command stops the build script and prevents publishing.
+
 ## Console
 
 <img width="995" height="525" alt="image" src="https://github.com/user-attachments/assets/5af842e6-0677-4aa5-b6f4-a34857c85b9a" />
@@ -90,8 +130,7 @@ Submit bugs or feature requests [here](https://github.com/jambelnet/janet-framew
 ## Running it on Linux, macOS and Raspberry Pi
 
 The easy way is a build that carries its own runtime, so nothing has to be installed. Take `janet-<version>-<system>.tar.gz` from the
-[releases](https://github.com/jambelnet/janet-framework/releases), or make it yourself on any computer with the .NET SDK (`python tools/publish.py linux-arm64`, the files
-end up in `artifacts/`). Which system is yours? `uname -m` says `x86_64` (linux-x64), `aarch64` (linux-arm64, a Raspberry Pi with the 64-bit system) or `armv7l` (linux-arm, the 32-bit system).
+[releases](https://github.com/jambelnet/janet-framework/releases), or publish a folder yourself with the .NET SDK (`bash ./build.sh --publish --runtime linux-arm64`; on Windows, `.\build.ps1 -Publish -Runtime linux-arm64`). The files end up in `artifacts/publish/linux-arm64/`; copy the whole folder to your device. No Python is required. Which system is yours? `uname -m` says `x86_64` (linux-x64), `aarch64` (linux-arm64, a Raspberry Pi with the 64-bit system) or `armv7l` (linux-arm, the 32-bit system).
 
 ```
 tar xzf janet-1.0.0-linux-arm64.tar.gz
