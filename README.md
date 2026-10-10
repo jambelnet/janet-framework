@@ -203,7 +203,15 @@ create a free key at <https://openweathermap.org/api> and save it with `judo wea
 `.weathersettings` and put into the request when it is made; the URL in `AppConfig.xml` keeps `APPID=YOUR_OPENWEATHERMAP_API_KEY`. A key that an
 older version left in the URL is moved there when jaNET starts. OpenWeatherMap requires that key; Open-Meteo does not.
 
+## Web terminal
+
+The Terminal page keeps a scrolling transcript with a bottom command prompt. Enter runs a command; Up/Down recall this tab's command history and restore the unfinished draft. Ctrl+L or Clear terminal clears the transcript without deleting command history. The transcript and history are limited to 100 entries and are not saved between reloads. This is the jaNET command interface, not an operating-system shell.
+
+Successful submissions clear the Terminal or Ask Jubito field. Failed requests keep the submitted text for retry, and text edited while a request runs is preserved. Generic acknowledgments include the command that ran. Command help remains searchable in the terminal transcript.
+
 ## Local speech
+
+HTTPS is required for browser **microphone capture**, not for speech synthesis. Browsers restrict microphone access to secure contexts to protect recordings and permissions from network tampering. `http://localhost` is an exception because it stays on the same device; on a phone, localhost means the phone, not your jaNET PC. A LAN IP over HTTP is not a secure context, even on a Windows Private network or over Tailscale. Use HTTPS with a certificate trusted by each device for remote recording. Browser/server voice playback can work over HTTP, subject to microphone-independent playback permissions, mute settings and installed voices. See [microphone security requirements](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
 
 Open Home > Ask Jubito > Voice settings (the gear), or Settings > Voice > Setup.
 

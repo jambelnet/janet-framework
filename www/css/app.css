@@ -409,9 +409,26 @@ main {
 
 /* ---------- terminal ---------- */
 
-.terminal-logo { display: block; margin: 0 auto; max-height: 96px; width: auto; }
-
-.cmdline { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; }
+.terminal-shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: max(320px, calc(100dvh - 156px)); min-width: 0; overflow: hidden; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+@media (min-width: 1000px) { .terminal-shell { height: max(320px, calc(100dvh - 128px)); } }
+.terminal-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); font: .85rem var(--mono); }
+.terminal-header > span { display: flex; align-items: center; gap: 10px; }
+.terminal-transcript { min-height: 0; overflow: auto; padding: 20px; scrollbar-gutter: stable; font: .95rem/1.65 var(--mono); }
+.terminal-entry + .terminal-entry { margin-top: 24px; }
+.terminal-command { display: flex; gap: 12px; color: var(--ok); white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal-command span { flex: 1; min-width: 0; }
+.terminal-answer { margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.terminal-entry[data-state="busy"] .terminal-answer { color: var(--muted); }
+.terminal-entry[data-state="error"] .terminal-answer { color: var(--danger); }
+.terminal-shell .cmdline { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--border); }
+.terminal-prompt { margin: 0; font: .95rem var(--mono); color: var(--ok); white-space: nowrap; }
+.terminal-shell .cmdline input { min-width: 0; min-height: 0; height: 30px; padding: 4px 0; border: 0; border-radius: 0; background: transparent; font: .95rem/22px var(--mono); }
+.terminal-shell .cmdline input:focus-visible { outline-width: 2px; outline-offset: 1px; }
+.terminal-shell .terminal-answer.help-output { padding: 0; background: transparent; }
+@media (max-width: 559px) {
+    .terminal-transcript { padding: 14px; }
+    .terminal-shell .cmdline { gap: 8px; padding: 8px 12px; }
+}
 
 .output {
     margin: 0;

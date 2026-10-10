@@ -120,9 +120,15 @@ function renderHelp(target, data) {
     filter();
 }
 
+export function commandResponse(text, command = '') {
+    if (String(text ?? '').trim() && !/^operation completed[.!]?$/i.test(String(text).trim())) return text;
+    const name = command.replace(/^\{mute\}/i, '').replace(/<lock>[\s\S]*?<\/lock>/gi, '[redacted]').trim();
+    return name ? 'Operation completed: ' + name : 'Operation completed.';
+}
+
 export function responseAppearance(text, state) {
     const message = String(text ?? '').trim();
-    const detected = /^(operation completed|elements? (added|removed)|settings saved)[.!]?$/i.test(message) ? 'success' :
+    const detected = /^(operation completed([.!]?|: [\s\S]+)|elements? (added|removed)[.!]?|settings saved[.!]?)$/i.test(message) ? 'success' :
         /^(error\b|exception\b|invalid\b|failed\b|no matching command found|jaNET could not)/i.test(message) ? 'error' : 'neutral';
     const states = {
         success: { title: 'Completed', icon: 'i-completed' },
@@ -147,6 +153,7 @@ function renderMessage(target, text, state) {
 export function renderResponse(target, text, command = '', { state } = {}) {
     let decoded = command;
     try { decoded = decodeURIComponent(command); } catch { /* keep non-encoded commands intact */ }
+    if (command) text = commandResponse(text, decoded);
     const help = /^\s*judo\s+(help|\?)(\s|$)/i.test(decoded) ? parseHelp(text) : null;
     target.replaceChildren();
     target.classList.toggle('help-output', Boolean(help));

@@ -6,7 +6,7 @@ import test from 'node:test';
 
 // The browser uses ES modules, without requiring a Node package configuration.
 const source = await readFile(new URL('../www/js/help.js', import.meta.url), 'utf8');
-const { parseHelp, responseAppearance } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+const { parseHelp, responseAppearance, commandResponse } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const header = '1. Instruction Sets & Events\n     1.1 Add New Instruction Set\n';
 
 test('groups aliases without losing distinct signatures or literal lock tags', () => {
@@ -59,4 +59,14 @@ test('acknowledgments, ordinary answers and explicit states stay distinct', () =
     assert.equal(responseAppearance('Running your command...', 'busy').state, 'busy');
     assert.equal(responseAppearance('Which command did you mean?', 'choice').state, 'choice');
     assert.equal(responseAppearance('Success is not implied by unknown output.', 'invalid-state').state, 'neutral');
+});
+
+test('generic completion identifies the command without changing ordinary output', () => {
+    for (const output of ['', '  ', 'Operation completed.', 'operation completed']) {
+        assert.equal(commandResponse(output, 'whoami'), 'Operation completed: whoami');
+    }
+    assert.equal(commandResponse('jambel', 'whoami'), 'jambel');
+    assert.equal(commandResponse('Failed: unavailable', 'whoami'), 'Failed: unavailable');
+    assert.equal(commandResponse('', '{mute}judo smtp setup <lock>secret</lock>'), 'Operation completed: judo smtp setup [redacted]');
+    assert.equal(responseAppearance(commandResponse('', 'whoami')).state, 'success');
 });

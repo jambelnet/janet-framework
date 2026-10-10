@@ -4,7 +4,8 @@
 
 import { runText, runRawText, runJson, loadInstructionSets, onConnection } from './api.js';
 import { createGauge } from './gauge.js';
-import { renderResponse } from './help.js';
+import { renderResponse, commandResponse, responseAppearance } from './help.js';
+import { wireTerminal } from './terminal.js';
 import { wireVoice } from './voice.js';
 import { resolveIntent } from './intents.js';
 import { httpPageUrl } from './transport.js';
@@ -24,8 +25,8 @@ let currentSettingsSection = 'settings-group';
 let gauges = {};
 let instructionSets = [];     // from /api/instructions
 let selectedCategory = null;
-const cmdHistory = [];        // terminal command history
-let historyIndex = 0;
+let terminal;
+let assistantBusy = false;
 let voice;
 const activity = [];
 let lastGmailCount = null;
@@ -450,24 +451,30 @@ function renderHomeOptions() {
 // Runs a command; the answer goes to the terminal on its page and to a dialog everywhere else.
 async function runCommand(cmd) {
     if (!cmd) return;
+    let command = cmd;
+    try { command = decodeURIComponent(cmd); } catch { }
+    if (currentView === 'page2') {
+        return terminal.execute(command, () => runText(cmd));
+    }
     const data = await send(cmd);
     if (data === null) return;
     await voice.refreshMute();
     if (cmd === '%checkin%' || cmd === encodeURIComponent('%checkin%')) addActivity('Checked in');
     else if (cmd === '%checkout%' || cmd === encodeURIComponent('%checkout%')) addActivity('Checked out');
 
-    if (currentView === 'page2') {
-        renderResponse(byId('response-p2'), data !== '' ? data : 'Operation completed.', cmd);
-    } else if (data !== '') {
+    if (data !== '') {
         showResult(data, 'Response', cmd);
     } else if (currentView !== 'page0') {
-        showResult('Operation completed.');
+        showResult(commandResponse(data, command), 'Response', cmd);
+    } else {
+        toast(commandResponse(data, command));
     }
     if (currentView === 'page0') refreshHome();
 }
 
 async function askJubito(event) {
     event.preventDefault();
+    if (assistantBusy) return;
     const input = val('askInput').trim();
     if (!input) return;
     const match = resolveIntent(input, instructionSets);
@@ -489,18 +496,25 @@ async function askJubito(event) {
 }
 
 async function executeAssistant(command) {
+    if (assistantBusy) return;
+    assistantBusy = true;
+    const submitted = val('askInput');
     const response = byId('askResponse'); response.hidden = false;
     voice.clearResponse();
     const button = byId('askForm').querySelector('[type="submit"]'); button.disabled = true;
     renderResponse(response, 'Running your command...', '', { state: 'busy' });
     try {
         const text = await runRawText('{mute}' + command);
-        renderResponse(response, text || 'Operation completed.', command);
-        addActivity('Assistant command completed');
-        await voice.response(text || 'Operation completed.');
+        const output = commandResponse(text, command);
+        renderResponse(response, output, command);
+        if (responseAppearance(output).state !== 'error') {
+            if (val('askInput') === submitted) setVal('askInput', '');
+            addActivity('Completed: ' + command);
+        }
+        await voice.response(output);
         if (command.includes('checkin') || command.includes('checkout')) refreshHome();
     } catch (error) { const message = 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
-    finally { button.disabled = false; }
+    finally { button.disabled = false; assistantBusy = false; }
 }
 
 function weatherFields() {
@@ -532,29 +546,7 @@ async function loadWeatherSettings() {
 }
 
 function clearPage() {
-    setVal('textinput1', '');
-    renderResponse(byId('response-p2'), '');
-    byId('textinput1').focus();
-}
-
-function submitTerminal() {
-    const text = val('textinput1');
-    if (text.trim() !== '') {
-        if (cmdHistory[cmdHistory.length - 1] !== text) cmdHistory.push(text);
-        historyIndex = cmdHistory.length;
-    }
-    runCommand(encodeURIComponent(text));
-}
-
-function terminalKeys(event) {
-    if (event.key === 'ArrowUp' && historyIndex > 0) {
-        setVal('textinput1', cmdHistory[--historyIndex]);
-        event.preventDefault();
-    } else if (event.key === 'ArrowDown' && historyIndex < cmdHistory.length) {
-        historyIndex++;
-        setVal('textinput1', cmdHistory[historyIndex] ?? '');
-        event.preventDefault();
-    }
+    terminal.clear();
 }
 
 /* ------------------------------------------------------------------ settings forms */
@@ -976,9 +968,6 @@ function wire() {
         closeDialog(form);
     });
 
-    byId('cmdform').addEventListener('submit', event => { event.preventDefault(); submitTerminal(); });
-    byId('textinput1').addEventListener('keydown', terminalKeys);
-    byId('clearBtn').addEventListener('click', clearPage);
     byId('askForm').addEventListener('submit', askJubito);
     byId('clearActivity').addEventListener('click', () => { activity.length = 0; renderActivity(); });
     byId('customizeHome').addEventListener('click', async () => { await loadXml(); renderHomeOptions(); openDialog('homeSettings'); });
@@ -1032,6 +1021,7 @@ function init() {
     createGauges();
     wire();
     voice = wireVoice(text => { setVal('askInput', text); byId('askInput').focus(); addActivity('Voice command transcribed'); }, toast);
+    terminal = wireTerminal(runRawText, () => voice.refreshMute());
     addActivity('Interface connected');
     send('judo weather settings').then(endpoint => { if (endpoint) weatherCredit(endpoint); });
 
