@@ -7,6 +7,7 @@ import { createGauge } from './gauge.js';
 import { renderResponse } from './help.js';
 import { wireVoice } from './voice.js';
 import { resolveIntent } from './intents.js';
+import { httpPageUrl } from './transport.js';
 
 const byId = id => document.getElementById(id);
 const val = id => byId(id).value;
@@ -627,25 +628,44 @@ const actions = {
     },
     async httpsSettings() {
         const mode = val('httpsMode');
+        let httpUrl;
+        if (mode === 'off') {
+            const settings = await send('judo server settings');
+            if (settings === null) return false;
+            try { httpUrl = httpPageUrl(window.location.href, settings, Date.now()); }
+            catch (error) { toast(error.message); return false; }
+        }
         if (mode === 'custom' && !val('httpsCertFile').trim()) { toast('Enter the PFX certificate file.'); return false; }
         const certificate = mode === 'custom' ? ' ' + locked(val('httpsCertFile')) + ' ' + locked(val('httpsCertPassword'))
             : mode === 'default' ? ' default' : '';
         const result = await saveRaw(mode === 'off' ? 'judo server https off' : 'judo server https on ' + val('httpsPort') + certificate);
         if (result === null) return false;
         if (!result.startsWith('HTTPS: ')) { showResult(result); return false; }
+        if (mode === 'off') {
+            byId('httpsResult').textContent = result;
+            const link = byId('httpsLink'); link.href = httpUrl; link.textContent = 'Open HTTP'; link.hidden = false;
+            if (window.location.protocol === 'https:') {
+                // HTTPS is about to close; use the saved HTTP port, not the retiring listener.
+                byId('httpsResult').textContent += '\nOpening the HTTP page...';
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                window.location.replace(httpUrl);
+            }
+            return false;
+        }
         let status = result;
         if (result.includes('Applying HTTPS settings.')) {
             for (let attempt = 0; attempt < 20; attempt++) {
                 await new Promise(resolve => setTimeout(resolve, 250));
                 try {
                     status = await runText('judo server https status');
-                    if (mode === 'off' || status.includes('Certificate:')) break;
+                    if (status.includes('Certificate:')) break;
                 } catch { /* listener is restarting */ }
             }
         }
         byId('httpsResult').textContent = status;
         const link = byId('httpsLink');
-        link.hidden = mode === 'off' || !status.includes('Certificate:');
+        link.textContent = 'Open HTTPS';
+        link.hidden = !status.includes('Certificate:');
         if (!link.hidden) {
             const url = new URL(window.location.href);
             url.protocol = 'https:';

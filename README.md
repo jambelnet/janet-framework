@@ -161,6 +161,8 @@ judo server https cert default                         (back to the self-signed 
 judo server https off
 ```
 
+HTTPS is off by default. Turning it off in the web UI from an HTTPS page returns you to the configured HTTP port. HTTP-to-HTTPS redirects are temporary and are not cached. If an older build's permanent redirect was cached, open `http://localhost:8080/www/?transport=http` on the server computer (replace 8080 if you changed the HTTP port), or use your server's address from another device. The server must be running. HTTP on the LAN is not encrypted; use trusted HTTPS for remote microphone access and protect any network-accessible server with authentication.
+
 The console warns when the web login would travel in clear text over a network and when the web server has no password at all.
 Listening on a network address (`judo server set 0.0.0.0 8080 basic`) needs no administrator rights.
 
@@ -308,5 +310,5 @@ Tech blog: http://jubitoblog.blogspot.com \
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
-<img width="350" height="735" alt="image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisERFydUs5XrJ8UCUEO1y4tGRResOVsN3SWrsj9rg2J7qyv9GMm1geC3B9L29bmBn9_hjG7hCIxOcV5TbVuAA8LexL3M_IMyOxr4jrF-ZG7rge_2v6E8quuLC0F_0DaZ9WmgMdYyqQJ2QTWtNubs2JXm_Ig8HfZsDNs3qFbH6cs9v_NXG7uTRaP7El-gI/s1600/image.png" />
+<img width="345" height="730" alt="image" src="https://github.com/user-attachments/assets/ae8a0787-704e-44f7-80ce-6a8a16619b2a" />
 

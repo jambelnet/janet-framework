@@ -207,8 +207,40 @@ public class HttpsTests : IDisposable
 
         HttpResponseMessage response = await client.GetAsync($"http://{lan}:{_httpPort}/www/index.html?x=1");
 
-        Assert.Equal(HttpStatusCode.MovedPermanently, response.StatusCode);
+        Assert.Equal(HttpStatusCode.TemporaryRedirect, response.StatusCode);
+        Assert.True(response.Headers.CacheControl.NoStore);
         Assert.Equal($"https://{lan}:{_httpsPort}/www/index.html?x=1", response.Headers.Location.OriginalString);
+    }
+
+    [Fact]
+    public async Task DisablingHttpsRemovesRedirectsBeforeAndAfterRestart() {
+        AppConfigStore config = _app.NewConfig();
+        config.Update(new CommUpdate { Hostname = "0.0.0.0", HttpPort = _httpPort.ToString(), HttpsPort = _httpsPort.ToString(), Authentication = "none" });
+        using var server = new WebServer(config, new SettingsStore(_app.Paths, _app.Log), _app.Paths, () => _executor, _app.Log);
+        using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        Directory.CreateDirectory(Path.Combine(_app.Directory, "www"));
+        File.WriteAllText(Path.Combine(_app.Directory, "www", "index.html"), "<h1>HTTP recovery</h1>");
+        server.Start(); Assert.True(server.IsRunning, server.Problem?.Message);
+        config.Update(new CommUpdate { HttpsPort = CommUpdate.Clear });
+        var addresses = NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up)
+            .SelectMany(n => n.GetIPProperties().UnicastAddresses).Select(a => a.Address)
+            .Where(a => a.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a)).Take(1)
+            .Prepend(IPAddress.Loopback).ToArray();
+        foreach (bool restart in new[] { false, true }) {
+            if (restart) { server.Stop(); server.Start(); }
+            Assert.True(server.IsRunning, server.Problem?.Message);
+            foreach (var address in addresses) {
+                var response = await client.GetAsync($"http://{address}:{_httpPort}/?cmd=yes&mode=text");
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Null(response.Headers.Location);
+                Assert.Equal("answer:yes", await response.Content.ReadAsStringAsync());
+                var page = await client.GetAsync($"http://{address}:{_httpPort}/www/?transport=http&v=123");
+                Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+                Assert.Null(page.Headers.Location);
+                Assert.Equal("<h1>HTTP recovery</h1>", await page.Content.ReadAsStringAsync());
+            }
+        }
+        Assert.Null(server.Certificate);
     }
 
     [Fact]

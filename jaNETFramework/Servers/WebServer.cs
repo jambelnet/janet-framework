@@ -225,8 +225,9 @@ internal sealed class WebServer : IServer, IDisposable
         string rawTarget = context.Features.Get<IHttpRequestFeature>()?.RawTarget ?? "/";
 
         // with https on, the plain port is for this computer only: everybody else is sent to the same address over https
-        if (httpsPort > 0 && !request.IsHttps && !IsThisComputer(context.Connection.RemoteIpAddress)) {
-            response.StatusCode = StatusCodes.Status301MovedPermanently;
+        if (httpsPort > 0 && _config.Comm.HttpsPort.Length > 0 && !request.IsHttps && !IsThisComputer(context.Connection.RemoteIpAddress)) {
+            response.StatusCode = StatusCodes.Status307TemporaryRedirect;
+            response.Headers.CacheControl = "no-store";
             response.Headers.Location = $"https://{request.Host.Host}:{httpsPort}{rawTarget}";
             response.ContentLength = 0;
             return;
@@ -280,6 +281,8 @@ internal sealed class WebServer : IServer, IDisposable
                 body = Encoding.UTF8.GetBytes(ExecuteCommand(response, command, format));
             }
             else {
+                mapPath = _paths.MapRequest(UriCodec.Decode(path.Substring(1)));
+                if (mapPath.EndsWith("/", StringComparison.Ordinal)) mapPath += "index.html";
                 EnsureServable(mapPath);
                 body = await File.ReadAllBytesAsync(mapPath).ConfigureAwait(false);
                 response.ContentType = MimeTypes.ForFile(mapPath);
