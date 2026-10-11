@@ -425,5 +425,4 @@ Tech blog: http://jubitoblog.blogspot.com \
 FAQ: http://jubito.org/faq.html
 
 ## Jubito Screenshot
-<img width="345" height="730" alt="image" src="https://github.com/user-attachments/assets/ae8a0787-704e-44f7-80ce-6a8a16619b2a" />
-
+<img alt="image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisERFydUs5XrJ8UCUEO1y4tGRResOVsN3SWrsj9rg2J7qyv9GMm1geC3B9L29bmBn9_hjG7hCIxOcV5TbVuAA8LexL3M_IMyOxr4jrF-ZG7rge_2v6E8quuLC0F_0DaZ9WmgMdYyqQJ2QTWtNubs2JXm_Ig8HfZsDNs3qFbH6cs9v_NXG7uTRaP7El-gI/s1600/image.png" />
