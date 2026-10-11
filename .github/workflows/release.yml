@@ -35,7 +35,7 @@ jobs:
       - name: Build and test
         run: |
           dotnet build jaNETFramework.sln -c Release
-          dotnet test jaNETFramework.sln -c Release --no-build
+          dotnet test jaNETFramework.sln -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
 
       - uses: actions/setup-node@v4
         with:
@@ -44,9 +44,16 @@ jobs:
       - name: Browser and build script tests
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Path TestResults -Force | Out-Null
           $tests = @(Get-ChildItem jaNETFramework.Tests/Web*Tests.mjs | Sort-Object Name | ForEach-Object { $_.FullName })
-          node --test @tests tools/test-build-scripts.mjs tools/test-publish-scripts.mjs
+          node --test --test-concurrency=1 @tests tools/test-build-scripts.mjs tools/test-publish-scripts.mjs 2>&1 | Tee-Object -FilePath TestResults/browser-tests.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-test-results
+          path: TestResults
 
       - name: Pack
         run: dotnet pack jaNETFramework.sln -c Release --no-build -o packages

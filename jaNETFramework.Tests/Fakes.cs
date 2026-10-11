@@ -56,7 +56,15 @@ internal sealed class MemorySettingsStore : ISettingsStore
 /// <summary>A clock that shows the time it is told to.</summary>
 internal sealed class FakeClock : IClock
 {
-    public DateTime Now { get; set; } = new DateTime(2026, 10, 1, 8, 30, 0);
+    readonly object _gate = new();
+    DateTime _now = new DateTime(2026, 10, 1, 8, 30, 0);
+    int _reads;
+
+    public int Reads { get { lock (_gate) return _reads; } }
+    public DateTime Now {
+        get { lock (_gate) { _reads++; return _now; } }
+        set { lock (_gate) _now = value; }
+    }
 }
 
 /// <summary>Remembers what it was asked to say instead of speaking.</summary>

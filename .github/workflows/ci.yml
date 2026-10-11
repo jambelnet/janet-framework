@@ -37,8 +37,9 @@ jobs:
       - name: Browser and build script tests
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Path TestResults -Force | Out-Null
           $tests = @(Get-ChildItem jaNETFramework.Tests/Web*Tests.mjs | Sort-Object Name | ForEach-Object { $_.FullName })
-          node --test @tests tools/test-build-scripts.mjs tools/test-publish-scripts.mjs
+          node --test --test-concurrency=1 @tests tools/test-build-scripts.mjs tools/test-publish-scripts.mjs 2>&1 | Tee-Object -FilePath TestResults/browser-tests.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - uses: actions/upload-artifact@v4
@@ -60,7 +61,13 @@ jobs:
 
       - name: Replay
         shell: powershell
-        run: ./tools/compare.ps1
+        run: ./tools/compare.ps1 -Configuration Release -Out TestResults/replay.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: behavior-replay
+          path: TestResults
 
   package:
     name: NuGet packages

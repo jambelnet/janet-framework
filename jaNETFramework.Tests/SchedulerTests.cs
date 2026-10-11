@@ -110,7 +110,8 @@ public class SchedulerServiceTests : IDisposable
         Assert.Equal(new[] { "known" }, _executor.Calls);          // many rounds, one run
 
         _clock.Now = _clock.Now.AddMinutes(1);                     // the minute is over ...
-        Thread.Sleep(100);
+        int reads = _clock.Reads;
+        Assert.True(SpinWait.SpinUntil(() => _clock.Reads > reads, 2000), "The scheduler must observe the non-matching minute.");
         _clock.Now = _clock.Now.AddMinutes(-1);                    // ... and comes around again
         Assert.True(SpinWait.SpinUntil(() => _executor.Calls.Count == 2, 2000));
     }

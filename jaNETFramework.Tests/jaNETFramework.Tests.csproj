@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Service tests own background workers and finite deadlines; keep unrelated collections from competing. -->
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="..\tools\ReleasePackager\ReleaseArchive.cs" Link="ReleaseArchive.cs" />
     <ProjectReference Include="..\tools\ProcessProbe\ProcessProbe.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\jaNETFramework\jaNETFramework.csproj" />

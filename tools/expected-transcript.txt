@@ -46,9 +46,9 @@
  + judo pop3 set [Host] [Username] [Password] [Port] [Ssl]
  + judo pop3 settings
  2.3 Gmail Settings
- + judo gmail add [Username] [Password]
- + judo gmail setup [Username] [Password]
- + judo gmail set [Username] [Password]
+ + judo gmail add [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
+ + judo gmail setup [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
+ + judo gmail set [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
  + judo gmail settings
  2.4 Mail Header Settings
  + judo mailheaders set `[From]` `[To]` `[Subject]`
@@ -270,6 +270,11 @@
  11.3 API Key (kept encrypted)
  + judo weather key [Key]
  + judo weather key
+ 11.4 Open-Meteo (no API key)
+ + judo weather openmeteo [Latitude] [Longitude] <lock>[Location]</lock>
+ 11.5 Location Label
+ + judo weather location <lock>[Location]</lock>
+ + judo weather location
 12. Ping
  12.1 Default Timeout [ 1000ms ]
  + judo ping [Host]
@@ -362,9 +367,9 @@
  + judo pop3 set [Host] [Username] [Password] [Port] [Ssl]
  + judo pop3 settings
  2.3 Gmail Settings
- + judo gmail add [Username] [Password]
- + judo gmail setup [Username] [Password]
- + judo gmail set [Username] [Password]
+ + judo gmail add [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
+ + judo gmail setup [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
+ + judo gmail set [Username] [Password] [FeedUrl] [SmtpHost] [SmtpPort] [SmtpSsl] [Pop3Host] [Pop3Port] [Pop3Ssl] [ImapHost] [ImapPort] [ImapSsl]
  + judo gmail settings
  2.4 Mail Header Settings
  + judo mailheaders set `[From]` `[To]` `[Subject]`
@@ -586,6 +591,11 @@
  11.3 API Key (kept encrypted)
  + judo weather key [Key]
  + judo weather key
+ 11.4 Open-Meteo (no API key)
+ + judo weather openmeteo [Latitude] [Longitude] <lock>[Location]</lock>
+ 11.5 Location Label
+ + judo weather location <lock>[Location]</lock>
+ + judo weather location
 12. Ping
  12.1 Default Timeout [ 1000ms ]
  + judo ping [Host]
@@ -1209,6 +1219,16 @@ Settings saved.
 === CMD judo gmail settings
 me@example.org
 secret3
+https://mail.google.com/mail/feed/atom
+smtp.gmail.com
+587
+True
+pop.gmail.com
+995
+True
+imap.gmail.com
+993
+True
 
 <USER>@jaNET>
 === CMD judo mailheaders set `a@x.org` `b@y.org` `Subj ect`
@@ -1678,6 +1698,6 @@ Web server state: True
 === FILE .pop3settings
 <5 encrypted lines, v2 format>
 === FILE .gmailsettings
-<2 encrypted lines, v2 format>
+<12 encrypted lines, v2 format>
 === FILE .janet.key
 <key of 32 bytes>

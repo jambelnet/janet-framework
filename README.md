@@ -156,7 +156,7 @@ Use a `.tar.gz`, not a zip: a zip made on Windows has lost the "executable" flag
   To only run a published build you need the **.NET runtime and the ASP.NET Core runtime** (the web server is Kestrel); the SDK has both.
 * Optional: Visual Studio 2022+, VS Code or Rider
 
-Run the tests with `dotnet test jaNETFramework.sln` (489 tests) and check the behavior against the original program with `tools\compare.ps1`.
+Run the .NET regression tests with `dotnet test jaNETFramework.sln` and check the behavior against the original program with `tools\compare.ps1`. The replay uses an isolated data folder and private HTTP/TCP ports. After building, `powershell -NoProfile -ExecutionPolicy Bypass -File tools\compare.ps1 -Configuration Release -NoBuild -Out TestResults\replay.txt` reuses that build and preserves the transcript. Deliberate behavior changes are reviewed in `tools\approved-differences.md`; do not overwrite the expected transcript with unreviewed output.
 
 ## Automatic Email Alerts
 
@@ -479,6 +479,8 @@ git push origin v1.0.0
 The *Release* workflow checks that the tag is the version of the code, builds, tests, packs, and publishes a GitHub release with the notes from the changelog,
 the packages and the source archive (a version with a dash, such as `1.0.0-rc.1`, is a pre-release). Add the repository secret `NUGET_API_KEY` to have the
 packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS, including browser JavaScript and build/publish script tests, and replays the original program's behavior. It runs on pull requests and pushes to `master`, `main`, `next`, `modern` and `modernize-*` branches. Release tags run the .NET and JavaScript tests before publishing.
+
+Failed runs retain downloadable diagnostics under **Actions > run > Artifacts**: `test-results-<os>` contains the .NET `.trx` results and, when that step runs, `browser-tests.log`; `behavior-replay` contains the replay transcript. Release runs retain `release-test-results`. Open the failed job's red step for the immediate error. Browser/script test files run sequentially in CI to avoid starting many shell subprocesses at once. The .NET integration test collections also run sequentially so independent tests do not starve background workers; individual tests still exercise concurrent connections, queues and shutdown. Every test still runs.
 
 ### Release archives without Python
 

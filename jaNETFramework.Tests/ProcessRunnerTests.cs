@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace jaNETFramework.Tests;
@@ -50,13 +51,13 @@ public sealed class ProcessRunnerTests
             Assert.Contains("timed out after 4 seconds", result);
             Assert.True(clock.Elapsed < TimeSpan.FromSeconds(12), result);
             Assert.True(File.Exists(child), "The child process must actually start for this test.");
-            if (mode != "pipe") Assert.False(IsRunning(int.Parse(File.ReadAllText(child))));
-            if (File.Exists(parent)) Assert.False(IsRunning(int.Parse(File.ReadAllText(parent))));
+            if (mode != "pipe") Assert.True(SpinWait.SpinUntil(() => !IsRunning(int.Parse(File.ReadAllText(child))), 2000), "The child must terminate after the process tree is killed.");
+            if (File.Exists(parent)) Assert.True(SpinWait.SpinUntil(() => !IsRunning(int.Parse(File.ReadAllText(parent))), 2000), "The parent must terminate after the deadline.");
         }
         finally {
             // Only PIDs written by this invocation's test helper are eligible for cleanup.
             foreach (string file in new[] { child, parent }) if (File.Exists(file)) {
-                try { using Process process = Process.GetProcessById(int.Parse(File.ReadAllText(file))); if (!process.HasExited) { process.Kill(entireProcessTree: true); process.WaitForExit(2000); } }
+                try { int pid = int.Parse(File.ReadAllText(file)); if (IsRunning(pid)) { using Process process = Process.GetProcessById(pid); process.Kill(entireProcessTree: true); process.WaitForExit(2000); } }
                 catch (ArgumentException) { }
             }
             Directory.Delete(folder, recursive: true);
@@ -64,9 +65,28 @@ public sealed class ProcessRunnerTests
     }
 
     static bool IsRunning(int pid) {
-        try { using Process process = Process.GetProcessById(pid); return !process.HasExited; }
+        try {
+            // An orphan can remain in Linux's process table as a zombie after it has been killed.
+            if (OperatingSystem.IsLinux() && LinuxStateHasExited(File.ReadLines($"/proc/{pid}/status").First(line => line.StartsWith("State:", StringComparison.Ordinal))))
+                return false;
+            using Process process = Process.GetProcessById(pid);
+            return !process.HasExited;
+        }
         catch (ArgumentException) { return false; }
+        catch (FileNotFoundException) { return false; }
+        catch (DirectoryNotFoundException) { return false; }
     }
+
+    static bool LinuxStateHasExited(string line) => line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1) is "Z" or "X";
+
+    [Theory]
+    [InlineData("State:\tZ (zombie)", true)]
+    [InlineData("State:\tX (dead)", true)]
+    [InlineData("State:\tR (running)", false)]
+    [InlineData("State:\tS (sleeping)", false)]
+    [InlineData("State:\tT (stopped)", false)]
+    public void LinuxProcessStateDistinguishesTerminatedChildrenFromLiveOnes(string line, bool exited) =>
+        Assert.Equal(exited, LinuxStateHasExited(line));
 
     [Fact]
     public void LaunchModeIsVisibleDetachedAndNeverCapturesStreams() {
