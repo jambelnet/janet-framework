@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace jaNET.Scripting;
@@ -46,6 +47,8 @@ internal sealed class InstructionRunner : IInstructionExecutor
     readonly Action<string>? _publishSpeech;
     readonly object _speechGate = new();
     Task _speechTail = Task.CompletedTask;
+    readonly AsyncLocal<int> _callDepth = new();
+    readonly AsyncLocal<bool> _suppressNotifications = new();
 
     public InstructionRunner(AppConfigStore config, InstructionResolver resolver, Func<Commands.JudoDispatcher> judo, ISpeaker speaker, MailNotifier notifier, ILog log, Action<string>? publishSpeech = null) {
         _config = config;
@@ -58,11 +61,16 @@ internal sealed class InstructionRunner : IInstructionExecutor
     }
 
     public string Run(string input, ResponseFormat format = ResponseFormat.Text, bool silent = false) {
+        if (_callDepth.Value >= 32) return "Error: instruction call depth exceeded (a cycle?).";
+        _callDepth.Value++;
+        bool previousSuppression = _suppressNotifications.Value;
         try {
             if (input.Contains("{mute}") || input.Contains("{widget}")) {
                 input = input.Replace("{mute}", string.Empty).Replace("{widget}", string.Empty);
                 silent = true;
             }
+            // Nested events keep their speech behavior, but inherit notification suppression.
+            _suppressNotifications.Value = previousSuppression || silent;
 
             // a locked action is handed over as it is: no splitting at ; and &
             if (input.Contains("</lock>")) {
@@ -96,6 +104,10 @@ internal sealed class InstructionRunner : IInstructionExecutor
                 _log.Write($"obj [ Parser.Parse <Exception> ] Argument: [ {input} ] Exception Message: [ {e.Message} ]");
             return e.Message;
         }
+        finally {
+            _suppressNotifications.Value = previousSuppression;
+            _callDepth.Value--;
+        }
     }
 
     static string Texts(Dictionary<string, KeyValuePair<string, string>> results) =>
@@ -119,7 +131,7 @@ internal sealed class InstructionRunner : IInstructionExecutor
                 output += _resolver.Resolve(actions[position], position) + "\r\n";
         }
 
-        if (!silent)
+        if (!_suppressNotifications.Value)
             _notifier.Notify(output);
 
         if (!string.IsNullOrWhiteSpace(output) && !_speaker.Muted && !silent) {

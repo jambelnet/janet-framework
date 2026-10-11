@@ -66,6 +66,7 @@ internal sealed class WebServer : IServer, IDisposable
     readonly SpeechService _speech;
     readonly bool _ownsSpeech;
     readonly Func<bool> _isMuted;
+    readonly Func<IReadOnlyList<string>> _functionNames;
     readonly object _gate = new();
     readonly AsyncLocal<HttpResponse?> _commandResponse = new();
 
@@ -74,7 +75,8 @@ internal sealed class WebServer : IServer, IDisposable
     volatile ServerCertificate? _certificate;
 
     public WebServer(AppConfigStore config, ISettingsStore settings, AppPaths paths, Func<IInstructionExecutor> executor, ILog log,
-                     CertificateProvider? certificates = null, SpeechService? speech = null, Func<bool>? isMuted = null) {
+                     CertificateProvider? certificates = null, SpeechService? speech = null, Func<bool>? isMuted = null,
+                     Func<IReadOnlyList<string>>? functionNames = null) {
         _config = config;
         _settings = settings;
         _paths = paths;
@@ -84,6 +86,7 @@ internal sealed class WebServer : IServer, IDisposable
         _speech = speech ?? new SpeechService(settings, paths);
         _ownsSpeech = speech == null;
         _isMuted = isMuted ?? (() => false);
+        _functionNames = functionNames ?? (() => Array.Empty<string>());
     }
 
     public bool IsRunning => _app != null;
@@ -263,6 +266,9 @@ internal sealed class WebServer : IServer, IDisposable
                 response.Headers.CacheControl = "no-store";
                 body = Encoding.UTF8.GetBytes(InstructionsJson());
             }
+            else if (path == "/api/studio") {
+                body = await StudioResponse(context).ConfigureAwait(false);
+            }
             else if (path == "/api/command" && HttpMethods.IsPost(request.Method)) {
                 using JsonDocument document = await JsonDocument.ParseAsync(request.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
                 string command = document.RootElement.GetProperty("command").GetString() ?? string.Empty;
@@ -329,6 +335,44 @@ internal sealed class WebServer : IServer, IDisposable
 
     static bool IsThisComputer(IPAddress? address) =>
         address == null || IPAddress.IsLoopback(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address);
+
+    async Task<byte[]> StudioResponse(HttpContext context) {
+        HttpRequest request = context.Request;
+        HttpResponse response = context.Response;
+        response.Headers.CacheControl = "no-store";
+        response.ContentType = "application/json; charset=utf-8";
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        byte[] Json(object value) => JsonSerializer.SerializeToUtf8Bytes(value, options);
+        string origin = request.Headers.Origin.ToString();
+        if ((origin.Length > 0 && origin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
+            response.StatusCode = 403; return Json(new { error = "Studio requests must come from this jaNET page." });
+        }
+        try {
+            if (HttpMethods.IsGet(request.Method)) return Json(_config.Studio(_functionNames()));
+            if (!HttpMethods.IsPost(request.Method)) {
+                response.StatusCode = 405; return Json(new { error = "Use GET or POST for Instruction Studio." });
+            }
+            if (!(request.ContentType ?? "").StartsWith("application/json", StringComparison.OrdinalIgnoreCase)) {
+                response.StatusCode = 415; return Json(new { error = "Send an application/json body." });
+            }
+            StudioSave save = await JsonSerializer.DeserializeAsync<StudioSave>(request.Body, options, context.RequestAborted).ConfigureAwait(false)
+                ?? throw new ArgumentException("Enter an instruction.");
+            string result = _config.SaveStudio(save);
+            if (result != "Instruction saved.") {
+                response.StatusCode = result.StartsWith("Studio conflict:", StringComparison.Ordinal) ? 409 : 400;
+                return Json(new { error = result });
+            }
+            return Json(new { message = result, snapshot = _config.Studio(_functionNames()) });
+        }
+        catch (Exception e) when (e is ArgumentException || e is JsonException || e is Microsoft.AspNetCore.Http.BadHttpRequestException) {
+            response.StatusCode = 400; return Json(new { error = e.Message });
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception e) {
+            _log.Write("Studio: " + e.Message);
+            response.StatusCode = 503; return Json(new { error = "The configuration could not be read or saved." });
+        }
+    }
 
     async Task<byte[]> SpeechResponse(HttpContext context, string path) {
         HttpRequest request = context.Request;

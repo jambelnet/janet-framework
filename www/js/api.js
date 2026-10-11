@@ -17,42 +17,49 @@ export function onConnection(fn) {
     return () => listeners.delete(fn);
 }
 
-async function request(cmd, mode) {
+// Longer than the maximum single capture deadline; multi-action instructions may still be running after a request timeout.
+const REQUEST_TIMEOUT_MS = 315000;
+
+async function request(url, options, mode, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    let timer;
     try {
-        const res = await fetch('?cmd=' + cmd + '&mode=' + mode, { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const expired = new Promise((_, reject) => {
+            timer = setTimeout(() => {
+                const error = new Error('Request timed out. The command may still be running on jaNET; check before retrying.');
+                error.code = 'JANET_REQUEST_TIMEOUT'; reject(error); controller.abort();
+            }, timeoutMs);
+        });
+        const response = (async () => {
+            const res = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return mode === 'json' ? res.json() : res.text();
+        })();
+        const body = await Promise.race([response, expired]);
         setOnline(true);
-        return res;
+        return body;
     } catch (e) {
         setOnline(false);
         throw e;
     }
+    finally { clearTimeout(timer); }
 }
 
 /** Sends settings without the legacy URL decoder changing passwords or file paths. */
-export async function runRawText(command) {
-    try {
-        const res = await fetch('../api/command', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command }), cache: 'no-store'
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        setOnline(true);
-        return await res.text();
-    } catch (error) {
-        setOnline(false);
-        throw error;
-    }
+export async function runRawText(command, { timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
+    return request('../api/command', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command })
+    }, 'text', timeoutMs);
 }
 
 /** Runs a command and returns its output as plain text. */
-export async function runText(cmd) {
-    return (await request(cmd, 'text')).text();
+export async function runText(cmd, { timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
+    return request('?cmd=' + cmd + '&mode=text', {}, 'text', timeoutMs);
 }
 
 /** Runs a command and returns {name: {Key, Value}} as produced by mode=json. */
 export async function runJson(cmd) {
-    return (await request(cmd, 'json')).json();
+    return request('?cmd=' + cmd + '&mode=json', {}, 'json');
 }
 
 /**
@@ -60,7 +67,5 @@ export async function runJson(cmd) {
  * (AppConfig.xml itself is not served; this endpoint tells what the UI needs and not more.)
  */
 export async function loadInstructionSets() {
-    const res = await fetch('../api/instructions', { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
+    return request('../api/instructions', {}, 'json');
 }

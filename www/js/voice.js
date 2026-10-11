@@ -53,7 +53,7 @@ export function wireVoice(onTranscript, notify) {
     function playbackControl(active) {
         playbackActive = active;
         const button = byId('speakBtn');
-        button.hidden = !active && !responseText;
+        button.hidden = byId('askResponse').hidden || !responseText.trim();
         button.disabled = muted;
         button.title = muted ? 'Speech muted. Run unmute to enable it.' : active ? 'Stop reading' : 'Read response aloud';
         button.setAttribute('aria-label', button.title);
@@ -102,7 +102,6 @@ export function wireVoice(onTranscript, notify) {
         if (!pendingEvents.length || navigator.userActivation?.hasBeenActive === false) return;
         startingEvent = true;
         const message = pendingEvents.shift();
-        responseText = message.text;
         try { await say(message.text, false, true); }
         finally { startingEvent = false; }
     }

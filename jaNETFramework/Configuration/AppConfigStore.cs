@@ -34,7 +34,7 @@ namespace jaNET.Configuration;
 /// file (so readers never see a half written or missing file) after a copy to AppConfig.xml.bak.
 /// Ids and values are compared as data, never spliced into XPath expressions.
 /// </summary>
-internal sealed class AppConfigStore
+internal sealed partial class AppConfigStore
 {
     const string Added = "Element added.";
     const string Removed = "Element removed.";

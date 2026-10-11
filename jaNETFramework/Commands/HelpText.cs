@@ -25,6 +25,16 @@ internal static class HelpText
 {
     /// <param name="topic">inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, help - anything else gives everything</param>
     public static string For(string topic) {
+            if (topic == "process") return "15. External Programs\r\n" +
+                "     15.1 Capture Output (30 seconds by default)\r\n" +
+                "         + ./[Program]\r\n" +
+                "         + ./'[Program path]' '[Arguments]'\r\n" +
+                "         + ./[capture:120]'[Program path]' '[Arguments]'\r\n" +
+                "     15.2 Launch Application (no output capture or waiting)\r\n" +
+                "         + ./[launch][Program]\r\n" +
+                "         + ./[launch]'[Program path]' '[Arguments]'\r\n" +
+                "Capture timeout: 1-300 seconds. Timed-out capture processes are terminated where possible.\r\n" +
+                "Programs run on the jaNET host, not on the browser or phone. GUI launch needs an interactive desktop.";
             const
             string _inset = "1. Instruction Sets & Events\r\n" +
                                 "     1.1 Add New Instruction Set\r\n" +
@@ -44,6 +54,7 @@ internal static class HelpText
                                 "     1.3 List Items\r\n" +
                                 "         + judo inset list\r\n" +
                                 "         + judo inset ls\r\n" +
+                                "         + judo inset run [ID]\r\n" +
                                 "     1.4 Add New Event Handler\r\n" +
                                 "         + judo event add [ID] <lock>[Action]</lock>\r\n" +
                                 "         + judo event new [ID] <lock>[Action]</lock>\r\n" +

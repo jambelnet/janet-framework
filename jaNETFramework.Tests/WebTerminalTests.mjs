@@ -52,6 +52,16 @@ test('pending submissions cannot run twice or erase an edited draft', async () =
     assert.equal(f.textinput1.value, 'next draft'); assert.equal(f['response-p2'].children.length, 1);
 });
 
+test('request timeout releases the prompt without retrying or clearing the command', async () => {
+    let calls = 0;
+    const message = 'Request timed out. The command may still be running on jaNET; check before retrying.';
+    const f = fixture(async () => { calls++; throw Object.assign(new Error(message), { code: 'JANET_REQUEST_TIMEOUT' }); });
+    f.textinput1.value = 'Notepad';
+    assert.equal(await f.terminal.execute('Notepad'), false);
+    assert.equal(calls, 1); assert.equal(f.textinput1.value, 'Notepad'); assert.equal(f.button.disabled, false);
+    assert.equal(f['response-p2'].children[0].children[1].textContent, message);
+});
+
 test('history restores an unfinished draft and survives clearing the transcript', async () => {
     const f = fixture(async () => 'done'); await f.terminal.execute('first'); await f.terminal.execute('second');
     const key = key => f.textinput1.events.keydown({ key, preventDefault() {} });

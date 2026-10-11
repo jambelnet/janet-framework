@@ -89,7 +89,8 @@ static class OutputFormatter
 
     /// <summary>Errors the parser reports in plain words.</summary>
     public static bool LooksLikeError(string output) {
-        return output.EndsWith(", not found.", StringComparison.Ordinal) ||
+        return output.StartsWith("Error:", StringComparison.Ordinal) ||
+               output.EndsWith(", not found.", StringComparison.Ordinal) ||
                output.Contains("\nReason: ", StringComparison.Ordinal) ||
                output.StartsWith("Index was out of range", StringComparison.Ordinal) ||
                output.EndsWith("Please try again.", StringComparison.Ordinal);

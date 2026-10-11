@@ -124,7 +124,7 @@ public sealed class JanetHost : IDisposable
 
         _presence = new UserPresence(_config, executor);
         var mail = new MailService(_settings, _config, internet, executor);
-        var notifier = new MailNotifier(mail, _config, _settings, _presence, internet, log);
+        var notifier = new MailNotifier(parts.NotificationMail ?? mail, _config, _settings, _presence, internet, log);
         IWeatherSource weather = parts.Weather ?? new OpenWeatherSource(_config, http, clock, _settings);
         var dynDns = new DynDnsClient(http, log);
         var time = new TimeText(clock);
@@ -136,7 +136,7 @@ public sealed class JanetHost : IDisposable
         evaluator = new ConditionEvaluator(() => resolver, executor);
         runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log, _speech.Publish);
 
-        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted);
+        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted, functionNames: () => functions.Names);
         _socket = parts.Socket ?? new TcpSocketServer(_config, executor, log);
         _serial = parts.Serial ?? new SerialPortService(_config, executor, log);
         _mqtt = parts.Mqtt ?? new MqttService(_config, _settings, executor, log);
@@ -145,7 +145,7 @@ public sealed class JanetHost : IDisposable
         judo = new JudoDispatcher(new JudoCommand[] {
             new SleepCommand(),
             new SerialCommand(_serial, _config),
-            new InstructionSetCommand(_config),
+            new InstructionSetCommand(_config, executor),
             new EventCommand(_config),
             new TrustedCommand(_config),
             new SocketCommand(_socket, _config),
@@ -350,6 +350,7 @@ internal sealed class HostParts
 {
     public IClock? Clock { get; init; }
     public ISettingsStore? Settings { get; init; }
+    public IMailSender? NotificationMail { get; init; }
     public IHttpFetcher? Http { get; init; }
     public ISpeaker? Speaker { get; init; }
     public IWeatherSource? Weather { get; init; }

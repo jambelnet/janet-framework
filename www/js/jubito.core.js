@@ -9,6 +9,9 @@ import { wireTerminal } from './terminal.js';
 import { wireVoice } from './voice.js';
 import { resolveIntent } from './intents.js';
 import { httpPageUrl } from './transport.js';
+import { launcherAction, wireLauncherEditor } from './launchers.js';
+import { parseEventIds, removalItems, wireRemovalEditor } from './elements.js';
+import { instructionChoices } from './instruction-choices.js';
 
 const byId = id => document.getElementById(id);
 const val = id => byId(id).value;
@@ -28,6 +31,7 @@ let selectedCategory = null;
 let terminal;
 let assistantBusy = false;
 let voice;
+let removal;
 const activity = [];
 let lastGmailCount = null;
 let homePins = [];
@@ -100,8 +104,8 @@ function closeDialog(el) {
 async function send(cmd) {
     try {
         return await runText(cmd);
-    } catch {
-        toast('The request failed. Is jaNET still running?');
+    } catch (error) {
+        toast(error?.code === 'JANET_REQUEST_TIMEOUT' ? error.message : 'The request failed. Is jaNET still running?');
         return null;
     }
 }
@@ -338,7 +342,7 @@ async function loadXml() {
         return;
     }
 
-    instructionSets = list.map(item => ({
+    instructionSets = instructionChoices(list).map(item => ({
         id: item.id ?? '',
         categ: item.categ,
         header: item.header,
@@ -516,7 +520,7 @@ async function executeAssistant(command) {
         const spokenByServer = !command.startsWith('%') && !command.startsWith('judo') && !command.startsWith('./');
         await voice.response(output, spokenByServer);
         if (command.includes('checkin') || command.includes('checkout')) refreshHome();
-    } catch (error) { const message = 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
+    } catch (error) { const message = error?.code === 'JANET_REQUEST_TIMEOUT' ? error.message : 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
     finally { button.disabled = false; assistantBusy = false; }
 }
 
@@ -731,7 +735,13 @@ const actions = {
 
     async saveLauncher() {
         const id = underscored(val('launcherName'));
-        await reloadAfter(sendAndShow('judo inset add ' + id + ' <lock>' + val('launcherAction') + '</lock>'));
+        let action;
+        try { action = launcherAction(val('launcherAction'), byId('launcherMode').disabled ? 'capture' : val('launcherMode'), val('launcherTimeout')); }
+        catch (error) { toast(error.message); return false; }
+        const data = await runRawText('judo inset add ' + id + ' <lock>' + action + '</lock>').catch(error => { toast(error.message); return null; });
+        if (data === null || !data.includes('Element added.')) { if (data !== null) toast(data); return false; }
+        await reloadAfter(Promise.resolve(data));
+        toast('Launcher saved.');
     },
     async saveEvent() {
         const id = underscored(val('eventName'));
@@ -775,21 +785,7 @@ const actions = {
         if (addingToHome) { saveHomePins([...new Set([...homePins, id])]); addingToHome = false; }
     },
     async removeElement() {
-        const id = underscored(val('elementNameRemove'));
-        let cmd;
-        let message;
-
-        if (byId('chkEvent').checked) {
-            cmd = 'judo inset remove ' + id + '& judo event remove ' + id;
-            message = 'Elements removed.';
-        } else {
-            cmd = 'judo inset remove ' + id;
-            message = 'Element removed.';
-        }
-        const data = await send(cmd);
-        if (data === null) return false;
-        showResult(message);
-        await loadXml();
+        return removal.remove();
     }
 };
 
@@ -924,6 +920,12 @@ function clearInsetFields() {
 /* ------------------------------------------------------------------ wiring */
 
 function wire() {
+    wireLauncherEditor();
+    removal = wireRemovalEditor(async () => {
+        const instructions = await loadInstructionSets();
+        const events = parseEventIds(await runRawText('judo event list'));
+        return removalItems(instructions, events);
+    }, runRawText, loadXml, toast);
     window.addEventListener('hashchange', route);
     byId('themeBtn').addEventListener('click', nextTheme);
 
@@ -942,6 +944,7 @@ function wire() {
         else if ('schedule' in el.dataset) scheduleAction(el.dataset.schedule);
         else if ('open' in el.dataset) {
             const id = el.dataset.open;
+            if (id === 'removeElement') { openDialog(id); await removal.load(); return; }
             if (id === 'changeSchedule') enumScheduleNames();
             if (id === 'popupGmailReader') refreshGmail();
             if (['gmailSettings', 'smtpSettings', 'pop3Settings'].includes(id)) await loadMailSettings(id);

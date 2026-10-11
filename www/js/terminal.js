@@ -34,8 +34,9 @@ export function wireTerminal(run, onComplete) {
             if (!failed && input.value === command) { input.value = ''; draft = ''; }
             onComplete?.(command);
             return !failed;
-        } catch {
-            entry.dataset.state = 'error'; answer.textContent = 'Request failed. Check that jaNET is running, then retry.';
+        } catch (error) {
+            entry.dataset.state = 'error'; answer.textContent = error?.code === 'JANET_REQUEST_TIMEOUT'
+                ? error.message : 'Request failed. Check that jaNET is running, then retry.';
             return false;
         } finally {
             busy = false; button.disabled = false; input.removeAttribute('aria-busy'); scroll();

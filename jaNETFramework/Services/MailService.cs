@@ -34,8 +34,13 @@ using System.Text.RegularExpressions;
 
 namespace jaNET.Services;
 
+internal interface IMailSender
+{
+    bool Send(string from, string to, string subject, string body);
+}
+
 /// <summary>Sends mail through SMTP, reads the POP3 mailbox for commands and counts unread Gmail messages.</summary>
-internal sealed class MailService
+internal sealed class MailService : IMailSender
 {
     readonly ISettingsStore _settings;
     readonly AppConfigStore _config;
@@ -200,22 +205,23 @@ internal sealed record GmailSnapshot(int Count, string Headers, bool Failed = fa
 /// <summary>Mails the output of an instruction to the configured address while nobody is at home.</summary>
 internal sealed class MailNotifier
 {
-    const int TimeoutMs = 10000;
+    readonly int _timeoutMs;
 
-    readonly MailService _mail;
+    readonly IMailSender _mail;
     readonly AppConfigStore _config;
     readonly ISettingsStore _settings;
     readonly UserPresence _presence;
     readonly InternetConnection _internet;
     readonly Infrastructure.ILog _log;
 
-    public MailNotifier(MailService mail, AppConfigStore config, ISettingsStore settings, UserPresence presence, InternetConnection internet, Infrastructure.ILog log) {
+    public MailNotifier(IMailSender mail, AppConfigStore config, ISettingsStore settings, UserPresence presence, InternetConnection internet, Infrastructure.ILog log, int timeoutMs = 10000) {
         _mail = mail;
         _config = config;
         _settings = settings;
         _presence = presence;
         _internet = internet;
         _log = log;
+        _timeoutMs = timeoutMs;
     }
 
     public void Notify(string output) {
@@ -224,7 +230,16 @@ internal sealed class MailNotifier
             return;
 
         MailHeaderSettings headers = _config.MailHeaders;
-        if (!Infrastructure.TimeLimit.Run(() => _mail.Send(headers.From, headers.To, headers.Subject, output), TimeoutMs))
-            _log.Write("obj [ MailNotifier ] Sending the notification mail took longer than 10 seconds and was abandoned.");
+        using var limit = new CancellationTokenSource(_timeoutMs);
+        CancellationToken token = limit.Token;
+        // Include the connection probe in the wait limit, and never start a late alert.
+        if (!Infrastructure.TimeLimit.Run(() => {
+            if (token.IsCancellationRequested || _presence.IsPresent || !_internet.IsAvailable()) return;
+            if (!token.IsCancellationRequested && !_presence.IsPresent)
+                _mail.Send(headers.From, headers.To, headers.Subject, output);
+        }, _timeoutMs)) {
+            limit.Cancel();
+            _log.Write("obj [ MailNotifier ] Notification wait timed out; an SMTP send already in progress may still finish.");
+        }
     }
 }

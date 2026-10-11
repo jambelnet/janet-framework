@@ -145,6 +145,7 @@
             <details class="group" id="instructions-group" name="settings-sections">
                 <summary>INSTRUCTIONS</summary>
                 <ul class="menu-list">
+                    <li><a class="menu-item" href="studio.html"><strong>Instruction Studio</strong><small>Create, edit and inspect instruction sets</small></a></li>
                     <li><button type="button" class="menu-item" data-open="addLauncher"><strong>Add New Launcher</strong><small>Run a program, make a judo API call, call a system function, make an evaluation or create a simple sentence to use the reflective value</small></button></li>
                     <li><button type="button" class="menu-item" data-open="addEvent"><strong>Add New Event Handler</strong><small>Create one or a sequence of actions</small></button></li>
                     <li><button type="button" class="menu-item" data-open="addEvaluator"><strong>Add New Evaluator</strong><small>Create one or a sequence of evaluations</small></button></li>
@@ -544,6 +545,17 @@
                 <input id="launcherName" type="text" autocomplete="off" required>
                 <label for="launcherAction">Action</label>
                 <input id="launcherAction" type="text" autocomplete="off" autocapitalize="off" required>
+                <div id="launcherExecution" hidden>
+                    <label for="launcherMode">Execution mode</label>
+                    <select id="launcherMode">
+                        <option value="capture">Capture output</option>
+                        <option value="launch">Launch application</option>
+                    </select>
+                    <div id="launcherTimeoutField">
+                        <label for="launcherTimeout">Timeout (seconds)</label>
+                        <input id="launcherTimeout" type="number" min="1" max="300" step="1" value="30" required>
+                    </div>
+                </div>
                 <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
             </div>
         </form>
@@ -643,10 +655,12 @@
         <form data-submit="removeElement">
             <div class="dialog-head"><h2 id="t-removeElement">Remove Elements</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
             <div class="dialog-body">
-                <label for="elementNameRemove">Name</label>
-                <input id="elementNameRemove" type="text" autocomplete="off" autocapitalize="off" required>
-                <div class="check"><input type="checkbox" id="chkEvent"><label for="chkEvent">Include Events</label></div>
-                <div class="btn-row"><button type="submit" class="btn danger">Remove</button></div>
+                <label for="elementNameRemove">Search elements</label>
+                <input id="elementNameRemove" type="search" placeholder="Name or category..." autocomplete="off" autocapitalize="off">
+                <fieldset id="removalOptions" class="removal-options" aria-label="Elements"></fieldset>
+                <p id="removalStatus" role="status" aria-live="polite"></p>
+                <div class="check" id="removeEventOption" hidden><input type="checkbox" id="chkEvent"><label for="chkEvent">Include matching event handler</label></div>
+                <div class="btn-row"><button type="submit" class="btn danger" id="removeElementBtn" disabled><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Remove</button></div>
             </div>
         </form>
     </dialog>

@@ -21,6 +21,7 @@
 using jaNET.Configuration;
 using jaNET.Infrastructure;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -36,6 +37,7 @@ internal sealed class InstructionResolver
 
     static readonly Regex Pointer = new(@"[*][a-zA-Z0-9_-]+", RegexOptions.Compiled);
     static readonly Regex Quoted = new(@"('[^']+')|(`[^`]+`)", RegexOptions.Compiled);
+    static readonly Regex ProgramMode = new(@"^\./\[(launch|capture:(\d+))\]", RegexOptions.Compiled);
 
     readonly FunctionExpander _functions;
     readonly AppConfigStore _config;
@@ -93,6 +95,19 @@ internal sealed class InstructionResolver
 
     // ./program, ./'my program', ./'program' 'arguments'
     string RunProgram(string text) {
+        Match mode = ProgramMode.Match(text);
+        bool launch = mode.Success && mode.Groups[1].Value == "launch";
+        int timeoutMs = ProcessRunner.DefaultTimeoutMs;
+        if (mode.Success) {
+            if (!launch) {
+                if (!int.TryParse(mode.Groups[2].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int seconds) || seconds < 1 || seconds > 300)
+                    return "Error: capture timeout must be between 1 and 300 seconds.";
+                timeoutMs = seconds * 1000;
+            }
+            text = "./" + text.Substring(mode.Length);
+        }
+        else if (text.StartsWith("./[capture:", StringComparison.Ordinal) || text.StartsWith("./[launch]", StringComparison.Ordinal))
+            return "Error: invalid program execution mode.";
         MatchCollection quoted = Quoted.Matches(text);
         string fileName = string.Empty;
         string arguments = string.Empty;
@@ -105,8 +120,9 @@ internal sealed class InstructionResolver
             fileName = Unquote(quoted[0].Value);
             arguments = Unquote(quoted[1].Value);
         }
+        else return "Error: quote the program path and arguments as separate values.";
 
-        return _processes.Run(fileName, arguments);
+        return launch ? _processes.Launch(fileName, arguments) : _processes.Run(fileName, arguments, timeoutMs);
 
         static string Unquote(string value) => value.Replace("`", string.Empty).Replace("'", string.Empty);
     }

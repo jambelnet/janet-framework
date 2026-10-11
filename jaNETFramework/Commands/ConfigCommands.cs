@@ -20,6 +20,7 @@
 
 using jaNET.Configuration;
 using jaNET.Services;
+using jaNET.Scripting;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,12 +32,18 @@ internal sealed class InstructionSetCommand : JudoCommand
 {
     readonly AppConfigStore _config;
 
-    public InstructionSetCommand(AppConfigStore config) {
+    public InstructionSetCommand(AppConfigStore config, System.Func<IInstructionExecutor>? executor = null) {
         _config = config;
 
         On(Add, "add", "new", "set", "setup");
         On(i => _config.RemoveInstructionSet(i.Args[3]), "remove", "rm", "delete", "del", "kill");
         On(List, "list", "ls");
+        On(i => {
+            if (i.Count != 4 || !System.Text.RegularExpressions.Regex.IsMatch(i.Args[3], "^[A-Za-z0-9_-]+$"))
+                return "Error: use judo inset run followed by one instruction identifier.";
+            if (config.InstructionActions(i.Args[3]).Count == 0) return "Error: instruction not found: " + i.Args[3];
+            return executor == null ? "Error: instruction execution is unavailable." : executor().Run(i.Args[3], silent: true);
+        }, "run");
         Otherwise(List);
     }
 

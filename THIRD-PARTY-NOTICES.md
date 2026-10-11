@@ -22,8 +22,12 @@ so that files written by older versions can be read once and converted; it conta
 
 ## Other sources
 
-The web UI (`www`) uses no third-party scripts or style sheets; the earlier jQuery, jQuery Mobile, Raphael, JustGage, d3 and datebox
-copies were replaced by plain HTML, CSS and ES modules.
+The core web UI (`www`) uses plain HTML, CSS and ES modules; the earlier jQuery, jQuery Mobile, Raphael, JustGage, d3 and datebox copies were removed.
+Instruction Studio additionally loads locally vendored [Three.js](https://github.com/mrdoob/three.js) 0.186.0 (MIT),
+[SortableJS](https://github.com/SortableJS/Sortable) 1.15.6 (MIT), and [Lucide](https://github.com/lucide-icons/lucide) 1.55.0 (ISC).
+Their unmodified distributions and complete upstream license notices are in `www/vendor/three`, `www/vendor/sortable`, and `www/vendor/lucide` respectively.
+Only `studio.html` loads these libraries; there are no CDN requests or npm/runtime Node.js requirements. Three.js supports the 3D dependency map,
+SortableJS provides mouse and touch block ordering, and Lucide supplies Studio's tool icons.
 
 ## Optional speech and weather
 

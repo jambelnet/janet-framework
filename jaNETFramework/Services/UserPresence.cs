@@ -33,7 +33,7 @@ internal sealed class UserPresence
 {
     readonly AppConfigStore _config;
     readonly Func<IInstructionExecutor> _executor;
-    bool _present;
+    volatile bool _present;
 
     public UserPresence(AppConfigStore config, Func<IInstructionExecutor> executor) {
         _config = config;

@@ -158,6 +158,21 @@ Use a `.tar.gz`, not a zip: a zip made on Windows has lost the "executable" flag
 
 Run the tests with `dotnet test jaNETFramework.sln` (489 tests) and check the behavior against the original program with `tools\compare.ps1`.
 
+## Automatic Email Alerts
+
+Automatic instruction-output alerts require SMTP settings, an Internet connection,
+and an **absent** user (`%checkout%`). Normal startup checks the user in; no automatic
+alerts are sent while present (`%checkin%`), including check-in/check-out greetings.
+Studio editing and dependency previews do not execute instructions. Studio Run,
+widget refreshes and `{mute}` / `{widget}` commands suppress automatic alerts,
+including those from nested events. Explicit event speech retains its own mute/unmute behavior.
+An ordinary instruction or event run while absent can still produce an alert.
+
+The connection check and notification wait are limited to ten seconds. If you check
+in or the connection check times out, no new SMTP send is started. An SMTP send
+already in progress may still finish. Explicit `judo mail send` commands are not
+presence-gated and remain available whether you are present or absent.
+
 ## Serial (Arduino and ESP32 over USB)
 
 The board must run firmware that understands your commands and sends newline-terminated
@@ -348,13 +363,15 @@ Recognition languages and spoken voices are independent. To add a browser playba
 
 **Create a new Home item:** in Customize Home, select New instruction, enter a unique Name and its Action, then Save. The newly created instruction is automatically pinned. The optional Add to Dashboard section accepts Category, Header, descriptions, thumbnail URL and a live Reference. Category and Header are both required to also display it on the Dashboard tab. Existing Settings > Instructions > Add New Instruction Set still works; pin that instruction afterward through Customize Home. Arbitrary HTML widgets still require editing the web UI rather than the instruction picker.
 
+**Remove an element:** open Settings > Instructions > Remove. Search the current list by name, header or category, select one item, and review the removal targets before choosing Remove. An instruction and its `*launcher` are grouped together and removed together. Include matching event handler is available only when a handler with that exact name exists; event-only entries remove only the handler. A failed removal keeps the dialog and selection open and shows the actual error. Removing an instruction does not rewrite other instructions, events or schedules that refer to it; update those references as needed.
+
 **Natural command matching:** Ask Jubito accepts instruction IDs and friendly Headers, ignoring spaces, underscores, hyphens, case and punctuation. Thus `who am I?` matches an existing `whoami` instruction. Give custom instructions clear Headers such as `Kitchen light on`; the Header becomes an exact spoken/typed name. Built-in phrases include `who am I`, `what is my name`, `where am I`, `what is my status`, `what time is it`, `weather`, `check in` and `check out`. Existing `judo ...` commands and `%function%` expressions remain available.
 
 Partial names produce suggested commands instead of running a guess. Click the intended suggestion to execute it. Duplicate normalized names also require a choice. This is lightweight local matching, not a general-purpose chatbot or a language-model agent; it does not infer arbitrary actions, translate phrases, or automatically execute microphone transcripts. For other recognition languages, use instruction IDs/Headers in that language or existing jaNET syntax.
 
 Home uses a green status dot for present and red for absent. The larger calendar icon is centered beside the clock, with a matching sky background: daytime from 06:00 to 19:59 and night otherwise, using the jaNET server's clock rather than calculated sunrise/sunset. Temperature, humidity and pressure share a single group without separator lines. The weather tile selects an illustrated sky from the provider's current condition code (clear, clouds, overcast, rain, storm, snow, fog or clear night); night conditions are dimmed. This is condition-based artwork, not a live camera image. Unavailable weather does not display a misleading sky. Both OpenWeatherMap and Open-Meteo feed the same UI; switch providers in Settings > Weather without deleting your saved OpenWeatherMap key.
 
-Assistant replies and response dialogs use readable message blocks with distinct completion, pending and error states. Terminal output remains plain text, and command help keeps its searchable layout. The blue speaker button is aligned on the right of the assistant reply, matching Send; it changes to Stop reading during playback. Styling does not change the command output or execution behavior.
+Assistant replies and response dialogs use readable message blocks with distinct completion, pending and error states. Terminal output remains plain text, and command help keeps its searchable layout. The blue speaker button is aligned on the right of the assistant reply, matching Send; it changes to Stop reading during playback. It appears only alongside a visible assistant answer. Background speech from terminal commands, Dashboard actions and events does not create a replay button on Home or replace the answer's replay text. Styling does not change the command output or execution behavior.
 
 ## Modernization
 
@@ -381,6 +398,71 @@ It is fully tested and runnable on devices listed below:
 * [Arduino](http://jubitoblog.blogspot.com/search/label/arduino)
 * [RazBerry](http://jubitoblog.blogspot.com/search/label/razberry)
 * [IP Camera](http://jubitoblog.blogspot.com/2013/02/dvr-system-using-ip-camera.html)
+
+## External Program Launchers
+
+Existing `./program` actions still run hidden and return **stdout unchanged** when
+the program succeeds. They now have a **30-second execution timeout** instead of
+waiting indefinitely. Stdout and stderr are drained concurrently; a failed start,
+nonzero exit code or timeout returns an `Error:` response. Successful stderr
+warnings do not replace stdout. Each output stream is limited to 1,048,576 characters;
+larger output is drained but reported as an error rather than accumulated forever.
+
+In **Add Launcher**, enter the existing `./program` action. **Execution mode** and
+**Timeout (seconds)** then become available. Choose **Capture output** for scripts
+returning data, or **Launch application** for desktop programs such as Notepad.
+Ordinary jaNET instruction actions keep their existing behavior and do not show
+process controls. The mode and timeout are stored in the instruction action, so
+they also work from the console, other browsers, events and schedules.
+Existing launchers are not silently converted to launch-only mode. To change one,
+remove the old launcher with `judo inset remove Name` and recreate it with the desired
+mode and the same name; adding another launcher with the same ID creates duplicate
+instruction entries rather than updating the old one.
+
+```text
+./notepad.exe
+./[launch]notepad.exe
+./[capture:120]'/path/to/program' 'arguments'
+./[launch]'C:\Program Files\Example\Example.exe' 'arguments'
+```
+
+The first line captures output with the default timeout; use the second line to
+open Notepad visibly and return immediately with `Application started: notepad.exe`.
+Launch-only mode never waits for completion or terminates the application later.
+Capture deadlines can be set from 1 to 300 seconds; on timeout jaNET attempts to
+terminate only that capture process and its descendants. A descendant that outlives
+its parent may still keep a pipe open: the same deadline stops waiting for that pipe,
+but jaNET cannot terminate a descendant after its parent has already exited.
+Separate stdout/stderr capture is not supported in launch-only mode.
+
+Paths and arguments use the existing single-quote or backtick syntax. Use absolute
+paths for reliability; bare executable names depend on the server's environment.
+Programs run **on the computer hosting jaNET**, never on the phone/browser device.
+Desktop applications require an interactive logged-in desktop; a headless service
+cannot make a window appear on a remote phone. A launch acknowledgment confirms
+that the OS accepted the start request, not that the application initialized successfully.
+
+Browser API requests also have a 315-second safeguard, including response-body reads.
+A request timeout releases the prompt and retains its command, warns that the command
+may still be running, and does **not** automatically retry. It does not cancel a
+server-side instruction; multi-action instructions may legitimately exceed this limit.
+For process-specific syntax use `judo help process`.
+
+## Instruction Studio
+
+Open **Instructions > Instruction Studio** in Jubito (or `/www/studio.html`). Select an existing instruction or use the plus button to create one. Drag blocks from the library into the ordered action list; select an action to edit its properties. Actions can also be added by clicking a library item and reordered with the up/down buttons. Undo and redo remain available until a save or selection change.
+
+If Studio cannot load and reports that its API is unavailable, stop the running jaNET instance, rebuild the **same project and configuration** you launch, restart it, and reload the page. Studio requires the updated server's `/api/studio` endpoint; new web files served by an older binary or a static web server are not enough. When launching through Visual Studio, rebuild its selected Debug/Release configuration and ensure it opens the intended repository checkout.
+
+Blocks cover text, registered `%functions%` (including extensions), other instructions, existing events, delays, conditions, judo commands and program expressions. Program blocks use the existing `./[launch]...` or `./[capture:seconds]...` syntax. Condition branches take instruction identifiers separated by spaces; put multiword commands or functions in a referenced instruction. Expressions use jaNET's existing C# evaluator, not JavaScript.
+
+The **Source** view keeps each XML action separate. Existing complex expressions remain raw source and opening them does not rewrite them. Selecting a canonical legacy `name -> *name` pair opens its launcher; saving a changed action count resizes only that unambiguous callable pair. Arbitrary pointer structures are never automatically changed. Other attributes, metadata and unrelated configuration sections are retained. Saves use the existing atomic XML writer and `.bak` backup. If configuration changed elsewhere, saving is rejected: copy your unsaved source before reloading and reapply the changes to the current version.
+
+**Dependency Map** opens in 2D, with an optional 3D view. Pan/zoom, fit, select nodes for details, or use the accessible dependency list. Simple `name` / `*name` aliases are collapsed: the connector names the source, and Properties retains its identifier and action position. Sentences containing functions are labeled **Text template**. Other references retain their positional targets. The map shows declared dependencies, not a runtime trace or execution timeline. Preview highlights nodes without executing anything. Runtime values, conditional results, dynamic command construction and external program internals cannot be predicted. Both condition branches may be shown; `%function%` and `*pointer` expansion can happen before branch selection. Missing targets, cycles, complex constructs and the map's size limit are flagged rather than guessed. The 2D map works without WebGL and remains available if 3D cannot load. The Jubito logo returns to Home; the back arrow returns to Instructions.
+
+Use **Save** to persist changes, then the separate **Run** button and confirmation to execute on the jaNET host. There is no automatic execution on load, preview or save. Instruction-reference blocks use `judo inset run name`, which executes that instruction's actions and returns their output; recursive calls are bounded at 32 levels. Existing pointer syntax and execution behavior are preserved.
+
+Studio uses the server's configured authentication and HTTPS settings. `/api/studio` exposes instruction source to authorized same-origin clients and accepts revision-checked JSON saves; the original `/api/instructions` endpoint remains metadata-only. Protect your server with authentication and do not publish it to an untrusted network. Three.js, SortableJS and Lucide are vendored locally and loaded only by Studio. No Node.js, Python, npm, CDN or internet connection is required to use it. Browsers without WebGL retain editing and a dependency-list fallback.
 
 ## Versions and releasing
 
