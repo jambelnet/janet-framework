@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\tools\ReleasePackager\ReleaseArchive.cs" Link="ReleaseArchive.cs" />
     <ProjectReference Include="..\jaNETFramework\jaNETFramework.csproj" />
     <ProjectReference Include="..\jaNETFramework.Hosting\jaNETFramework.Hosting.csproj" />
     <ProjectReference Include="..\jaNETProgram\jaNETProgram.csproj" />

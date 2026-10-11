@@ -44,7 +44,7 @@ public class VersionTests
 
         string changelog = File.ReadAllText(Path.Combine(root, "CHANGELOG.md"));
 
-        Assert.Matches(@"(?m)^## \[" + Regex.Escape(AppInfo.Version) + @"\] - \d{4}-\d{2}-\d{2}$", changelog);
+        Assert.Matches(@"(?m)^## \[" + Regex.Escape(AppInfo.Version) + @"\] - \d{4}-\d{2}-\d{2}\r?$", changelog);
         Assert.Contains("## [Unreleased]", changelog);
     }
 

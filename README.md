@@ -396,7 +396,30 @@ git push origin v1.0.0
 
 The *Release* workflow checks that the tag is the version of the code, builds, tests, packs, and publishes a GitHub release with the notes from the changelog,
 the packages and the source archive (a version with a dash, such as `1.0.0-rc.1`, is a pre-release). Add the repository secret `NUGET_API_KEY` to have the
-packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS and replays the original program's behavior on every push.
+packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS, including browser JavaScript and build/publish script tests, and replays the original program's behavior. It runs on pull requests and pushes to `master`, `main`, `next`, `modern` and `modernize-*` branches. Release tags run the .NET and JavaScript tests before publishing.
+
+### Release archives without Python
+
+The release packager uses the same **.NET 10 SDK** as the application build. Neither Python nor Node.js is required to publish and archive binaries. Node.js is needed only for JavaScript tests (and for regenerating the separate website).
+
+```powershell
+# Windows: one target, selected targets, or all targets
+.\tools\publish.ps1 -Runtime win-x64
+.\tools\publish.ps1 -Runtime win-x64,linux-arm64
+.\tools\publish.ps1
+```
+
+```bash
+# Linux / macOS: selected targets, or all targets
+bash ./tools/publish.sh linux-x64 linux-arm64
+bash ./tools/publish.sh
+```
+
+These scripts call a shared .NET packaging tool, cross-publish in Release, and write versioned archives into `artifacts/`: `.zip` for Windows, `.tar.gz` for Linux/macOS. All seven targets from the build scripts are supported. Archives contain a top-level `janet-<version>-<runtime>/` folder with the complete app, web UI, README and license notices; Linux archives also include the systemd example. Unix executable permissions are set in the tar archives even when packaging on Windows. Fresh isolated publish folders prevent stale files or locally saved settings from being picked up.
+
+Add `-FrameworkDependent` (PowerShell) or `--framework-dependent` (Bash) to omit bundled runtimes; the archive name and top-level folder then have a `-framework-dependent` suffix. Install the .NET and ASP.NET Core runtimes on that target. Ordinary `build.ps1 -Publish` / `build.sh --publish` still creates an unpacked folder; framework-dependent folders are `artifacts/publish/<runtime>-framework-dependent/`.
+
+Run the full tests before preparing a release: `.\build.ps1 -Test` or `bash ./build.sh --test`. The archive scripts build and package but do not run tests or create Git tags/releases themselves. For packaging-wrapper regression tests, run `node --test tools/test-publish-scripts.mjs`.
 
 ## Contributing
 

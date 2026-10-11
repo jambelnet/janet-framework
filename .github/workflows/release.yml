@@ -37,6 +37,17 @@ jobs:
           dotnet build jaNETFramework.sln -c Release
           dotnet test jaNETFramework.sln -c Release --no-build
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Browser and build script tests
+        shell: pwsh
+        run: |
+          $tests = @(Get-ChildItem jaNETFramework.Tests/Web*Tests.mjs | Sort-Object Name | ForEach-Object { $_.FullName })
+          node --test @tests tools/test-build-scripts.mjs tools/test-publish-scripts.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Pack
         run: dotnet pack jaNETFramework.sln -c Release --no-build -o packages
 
@@ -49,7 +60,7 @@ jobs:
 
       # runs without anything installed: linux-x64, linux-arm64, linux-arm, osx-arm64, osx-x64, win-x64, win-arm64
       - name: Programs for every system (self-contained)
-        run: python3 tools/publish.py
+        run: bash tools/publish.sh
 
       - name: Source archive
         run: git archive --format=zip --prefix=janet-framework-${{ steps.version.outputs.version }}/ -o janet-framework-${{ steps.version.outputs.version }}.zip HEAD
