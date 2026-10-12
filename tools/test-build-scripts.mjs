@@ -1,6 +1,6 @@
 // (c) J@mBeL.net 2010-2026. Part of jaNET Framework, GNU GPL version 3 or later.
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, statSync, symlinkSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve, sep, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,33 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const windows = process.platform === 'win32';
 const bash = process.env.JANET_BASH || (windows ? 'C:/Program Files/Git/bin/bash.exe' : 'bash');
 const powershell = windows ? 'powershell.exe' : 'pwsh';
+
+function assertSameDirectory(actual, expected) {
+    // Runner temp paths can use symlinks, Windows short names or different casing.
+    const actualStat = statSync(actual, { bigint: true });
+    const expectedStat = statSync(expected, { bigint: true });
+    assert(actualStat.isDirectory() && expectedStat.isDirectory());
+    assert.deepEqual([actualStat.dev, actualStat.ino], [expectedStat.dev, expectedStat.ino],
+        `Working directory ${actual} must identify ${expected}`);
+}
+
+test('working-directory checks accept filesystem aliases but reject different directories', () => {
+    const folder = mkdtempSync(join(tmpdir(), 'janet-build-scripts-paths '));
+    const alias = join(folder, 'alias');
+    try {
+        const project = join(folder, 'project with spaces'); mkdirSync(project);
+        const other = join(folder, 'other'); mkdirSync(other);
+        symlinkSync(project, alias, windows ? 'junction' : 'dir');
+        assertSameDirectory(alias, project);
+        if (windows) assertSameDirectory(project.toUpperCase(), project);
+        assert.throws(() => assertSameDirectory(other, project), assert.AssertionError);
+    } finally {
+        if (existsSync(alias)) unlinkSync(alias);
+        assert(resolve(folder).startsWith(resolve(tmpdir()) + sep) && basename(folder).startsWith('janet-build-scripts-'));
+        rmSync(folder, { recursive: true, force: true });
+    }
+});
+
 const mockSource = `
 const fs = require('node:fs');
 const [tool, ...args] = process.argv.slice(2);
@@ -67,7 +94,7 @@ for (const kind of ['powershell', 'bash']) {
             const help = call([flags.help]); assert.equal(help.status, 0); assert.equal(help.calls.length, 0);
             const normal = call([]); assert.equal(normal.status, 0, normal.stderr);
             assert.deepEqual(normal.steps.map(step => step.args[0]), ['restore', 'build']);
-            assert(normal.steps.every(step => resolve(step.cwd) === resolve(project)));
+            for (const step of normal.steps) assertSameDirectory(step.cwd, project);
             assert(normal.steps[1].args.includes('Release'));
             const debug = call([flags.configuration, 'Debug']); assert.equal(debug.status, 0, debug.stderr);
             assert(debug.steps[1].args.includes('Debug'));
