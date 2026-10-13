@@ -2,7 +2,8 @@
 // Jubito web UI - the application layer that sits on top of the jaNET Framework judo API.
 // Plain ES modules, no libraries. See css/app.css for the layout and index.html for the markup.
 
-import { runText, runRawText, runJson, loadInstructionSets, onConnection } from './api.js';
+import { runText, runRawText, runJson, loadInstructionSets, loadSettings, saveSettings, onConnection } from './api.js';
+import { wireSettings } from './settings.js';
 import { createGauge } from './gauge.js';
 import { renderResponse, commandResponse, responseAppearance } from './help.js';
 import { wireTerminal } from './terminal.js';
@@ -32,6 +33,7 @@ let terminal;
 let assistantBusy = false;
 let voice;
 let removal;
+let settingsEditor;
 const activity = [];
 let lastGmailCount = null;
 let homePins = [];
@@ -537,21 +539,6 @@ function weatherCredit(endpoint) {
     link.href = meteo ? 'https://open-meteo.com/' : 'https://openweathermap.org/';
 }
 
-async function loadWeatherSettings() {
-    const endpoint = await send('judo weather settings') ?? '';
-    setVal('weatherURI', endpoint); setVal('weatherApiKey', ''); weatherCredit(endpoint);
-    try {
-        const url = new URL(endpoint);
-        setVal('weatherProvider', url.hostname === 'api.open-meteo.com' ? 'openmeteo' : 'legacy');
-        if (url.hostname === 'api.open-meteo.com') {
-            setVal('weatherLatitude', url.searchParams.get('latitude') ?? '49.6116');
-            setVal('weatherLongitude', url.searchParams.get('longitude') ?? '6.1319');
-            setVal('weatherLocation', await send('judo weather location') ?? '');
-        }
-    } catch { setVal('weatherProvider', 'legacy'); }
-    weatherFields();
-}
-
 function clearPage() {
     terminal.clear();
 }
@@ -559,33 +546,6 @@ function clearPage() {
 /* ------------------------------------------------------------------ settings forms */
 
 const enc = encodeURIComponent;
-const locked = text => '<lock>' + text + '</lock>';
-
-async function saveRaw(command) {
-    try { return await runRawText(command); }
-    catch { toast('The settings request failed.'); return null; }
-}
-
-async function saveMail(command) {
-    const result = await saveRaw(command);
-    if (result !== null) showResult(result);
-    return result === 'Settings saved.';
-}
-
-async function loadMailSettings(id) {
-    const kind = id.replace('Settings', '');
-    const values = (await send('judo ' + kind + ' settings') ?? '').split(/\r?\n/);
-    const fields = kind === 'gmail'
-        ? ['gmailUsername', 'gmailPassword', null, 'gmailSmtpHost', 'gmailSmtpPort', 'chkGmailSmtpSSL',
-            'gmailPop3Host', 'gmailPop3Port', 'chkGmailPop3SSL', 'gmailImapHost', 'gmailImapPort', 'chkGmailImapSSL']
-        : [kind + 'Host', kind + 'Username', kind + 'Password', kind + 'Port', 'chk' + (kind === 'smtp' ? 'Smtp' : 'Pop3') + 'SSL'];
-    fields.forEach((field, index) => {
-        if (!field || values[index] === undefined) return;
-        const input = byId(field);
-        if (input.type === 'checkbox') input.checked = values[index].toLowerCase() === 'true';
-        else if (values[index] !== '0') input.value = values[index];
-    });
-}
 const underscored = text => text.replace(/ /g, '_');
 
 async function reloadAfter(promise) {
@@ -597,34 +557,6 @@ const actions = {
     async sendSMS() {
         await sendAndShow('judo sms send ' + val('phonenumber') + ' `' + val('smsText') + '`');
     },
-    async gmailSettings() {
-        const saved = await saveMail('judo gmail set ' + locked(val('gmailUsername')) + ' ' + locked(val('gmailPassword')) +
-            ' ' + locked('https://mail.google.com/mail/feed/atom') + ' ' + locked(val('gmailSmtpHost')) + ' ' + val('gmailSmtpPort') + ' ' + byId('chkGmailSmtpSSL').checked +
-            ' ' + locked(val('gmailPop3Host')) + ' ' + val('gmailPop3Port') + ' ' + byId('chkGmailPop3SSL').checked +
-            ' ' + locked(val('gmailImapHost')) + ' ' + val('gmailImapPort') + ' ' + byId('chkGmailImapSSL').checked);
-        if (saved) refreshGmail();
-        return saved;
-    },
-    async smtpSettings() {
-        return saveMail('judo smtp set ' + locked(val('smtpHost')) + ' ' + locked(val('smtpUsername')) + ' ' + locked(val('smtpPassword')) +
-            ' ' + val('smtpPort') + ' ' + byId('chkSmtpSSL').checked);
-    },
-    async pop3Settings() {
-        return saveMail('judo pop3 set ' + locked(val('pop3Host')) + ' ' + locked(val('pop3Username')) + ' ' + locked(val('pop3Password')) +
-            ' ' + val('pop3Port') + ' ' + byId('chkPop3SSL').checked);
-    },
-    async mailheaderSettings() {
-        await sendAndShow('judo mailheaders set `' + val('mailFrom') + '` `' + val('mailTo') + '` `' + val('mailSubject') + '`');
-    },
-    async smsSettings() {
-        await sendAndShow('judo sms set ' + val('smsAPI') + ' ' + val('smsUsername') + ' ' + enc(val('smsPassword')));
-    },
-    async serverLogin() {
-        await sendAndShow('judo server login ' + val('serverUsername') + ' ' + enc(val('serverPassword')));
-    },
-    async serverSettings() {
-        await sendAndShow('judo server set ' + val('serverHost') + ' ' + val('serverPort') + ' ' + val('serverAuth'));
-    },
     async httpsSettings() {
         const mode = val('httpsMode');
         let httpUrl;
@@ -635,10 +567,7 @@ const actions = {
             catch (error) { toast(error.message); return false; }
         }
         if (mode === 'custom' && !val('httpsCertFile').trim()) { toast('Enter the PFX certificate file.'); return false; }
-        const certificate = mode === 'custom' ? ' ' + locked(val('httpsCertFile')) + ' ' + locked(val('httpsCertPassword'))
-            : mode === 'default' ? ' default' : '';
-        const result = await saveRaw(mode === 'off' ? 'judo server https off' : 'judo server https on ' + val('httpsPort') + certificate);
-        if (result === null) return false;
+        const result = await settingsEditor.persist('httpsSettings');
         if (!result.startsWith('HTTPS: ')) { showResult(result); return false; }
         if (mode === 'off') {
             byId('httpsResult').textContent = result;
@@ -676,37 +605,11 @@ const actions = {
         }
         return false;
     },
-    async socketSettings() {
-        await sendAndShow('judo socket set ' + val('socketHost') + ' ' + val('socketPort'));
-    },
-    async trustedSettings() {
-        await sendAndShow('judo socket trust <lock>' + val('trusted') + '</lock>');
-        await loadTrusted();
-    },
-    async serialSettings() {
-        await sendAndShow('judo serial set ' + val('serialPort') + ' ' + val('serialBaud'));
-    },
     async weatherSettings() {
         const meteo = val('weatherProvider') === 'openmeteo';
-        let result;
-        if (meteo) {
-            result = await saveRaw('judo weather openmeteo ' + val('weatherLatitude') + ' ' + val('weatherLongitude') + ' ' + locked(val('weatherLocation')));
-        } else {
-            const endpoint = val('weatherURI');
-            try { if (!['http:', 'https:'].includes(new URL(endpoint).protocol)) throw new Error(); }
-            catch { toast('Enter an HTTP or HTTPS weather endpoint.'); return false; }
-            if (val('weatherApiKey').trim()) {
-                const saved = await saveRaw('judo weather key ' + locked(val('weatherApiKey').trim()));
-                if (saved !== 'Settings saved.') { toast(saved ?? 'Weather key could not be saved.'); return false; }
-            }
-            result = await saveRaw('judo weather set ' + locked(endpoint));
-        }
-        if (result === null || result.startsWith('Weather:') || result.startsWith('Unable')) { toast(result ?? 'Weather settings could not be saved.'); return false; }
+        await settingsEditor.persist('weatherSettings');
         weatherCredit(meteo ? 'https://api.open-meteo.com/' : val('weatherURI'));
         addActivity('Weather settings updated'); await refreshWeather(); toast('Weather settings saved.');
-    },
-    async dyndnsSettings() {
-        await sendAndShow('judo noip set ' + val('dyndnsHostname') + ' ' + val('dyndnsUsername') + ' ' + enc(val('dyndnsPassword')));
     },
 
     async saveSchedule() {
@@ -920,6 +823,9 @@ function clearInsetFields() {
 /* ------------------------------------------------------------------ wiring */
 
 function wire() {
+    settingsEditor = wireSettings(document, loadSettings, saveSettings, id => {
+        if (id === 'weatherSettings') weatherFields();
+    });
     wireLauncherEditor();
     removal = wireRemovalEditor(async () => {
         const instructions = await loadInstructionSets();
@@ -945,21 +851,13 @@ function wire() {
         else if ('open' in el.dataset) {
             const id = el.dataset.open;
             if (id === 'removeElement') { openDialog(id); await removal.load(); return; }
+            if (settingsEditor.has(id)) {
+                if (id === 'httpsSettings') { byId('httpsResult').textContent = ''; byId('httpsLink').hidden = true; }
+                await settingsEditor.open(id); return;
+            }
             if (id === 'changeSchedule') enumScheduleNames();
             if (id === 'popupGmailReader') refreshGmail();
-            if (['gmailSettings', 'smtpSettings', 'pop3Settings'].includes(id)) await loadMailSettings(id);
-            if (id === 'httpsSettings') {
-                const status = await send('judo server https status');
-                if (status !== null) {
-                    byId('httpsResult').textContent = status;
-                    const port = status.match(/:(\d+)\/www\//);
-                    if (port) setVal('httpsPort', port[1]);
-                    setVal('httpsMode', status.startsWith('HTTPS: off') ? 'off' : 'on');
-                }
-                byId('httpsLink').hidden = true;
-            }
-            if (id === 'weatherSettings') await loadWeatherSettings();
-            if (id === 'voiceSettings') await voice.loadSettings();
+            if (id === 'voiceSettings') { openDialog(id); await voice.loadSettings(); return; }
             openDialog(id);
         }
     });
@@ -968,7 +866,18 @@ function wire() {
         const form = event.target.closest?.('form[data-submit]');
         if (!form) return;
         event.preventDefault();
-        const result = await actions[form.dataset.submit]();
+        const id = form.closest('dialog').id;
+        let result;
+        try {
+            if (settingsEditor.has(id)) {
+                if (!settingsEditor.ready(id)) return;
+                if (id === 'httpsSettings' || id === 'weatherSettings') result = await actions[id]();
+                else {
+                    toast(await settingsEditor.persist(id));
+                    if (id === 'gmailSettings') refreshGmail();
+                }
+            } else result = await actions[form.dataset.submit]();
+        } catch (error) { toast(error.message || 'Settings could not be saved.'); return; }
         if (result === false) return;                                     // validation message was shown
         if (form.dataset.submit !== 'trustedSettings') form.reset();
         closeDialog(form);

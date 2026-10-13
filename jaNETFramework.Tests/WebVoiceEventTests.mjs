@@ -13,6 +13,7 @@ class Element {
     addEventListener(name, handler) { this.handlers.set(name, handler); }
     setAttribute() {}
     querySelector() { return { setAttribute() {} }; }
+    querySelectorAll() { return []; }
     replaceChildren() { this.options = []; }
     append(option) { this.options.push(option); }
 }

@@ -269,6 +269,9 @@ internal sealed class WebServer : IServer, IDisposable
             else if (path == "/api/studio") {
                 body = await StudioResponse(context).ConfigureAwait(false);
             }
+            else if (path.StartsWith("/api/settings/", StringComparison.Ordinal)) {
+                body = await SettingsResponse(context, path.Substring("/api/settings/".Length)).ConfigureAwait(false);
+            }
             else if (path == "/api/command" && HttpMethods.IsPost(request.Method)) {
                 using JsonDocument document = await JsonDocument.ParseAsync(request.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
                 string command = document.RootElement.GetProperty("command").GetString() ?? string.Empty;
@@ -336,6 +339,43 @@ internal sealed class WebServer : IServer, IDisposable
     static bool IsThisComputer(IPAddress? address) =>
         address == null || IPAddress.IsLoopback(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address);
 
+    async Task<byte[]> SettingsResponse(HttpContext context, string area) {
+        HttpRequest request = context.Request;
+        HttpResponse response = context.Response;
+        response.Headers.CacheControl = "no-store";
+        response.ContentType = "application/json; charset=utf-8";
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        byte[] Json(object value) => JsonSerializer.SerializeToUtf8Bytes(value, options);
+        string origin = request.Headers.Origin.ToString();
+        if ((origin.Length > 0 && origin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
+            response.StatusCode = 403; return Json(new { error = "Settings requests must come from this jaNET page." });
+        }
+        try {
+            if (HttpMethods.IsGet(request.Method)) return Json(WebSettings.Read(area, _config, _settings));
+            if (!HttpMethods.IsPost(request.Method)) { response.StatusCode = 405; return Json(new { error = "Use GET or POST for settings." }); }
+            if (!(request.ContentType ?? "").StartsWith("application/json", StringComparison.OrdinalIgnoreCase)) {
+                response.StatusCode = 415; return Json(new { error = "Send an application/json body." });
+            }
+            var values = await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(request.Body, options, context.RequestAborted).ConfigureAwait(false)
+                ?? throw new ArgumentException("Enter settings.");
+            string message = WebSettings.Save(area, values, _config, _settings);
+            if (area == "httpsSettings") {
+                _commandResponse.Value = response;
+                try { RestartAfterResponse(); }
+                finally { _commandResponse.Value = null; }
+                message = "HTTPS: " + (_config.Comm.HttpsPort.Length == 0 ? "off" : "on") + "\nApplying HTTPS settings.";
+            }
+            return Json(new { message });
+        }
+        catch (Exception e) when (e is ArgumentException || e is JsonException || e is Microsoft.AspNetCore.Http.BadHttpRequestException) {
+            response.StatusCode = 400; return Json(new { error = e.Message });
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception) {
+            response.StatusCode = 503; return Json(new { error = "Saved settings could not be read or saved. Check the configuration and file permissions." });
+        }
+    }
+
     async Task<byte[]> StudioResponse(HttpContext context) {
         HttpRequest request = context.Request;
         HttpResponse response = context.Response;
@@ -358,7 +398,7 @@ internal sealed class WebServer : IServer, IDisposable
             StudioSave save = await JsonSerializer.DeserializeAsync<StudioSave>(request.Body, options, context.RequestAborted).ConfigureAwait(false)
                 ?? throw new ArgumentException("Enter an instruction.");
             string result = _config.SaveStudio(save);
-            if (result != "Instruction saved.") {
+            if (result != (save.Kind == "event" ? "Event saved." : "Instruction saved.")) {
                 response.StatusCode = result.StartsWith("Studio conflict:", StringComparison.Ordinal) ? 409 : 400;
                 return Json(new { error = result });
             }

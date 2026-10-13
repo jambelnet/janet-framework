@@ -32,7 +32,10 @@ async function request(url, options, mode, timeoutMs = REQUEST_TIMEOUT_MS) {
         });
         const response = (async () => {
             const res = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+            if (!res.ok) {
+                const detail = mode === 'json' ? await res.json().catch(() => null) : null;
+                throw new Error(detail?.error || 'HTTP ' + res.status);
+            }
             return mode === 'json' ? res.json() : res.text();
         })();
         const body = await Promise.race([response, expired]);
@@ -68,4 +71,14 @@ export async function runJson(cmd) {
  */
 export async function loadInstructionSets() {
     return request('../api/instructions', {}, 'json');
+}
+
+export async function loadSettings(area) {
+    return request('../api/settings/' + encodeURIComponent(area), {}, 'json', 15000);
+}
+
+export async function saveSettings(area, values) {
+    return request('../api/settings/' + encodeURIComponent(area), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values)
+    }, 'json', 15000);
 }

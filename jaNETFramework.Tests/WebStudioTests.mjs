@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('../www/js/studio-model.js', import.meta.url), 'utf8');
-const { parseBlock, newBlock, compileBlock, buildGraph, groupInstructions, editableId } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+const { parseBlock, newBlock, compileBlock, buildGraph, groupInstructions, editableId, eventActions, actionDependencies, parseEventAction, compileEventBlocks, parseProgram } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const snapshot = { instructions: [
     { id: 'hello', action: '*hello' }, { id: '*hello', action: 'Hello, %user%.' },
     { id: 'sequence', action: 'judo inset run hello' }, { id: 'sequence', action: 'judo sleep 100' },
@@ -78,4 +78,110 @@ test('non-alias pointer actions retain positional targets and bounded cycles', (
     assert.equal(graph.nodes.find(node => node.label === 'Done.').kind, 'text');
     assert.ok(buildGraph(values, 'recursive').warnings.some(warning => warning.includes('Cycle')));
     assert.equal(compileBlock(parseBlock('*hello')), '*hello');
+});
+
+test('templates, launchers and existing conditions get typed editors without rewriting source', () => {
+    assert.equal(parseBlock('Good %salute% %user%.').kind, 'template');
+    assert.equal(parseBlock('*hello').kind, 'pointer');
+    assert.equal(compileBlock(newBlock('pointer', '*hello')), '*hello');
+    assert.throws(() => compileBlock(newBlock('pointer', 'hello')));
+    const source = '{  evalBool( "%day%" == "Sunday" ); hello  sequence ; cycle ;}';
+    const block = parseBlock(source);
+    assert.equal(block.kind, 'condition');
+    assert.equal(compileBlock(block), source);
+    block.yes = 'hello';
+    assert.equal(compileBlock(block), '{ evalBool( "%day%" == "Sunday" ); hello; cycle; }');
+    assert.equal(parseBlock('{ evalBool(true); judo sleep 1; hello; }').kind, 'raw');
+    assert.equal(parseBlock('{ complex script; }').kind, 'raw');
+});
+
+test('builder previews event actions from typed, raw and composite references without changing data', () => {
+    const values = { ...snapshot, events: [{ id: 'oncheckin', action: '%mute%; hello; weathertoday; hello' }, { id: 'oncheckin', action: 'wrong' }] };
+    const before = JSON.stringify(values);
+    for (const block of [newBlock('event', 'oncheckin'), { kind: 'raw', value: '%~>oncheckin%' }]) {
+        const preview = actionDependencies(values, compileBlock(block));
+        assert.deepEqual(preview[0].actions, ['%mute%', 'hello', 'weathertoday']);
+        assert.equal(preview[0].kind, 'event');
+        assert.equal(compileBlock(block), '%~>oncheckin%');
+    }
+    assert.equal(actionDependencies(values, 'Before %~>oncheckin% after %~>oncheckin%').filter(item => item.kind === 'event').length, 1);
+    assert.equal(JSON.stringify(values), before);
+});
+
+test('builder follows instruction aliases and positional launcher references, not arbitrary text', () => {
+    const values = { ...snapshot, instructions: [...snapshot.instructions, { id: '*hello', action: 'Second' }] };
+    const invoke = actionDependencies(snapshot, 'judo inset run hello')[0];
+    assert.equal(invoke.sourceId, '*hello');
+    assert.deepEqual(invoke.actions, ['Hello, %user%.']);
+    assert.deepEqual(actionDependencies(values, '*hello', 1)[0].actions, ['Second']);
+    assert.equal(actionDependencies(values, '*hello', 2)[0].missing, true);
+    assert.deepEqual(actionDependencies(snapshot, 'hello'), []);
+    assert.deepEqual(actionDependencies(snapshot, 'Good %user% %user%.').map(item => item.id), ['%user%']);
+    const draft = groupInstructions(snapshot, 'hello', ['Changed', 'Second'], '*hello');
+    assert.deepEqual(actionDependencies(snapshot, 'judo inset run hello', 0, draft)[0].actions, ['Changed', 'Second']);
+    assert.deepEqual(actionDependencies(snapshot, '*hello', 1, draft)[0].actions, ['Second']);
+    assert.equal(snapshot.instructions.find(entry => entry.id === '*hello').action, 'Hello, %user%.');
+});
+
+test('builder previews both condition branches, unknown targets and locked or empty events safely', () => {
+    const dependencies = actionDependencies(snapshot, '{ evalBool(true); hello sequence; cycle; }');
+    assert.deepEqual(dependencies.map(item => [item.id, item.branch]), [['hello', 'When true'], ['sequence', 'When true'], ['cycle', 'When false']]);
+    assert.equal(actionDependencies(snapshot, 'judo inset run missing')[0].missing, true);
+    assert.equal(actionDependencies(snapshot, '%missing%')[0].missing, true);
+    assert.equal(actionDependencies(snapshot, '%~>missing%')[0].missing, true);
+    assert.deepEqual(eventActions(' hello & hello ; %mute%; '), ['hello', '%mute%']);
+    const locked = 'judo inset add <lock>%user%;*hello</lock>';
+    assert.deepEqual(eventActions(locked), [locked]);
+    assert.deepEqual(eventActions(' ; & '), []);
+    const recursive = { ...snapshot, events: [{ id: 'recursive', action: '%~>recursive%' }] };
+    assert.deepEqual(actionDependencies(recursive, '%~>recursive%')[0].actions, ['%~>recursive%']);
+});
+
+test('event editor keeps calls distinct from text and compiles ordered steps with runtime-safe limits', () => {
+    const blocks = eventActions('%mute%; hello; judo sleep 100; sequence').map(parseEventAction);
+    assert.equal(blocks[1].kind, 'instruction'); assert.equal(blocks[1].invocation, 'bare');
+    assert.deepEqual(compileEventBlocks(blocks), ['%mute%', 'hello', 'judo sleep 100', 'sequence']);
+    assert.deepEqual(compileEventBlocks([blocks[3], blocks[1], blocks[0]]), ['sequence', 'hello', '%mute%']);
+    assert.deepEqual(compileEventBlocks([]), []);
+    assert.equal(compileBlock(parseEventAction('judo inset run hello')), 'judo inset run hello');
+    assert.equal(parseEventAction('*hello').kind, 'instruction');
+    assert.equal(compileBlock(parseEventAction('*hello')), '*hello');
+    assert.throws(() => compileEventBlocks([newBlock('text', 'Hello')]), /text or templates/);
+    assert.throws(() => compileEventBlocks([newBlock('template')]), /text or templates/);
+    assert.throws(() => compileEventBlocks([newBlock('text')]), /empty/);
+    assert.throws(() => compileEventBlocks([blocks[1], blocks[1]]), /duplicate/);
+    assert.throws(() => compileEventBlocks([parseBlock('{ evalBool(true); hello; sequence; }')]), /condition/);
+    assert.throws(() => compileEventBlocks([newBlock('raw', 'A & B')]), /ampersands/);
+    const locked = parseBlock('judo inset add <lock>a;b</lock>');
+    assert.deepEqual(compileEventBlocks([locked]), [locked.value]);
+    assert.throws(() => compileEventBlocks([locked, blocks[1]]), /locked/);
+});
+
+test('event map roots at the active event, uses its draft and bounds event cycles', () => {
+    const graph = buildGraph(snapshot, 'checkin', ['sequence', '%mute%'], 180, 'checkin', 'event');
+    assert.equal(graph.nodes[0].kind, 'event'); assert.equal(graph.nodes[0].label, 'checkin');
+    assert.ok(graph.nodes.some(node => node.label === 'sequence'));
+    assert.equal(snapshot.events[0].action, 'hello; hello; %mute%');
+    const values = { ...snapshot, events: [{ id: 'a', action: '%~>b%' }, { id: 'b', action: '%~>a%' }] };
+    const cycle = buildGraph(values, 'a', null, 180, 'a', 'event');
+    assert.ok(cycle.warnings.some(warning => warning.includes('Event cycle')));
+    assert.ok(cycle.nodes.length < 10);
+    const legacy = buildGraph(snapshot, 'old', ['*hello'], 180, 'old', 'event');
+    assert.equal(legacy.nodes[1].label, 'hello');
+});
+
+test('structured program controls preserve legacy source and expose launch, capture, arguments and deadlines', () => {
+    for (const source of ['./notepad.exe', './[launch]notepad.exe', "./[capture:00120]'C:/my script.cmd' '--flag \"two words\"'", './`program path` `arguments`']) {
+        const block = parseBlock(source); assert.ok(block.program); assert.equal(compileBlock(block), source);
+    }
+    const block = newBlock('program');
+    block.program.mode = 'capture'; block.program.target = 'C:/my script.cmd'; block.program.arguments = '--flag "two words"'; block.program.timeout = '120';
+    assert.equal(compileBlock(block), './[capture:120]\'C:/my script.cmd\' \'--flag "two words"\'');
+    block.program.timeout = '301'; assert.throws(() => compileBlock(block), /1 to 300/);
+    block.program.timeout = '10'; block.program.mode = 'launch';
+    assert.equal(compileBlock(block), './[launch]\'C:/my script.cmd\' \'--flag "two words"\'');
+    block.program.mode = 'legacy'; assert.equal(compileBlock(block), './\'C:/my script.cmd\' \'--flag "two words"\'');
+    block.program.target = ''; assert.throws(() => compileBlock(block));
+    assert.equal(parseProgram('./[unknown]notepad.exe'), null);
+    assert.equal(parseProgram("./'a' 'b' 'c'"), null);
 });

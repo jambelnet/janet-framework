@@ -12,7 +12,7 @@ namespace jaNET.Configuration;
 
 internal sealed record StudioEvent(string Id, string Action);
 internal sealed record StudioSnapshot(string Revision, IReadOnlyList<InstructionSetEntry> Instructions, IReadOnlyList<StudioEvent> Events, IReadOnlyList<string> Functions);
-internal sealed record StudioSave(string Id, string Revision, string[] Actions, bool Create = false, string? Header = null, string? Category = null);
+internal sealed record StudioSave(string Id, string Revision, string[] Actions, bool Create = false, string? Header = null, string? Category = null, string Kind = "instruction");
 
 internal sealed partial class AppConfigStore
 {
@@ -28,13 +28,33 @@ internal sealed partial class AppConfigStore
     }
 
     internal string SaveStudio(StudioSave save) {
-        if (string.IsNullOrEmpty(save.Id) || string.IsNullOrEmpty(save.Revision) || save.Actions == null || save.Actions.Length is < 1 or > 128 ||
+        if (save.Kind is not ("instruction" or "event")) throw new ArgumentException("Choose an instruction or an event.");
+        bool isEvent = save.Kind == "event";
+        if (string.IsNullOrEmpty(save.Id) || string.IsNullOrEmpty(save.Revision) || save.Actions == null || save.Actions.Length > 128 || (!isEvent && save.Actions.Length == 0) ||
             save.Actions.Any(action => action == null || action.Length > 65536) || save.Actions.Sum(action => action.Length) > 262144)
             throw new ArgumentException("Enter an identifier and 1 to 128 actions (maximum 256 KB total).");
         if (save.Create && !Regex.IsMatch(save.Id, "^[A-Za-z0-9_-]+$")) throw new ArgumentException("Use letters, numbers, underscores or hyphens for a new identifier.");
         if ((save.Header?.Length ?? 0) > 1024 || (save.Category?.Length ?? 0) > 1024) throw new ArgumentException("Header and category must be 1024 characters or fewer.");
-        return Modify("Instruction saved.", doc => {
+        if (isEvent && save.Actions.Length > 1 && save.Actions.Any(action => action.Contains("</lock>", StringComparison.Ordinal)))
+            throw new ArgumentException("A locked event must remain one raw action; other steps would not execute.");
+        return Modify(isEvent ? "Event saved." : "Instruction saved.", doc => {
             if (StudioRevision(doc) != save.Revision) throw new InvalidOperationException("Studio conflict: configuration changed. Reload before saving.");
+            if (isEvent) {
+                XElement events = Ensure(doc, "Events");
+                XElement? original = events.Elements("event").FirstOrDefault(e => (string?)e.Attribute("id") == save.Id);
+                string action = string.Join("; ", save.Actions);
+                if (save.Create) {
+                    if (original != null || doc.Root?.Element("Instructions")?.Elements("InstructionSet").Any(e => (string?)e.Attribute("id") == save.Id || (string?)e.Attribute("id") == "*" + save.Id) == true)
+                        throw new InvalidOperationException("Studio conflict: that name already exists.");
+                    events.Add(new XElement("event", new XAttribute("id", save.Id), action));
+                }
+                else {
+                    if (original == null) throw new InvalidOperationException("Studio conflict: event no longer exists.");
+                    // Event resolution uses the first matching definition; preserve its attributes and later duplicates.
+                    original.Value = action;
+                }
+                return;
+            }
             XElement parent = Ensure(doc, "Instructions");
             var originals = parent.Elements("InstructionSet").Where(e => (string?)e.Attribute("id") == save.Id).ToArray();
             if (save.Create) {

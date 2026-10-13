@@ -1,11 +1,12 @@
 // (c) J@mBeL.net 2010-2026. GNU GPL version 3 or later.
-import { parseBlock, newBlock, compileBlock, groupInstructions, editableId, buildGraph, safeId, mapLabels } from './studio-model.js';
+import { parseBlock, newBlock, compileBlock, parseEventAction, eventActions, compileEventBlocks, groupInstructions, editableId, buildGraph, actionDependencies, safeId, mapLabels } from './studio-model.js';
 import { studioRequest as request } from './studio-api.js';
 import { createFlow } from './studio-flow.js';
 const $ = id => document.getElementById(id);
-const labels = { text: 'Text', function: 'Function', instruction: 'Instruction call', event: 'Event', delay: 'Delay', condition: 'Condition', command: 'Judo command', program: 'Program', raw: 'Raw source' };
-const icons = { text: 'type', function: 'function-square', instruction: 'workflow', event: 'zap', delay: 'timer', condition: 'git-branch', command: 'terminal', program: 'app-window', raw: 'code' };
+const labels = { text: 'Text', template: 'Text template', function: 'Function', instruction: 'Instruction call', pointer: 'Launcher reference', event: 'Event call', delay: 'Delay', condition: 'Condition', command: 'Judo command', program: 'Program', raw: 'Raw source' };
+const icons = { text: 'type', template: 'type', function: 'function-square', instruction: 'workflow', pointer: 'workflow', event: 'zap', delay: 'timer', condition: 'git-branch', command: 'terminal', program: 'app-window', raw: 'code' };
 let snapshot, groups = new Map(), draft = null, saved = '', selected = -1, view = 'builder', history = [], future = [], graphView, graphLoad, busy = false, map, mapMode = '2d', mapGeneration = 0;
+let libraryKind = 'instruction';
 const flowView = createFlow($('mapFlow'), inspectNode);
 function iconize(root = document) {
     root.querySelectorAll('[data-icon]').forEach(element => {
@@ -20,87 +21,165 @@ function button(icon, title, handler) { const node = element('button', null, 'ic
 function status(message, error = false) { $('status').textContent = message; $('status').dataset.error = String(error); }
 const signature = () => JSON.stringify(draft);
 const dirty = () => draft && signature() !== saved;
-function discard() { return !dirty() || window.confirm('Discard unsaved instruction changes?'); }
+function discard() { return !dirty() || window.confirm('Discard unsaved routine changes?'); }
 function remember() { history.push(signature()); if (history.length > 60) history.shift(); future = []; }
 function change(update) { if (busy || !draft) return; remember(); update(); render(); }
-function actions() { return draft.blocks.map(compileBlock); }
+function actions() { return draft.kind === 'event' ? compileEventBlocks(draft.blocks) : draft.blocks.map(compileBlock); }
 function canRun() { return draft && !draft.create && !dirty() && safeId.test(draft.callable); }
 function controls() {
     $('undo').disabled = busy || !history.length; $('redo').disabled = busy || !future.length;
     $('save').disabled = busy || !dirty(); $('run').disabled = busy || !canRun(); $('addRaw').disabled = busy || !draft;
     $('new').disabled = busy || !snapshot; $('refresh').disabled = busy; $('instructions').disabled = busy;
+    $('blocks').querySelectorAll('.action-dependencies button').forEach(button => button.disabled = busy);
+    document.querySelectorAll('.palette-item button, .library-kinds button').forEach(button => button.disabled = busy || button.dataset.intent === 'add' && (!draft || draft.kind === 'event' && ['text', 'template', 'condition', 'pointer'].includes(button.dataset.kind)));
     $('dirtyState').textContent = dirty() ? 'Unsaved changes' : draft ? 'Saved' : '';
 }
 function setSnapshot(value) { snapshot = value; groups = groupInstructions(value); renderChoices(); renderPalette(); }
-async function load(id) {
+async function load(id, kind = draft?.kind ?? libraryKind) {
     if (busy || !discard()) return;
     busy = true; controls(); $('loadError').hidden = true; status('Loading configuration...');
-    try { setSnapshot(await request()); openInstruction(id && groups.has(id) ? id : [...groups.keys()].find(key => !key.startsWith('*')) ?? [...groups.keys()][0]); status('Configuration loaded.'); }
+    try { setSnapshot(await request()); if (id) openDocument(id, kind); else { draft = null; saved = ''; selected = -1; history = []; future = []; } status('Configuration loaded.'); }
     catch (error) { status('Configuration could not load.', true); $('loadErrorMessage').textContent = error.message; $('loadError').hidden = false; }
-    finally { busy = false; controls(); }
+    finally { busy = false; render(); }
 }
 function openInstruction(id) {
     if (!id) return;
     const target = editableId(id, groups), entries = groups.get(target);
     if (!entries) return;
     const callable = target.startsWith('*') && groups.has(target.slice(1)) ? target.slice(1) : target;
-    draft = { id: target, callable, create: false, blocks: entries.map(entry => parseBlock(entry.action)) };
+    draft = { kind: 'instruction', id: target, callable, create: false, blocks: entries.map(entry => parseBlock(entry.action)) };
     selected = draft.blocks.length ? 0 : -1; history = []; future = []; saved = signature();
-    $('instructions').value = id; $('runOutput').hidden = true; render();
+    libraryKind = 'instruction'; renderChoices(); $('instructions').value = id; $('runOutput').hidden = true; render();
+}
+function openDocument(id, kind = 'instruction') {
+    if (kind !== 'event') { openInstruction(id); return; }
+    const definition = snapshot.events.find(event => event.id === id);
+    if (!definition) { status('Event not found: ' + id, true); return; }
+    draft = { kind: 'event', id, callable: id, create: false, blocks: eventActions(definition.action).map(parseEventAction) };
+    selected = draft.blocks.length ? 0 : -1; history = []; future = []; saved = signature();
+    libraryKind = 'event'; renderChoices(); $('instructions').value = id; $('runOutput').hidden = true; render();
 }
 function renderChoices() {
     const current = $('instructions').value, query = $('instructionSearch').value.toLowerCase(); $('instructions').replaceChildren();
-    for (const [id, entries] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
+    $('libraryInstructions').setAttribute('aria-pressed', String(libraryKind === 'instruction')); $('libraryEvents').setAttribute('aria-pressed', String(libraryKind === 'event'));
+    const choices = libraryKind === 'instruction' ? groups : new Map(snapshot.events.map(event => [event.id, [{ header: '' }]]));
+    for (const [id, entries] of [...choices].sort(([a], [b]) => a.localeCompare(b))) {
         if (!(id + ' ' + (entries[0].header ?? '')).toLowerCase().includes(query)) continue;
         const option = element('option', entries[0].header ? `${id} - ${entries[0].header}` : id); option.value = id; option.title = option.textContent; $('instructions').append(option);
     }
     $('instructions').value = current;
 }
-function renderPalette() {
-    const query = $('blockSearch').value.toLowerCase(), palette = $('palette'); palette.replaceChildren();
+function renderPalette(palette = $('palette'), query = $('blockSearch').value.toLowerCase(), chooser = false) {
+    palette.replaceChildren();
     const add = (kind, value, title) => {
         if (!title.toLowerCase().includes(query)) return;
-        const item = element('button', null, 'palette-item'); item.type = 'button'; item.dataset.kind = kind; item.dataset.value = value;
-        const icon = element('span'); icon.dataset.icon = icons[kind]; const plus = element('span'); plus.dataset.icon = 'plus';
-        item.append(icon, element('span', title), plus); item.title = 'Add ' + title; item.onclick = () => addBlock(kind, value); palette.append(item);
+        const item = element('div', null, 'palette-item'); item.dataset.kind = kind; item.dataset.value = value;
+        const name = element('button', null, 'palette-name'); name.type = 'button'; name.dataset.kind = kind;
+        const icon = element('span'); icon.dataset.icon = icons[kind]; name.append(icon, element('span', title));
+        const reference = ['instruction', 'pointer', 'event'].includes(kind);
+        name.dataset.intent = reference && !chooser ? 'open' : 'add';
+        name.title = (reference && !chooser ? 'Open ' : 'Add ') + title;
+        name.onclick = () => reference && !chooser ? editDependency(value, kind === 'event' ? 'event' : 'instruction') : addBlock(kind, value);
+        const plus = button('plus', 'Add ' + title, () => addBlock(kind, value)); plus.dataset.kind = kind;
+        plus.dataset.intent = 'add';
+        name.disabled = busy || name.dataset.intent === 'add' && !draft; plus.disabled = busy || !draft;
+        if (draft?.kind === 'event' && ['text', 'template', 'condition', 'pointer'].includes(kind)) {
+            plus.disabled = true; if (name.dataset.intent === 'add') name.disabled = true;
+            plus.title = 'Put this action in an instruction, then add an instruction call to the event.';
+            if (name.dataset.intent === 'add') name.title = plus.title;
+        }
+        item.append(name, plus); palette.append(item);
     };
     palette.append(element('div', 'Actions', 'palette-group'));
-    for (const kind of ['text', 'delay', 'condition', 'command', 'program', 'raw']) add(kind, '', labels[kind]);
+    for (const kind of ['text', 'template', 'delay', 'condition', 'command', 'program', 'raw']) add(kind, '', labels[kind]);
     palette.append(element('div', 'Functions', 'palette-group'));
     for (const name of snapshot?.functions ?? []) add('function', name, name);
     palette.append(element('div', 'Instructions', 'palette-group'));
     for (const id of groups.keys()) if (safeId.test(id)) add('instruction', id, id);
+    palette.append(element('div', 'Launchers', 'palette-group'));
+    for (const id of groups.keys()) if (/^\*[A-Za-z0-9_-]+$/.test(id)) add('pointer', id, id);
     palette.append(element('div', 'Events', 'palette-group'));
     for (const id of new Set((snapshot?.events ?? []).map(event => event.id))) if (safeId.test(id)) add('event', id, id);
     iconize(palette);
 }
 function addBlock(kind, value = '', index = draft?.blocks.length) {
-    if (!draft || busy) { status('Select an instruction first.', true); return; }
-    change(() => { draft.blocks.splice(index, 0, newBlock(kind, value)); selected = index; view = 'builder'; });
+    if (!draft || busy) { status('Select a routine first.', true); return; }
+    if (draft.kind === 'event' && ['text', 'template', 'condition', 'pointer'].includes(kind)) { status('Put this action in an instruction, then add an instruction call to the event.', true); return; }
+    change(() => { const block = newBlock(kind, value); if (kind === 'instruction' && draft.kind === 'event') block.invocation = 'bare'; draft.blocks.splice(index, 0, block); selected = index; view = 'builder'; });
+    $('actionDialog').close();
+}
+function editDependency(id, kind = 'instruction') {
+    if (!busy && discard()) { view = 'builder'; openDocument(id, kind); }
+}
+function renderDependencies(row, source, position, previewGroups) {
+    const dependencies = actionDependencies(snapshot, source, position, previewGroups).filter(dependency => dependency.missing || dependency.kind !== 'function' || dependency.id !== source);
+    if (!dependencies.length) return;
+    const section = element('div', null, 'action-dependencies');
+    for (const dependency of dependencies) {
+        const title = `${dependency.branch ? dependency.branch + ': ' : ''}${mapLabels[dependency.kind]} ${dependency.id}`;
+        if (dependency.kind === 'function' || dependency.missing) {
+            section.append(element('p', title + (dependency.missing ? ' (not found)' : ''), dependency.missing ? 'dependency-missing' : 'dependency-function'));
+            continue;
+        }
+        const details = element('details', null, 'dependency-preview');
+        details.append(element('summary', `${title} (${dependency.actions.length} ${dependency.actions.length === 1 ? 'action' : 'actions'})`));
+        const list = element('ol', null, 'dependency-actions');
+        for (const action of dependency.actions) {
+            const item = element('li'), content = element('code', action);
+            item.append(content);
+            const target = dependency.kind === 'event' && safeId.test(action) && groups.has(action) ? action : null;
+            if (target) { const edit = button('pencil', 'Edit ' + target, () => editDependency(target)); edit.disabled = busy; item.append(edit); }
+            list.append(item);
+        }
+        if (!dependency.actions.length) list.append(element('li', 'No actions.'));
+        details.append(list);
+        if (['instruction', 'event'].includes(dependency.kind)) {
+            const edit = button('pencil', 'Edit ' + dependency.id, () => editDependency(dependency.id, dependency.kind));
+            edit.disabled = busy;
+            edit.classList.add('dependency-edit'); details.querySelector('summary').append(edit);
+            edit.onclick = event => { event.preventDefault(); editDependency(dependency.id, dependency.kind); };
+        }
+        section.append(details);
+    }
+    row.append(section);
 }
 function render() {
     controls();
-    $('documentName').textContent = draft?.callable ?? 'No instruction selected';
-    $('documentMeta').textContent = draft ? `${draft.blocks.length} actions${draft.id !== draft.callable ? ' / source: ' + draft.id : ''}${draft.create ? ' / new instruction' : ''}` : '';
+    $('documentName').textContent = draft ? `${draft.kind === 'event' ? 'Event' : 'Instruction'}: ${draft.callable}` : 'No routine selected';
+    $('documentMeta').textContent = draft ? `${draft.blocks.length} ${draft.blocks.length === 1 ? 'action' : 'actions'}${draft.id !== draft.callable ? ' / source: ' + draft.id : ''}${draft.create ? ' / new ' + draft.kind : ''}` : '';
     $('blocks').replaceChildren(); $('sources').replaceChildren(); $('builderEmpty').hidden = Boolean(draft);
+    const previewGroups = draft && draft.kind !== 'event' ? groupInstructions(snapshot, draft.callable, draft.blocks.map(block => {
+        try { return compileBlock(block); } catch { return block.value || '(incomplete action)'; }
+    }), draft.id) : groups;
+    renderPalette();
     for (const [index, block] of (draft?.blocks ?? []).entries()) {
         let source; try { source = compileBlock(block); } catch { source = block.value || block.expression || '(incomplete action)'; }
         const row = element('li', null, 'block' + (selected === index ? ' is-selected' : '')); row.dataset.index = String(index);
         const handle = button('grip-vertical', 'Drag action ' + (index + 1)); handle.classList.add('drag-handle');
-        const copy = element('button', null, 'block-copy'); copy.type = 'button'; copy.append(element('strong', labels[block.kind]), element('code', source)); copy.onclick = () => { selected = index; render(); };
+        const program = block.kind === 'program' && block.program;
+        const title = program ? program.mode === 'launch' ? 'Launch application' : program.mode === 'capture' ? 'Capture output' : 'Capture output (legacy)' : labels[block.kind];
+        const summary = program ? program.target + (program.arguments ? ' ' + program.arguments : '') : block.kind === 'delay' ? block.value + ' ms' : source;
+        const copy = element('button', null, 'block-copy'); copy.type = 'button'; copy.append(element('strong', title), element('code', summary)); copy.onclick = () => { selected = index; render(); };
         row.append(handle, element('span', String(index + 1).padStart(2, '0'), 'block-number'), copy, button(icons[block.kind], 'Edit action ' + (index + 1), () => { selected = index; render(); })); $('blocks').append(row);
+        renderDependencies(row, block.kind === 'instruction' && ['bare', 'star'].includes(block.invocation) ? 'judo inset run ' + block.value : source, index, previewGroups);
         const sourceRow = element('div', null, 'source-row'), label = element('label', 'Action ' + (index + 1)), input = element('textarea'); input.value = source; input.spellcheck = false; input.disabled = busy;
         input.setAttribute('aria-label', 'Source for action ' + (index + 1));
-        input.onchange = () => change(() => { draft.blocks[index] = parseBlock(input.value); });
+        input.onchange = () => change(() => { draft.blocks[index] = draft.kind === 'event' ? parseEventAction(input.value) : parseBlock(input.value); });
         label.append(input); sourceRow.append(label); $('sources').append(sourceRow);
     }
-    showView(); renderInspector(); iconize();
+    showView(); renderInspector(); iconize(); controls();
 }
-function field(labelText, value, update, { list, type = 'text', multiline = false } = {}) {
+function field(labelText, value, update, { list, type = 'text', multiline = false, min, max } = {}) {
     const label = element('label', labelText), input = element(list ? 'select' : multiline ? 'textarea' : 'input');
-    if (list) { for (const name of [...new Set([value, ...list])].filter(Boolean)) { const option = element('option', name); option.value = name; input.append(option); } }
+    if (list) {
+        const choices = list.map(item => typeof item === 'string' ? { value: item, label: item } : item);
+        if (value && !choices.some(item => item.value === value)) choices.unshift({ value, label: value });
+        for (const item of new Map(choices.map(item => [item.value, item])).values()) { const option = element('option', item.label); option.value = item.value; input.append(option); }
+    }
     else if (!multiline) input.type = type;
     input.value = value ?? ''; input.disabled = busy; input.onchange = () => change(() => update(input.value));
+    input.setAttribute('aria-label', labelText);
+    if (min != null) input.min = String(min); if (max != null) input.max = String(max);
     label.append(input); return label;
 }
 function renderInspector() {
@@ -108,7 +187,15 @@ function renderInspector() {
     const block = draft?.blocks[selected];
     if (!block) { panel.append(element('p', 'No action selected.', 'empty')); return; }
     panel.append(element('strong', `Action ${selected + 1} / ${labels[block.kind]}`));
-    if (block.kind === 'condition') {
+    if (block.kind === 'program' && block.program) {
+        const program = block.program;
+        panel.append(field('Mode', program.mode, value => program.mode = value, { list: [
+            { value: 'launch', label: 'Launch application' }, { value: 'capture', label: 'Capture output' }, { value: 'legacy', label: 'Capture output (legacy, 30 s)' }
+        ] }));
+        panel.append(field('Program or script', program.target, value => program.target = value));
+        panel.append(field('Arguments', program.arguments, value => program.arguments = value, { multiline: true }));
+        if (program.mode === 'capture') panel.append(field('Timeout (seconds)', program.timeout, value => program.timeout = value, { type: 'number', min: 1, max: 300 }));
+    } else if (block.kind === 'condition') {
         panel.append(field('Expression', block.expression, value => block.expression = value));
         panel.append(field('When true', block.yes, value => block.yes = value));
         panel.append(field('When false', block.no, value => block.no = value));
@@ -116,11 +203,18 @@ function renderInspector() {
         let list;
         if (block.kind === 'function') list = snapshot.functions;
         if (block.kind === 'instruction') list = [...groups.keys()].filter(id => safeId.test(id));
+        if (block.kind === 'pointer') list = [...groups.keys()].filter(id => /^\*[A-Za-z0-9_-]+$/.test(id));
         if (block.kind === 'event') list = snapshot.events.map(event => event.id).filter(id => safeId.test(id));
-        panel.append(field(block.kind === 'delay' ? 'Milliseconds' : block.kind === 'program' ? 'Program expression' : list ? 'Target' : 'Value', block.value, value => block.value = value, { list, type: block.kind === 'delay' ? 'number' : 'text', multiline: ['text', 'raw', 'command', 'program'].includes(block.kind) }));
+        panel.append(field(block.kind === 'delay' ? 'Milliseconds' : block.kind === 'program' ? 'Program expression' : list ? 'Target' : 'Value', block.value, value => block.value = value, { list, type: block.kind === 'delay' ? 'number' : 'text', multiline: ['text', 'template', 'raw', 'command', 'program'].includes(block.kind) }));
     }
     const source = element('pre'); try { source.textContent = compileBlock(block); } catch (error) { source.textContent = error.message; }
     panel.append(source);
+    if (block.kind === 'event' && snapshot.events.some(event => event.id === block.value)) {
+        const edit = button('pencil', 'Edit event ' + block.value, () => editDependency(block.value, 'event')); edit.disabled = busy; panel.append(edit);
+    }
+    if (block.kind === 'instruction' && groups.has(block.value)) {
+        const edit = button('pencil', 'Edit instruction ' + block.value, () => editDependency(block.value)); edit.disabled = busy; panel.append(edit);
+    }
     const buttons = element('div', null, 'property-actions');
     const move = offset => change(() => { const next = selected + offset; [draft.blocks[selected], draft.blocks[next]] = [draft.blocks[next], draft.blocks[selected]]; selected = next; });
     const up = button('arrow-up', 'Move action up', () => move(-1)); up.disabled = busy || selected === 0;
@@ -129,6 +223,10 @@ function renderInspector() {
     const remove = button('trash-2', 'Remove action', () => change(() => { draft.blocks.splice(selected, 1); selected = Math.min(selected, draft.blocks.length - 1); })); remove.classList.add('danger'); remove.disabled = busy;
     buttons.append(up, down, duplicate, remove); panel.append(buttons);
     if (block.kind !== 'raw') { const raw = element('button', 'Edit as raw source'); raw.type = 'button'; raw.disabled = busy; raw.onclick = () => { try { const value = compileBlock(block); change(() => draft.blocks[selected] = { kind: 'raw', value }); } catch (error) { status(error.message, true); } }; panel.append(raw); }
+    else if ((draft.kind === 'event' ? parseEventAction(block.value) : parseBlock(block.value)).kind !== 'raw') {
+        const typed = element('button', 'Use block editor'); typed.type = 'button'; typed.disabled = busy;
+        typed.onclick = () => change(() => draft.blocks[selected] = draft.kind === 'event' ? parseEventAction(block.value) : parseBlock(block.value)); panel.append(typed);
+    }
 }
 function showView() {
     for (const name of ['builder', 'map', 'source']) {
@@ -143,7 +241,7 @@ async function updateMap() {
     if (!snapshot || !draft) return;
     let compiled; try { compiled = actions(); } catch (error) { status(error.message, true); return; }
     const generation = ++mapGeneration; stopPreview();
-    map = buildGraph(snapshot, draft.callable, compiled, 180, draft.id);
+    map = buildGraph(snapshot, draft.callable, compiled, 180, draft.id, draft.kind);
     $('mapWarnings').replaceChildren(...map.warnings.map(warning => element('li', warning)));
     $('mapList').replaceChildren(...map.nodes.map(node => { const item = element('button', (mapLabels[node.kind] ?? node.kind) + ': ' + node.label); item.onclick = () => inspectNode(node); return item; }));
     flowView.update(map); setMapModeVisibility();
@@ -178,14 +276,17 @@ function inspectNode(node) {
     if (node.kind === 'instruction' && groups.has(node.label)) {
         const open = element('button', 'Edit ' + node.label); open.onclick = () => { if (discard()) { view = 'builder'; openInstruction(node.label); } }; panel.append(open);
     }
+    if (node.kind === 'event' && snapshot.events.some(event => event.id === node.label)) {
+        const open = element('button', 'Edit event ' + node.label); open.onclick = () => editDependency(node.label, 'event'); panel.append(open);
+    }
 }
 async function save() {
     if (busy || !dirty()) return;
-    let compiled; try { compiled = actions(); if (!compiled.length) throw new Error('Add at least one action.'); } catch (error) { status(error.message, true); return; }
-    busy = true; controls(); renderInspector(); status('Saving instruction...');
+    let compiled; try { compiled = actions(); if (!compiled.length && draft.kind !== 'event') throw new Error('Add at least one action.'); } catch (error) { status(error.message, true); return; }
+    busy = true; controls(); renderInspector(); status('Saving routine...');
     try {
-        const result = await request('POST', { id: draft.id, revision: snapshot.revision, actions: compiled, create: draft.create, header: draft.header, category: draft.category });
-        const id = draft.id; setSnapshot(result.snapshot); openInstruction(id); status(result.message);
+        const result = await request('POST', { id: draft.id, kind: draft.kind, revision: snapshot.revision, actions: compiled, create: draft.create, header: draft.header, category: draft.category });
+        const { id, kind } = draft; setSnapshot(result.snapshot); openDocument(id, kind); status(result.message);
     } catch (error) { status(error.message, true); }
     finally { busy = false; render(); }
 }
@@ -197,7 +298,7 @@ $('runDialog').addEventListener('close', async () => {
     if ($('runDialog').returnValue !== 'run' || !canRun() || busy) return;
     busy = true; controls(); renderInspector(); $('runOutput').hidden = false; $('runOutput').textContent = 'Running ' + draft.callable + '...';
     try {
-        const response = await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: 'judo inset run ' + draft.callable }), signal: AbortSignal.timeout(315000) });
+        const response = await fetch('/api/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: draft.kind === 'event' ? `%~>${draft.id}%` : 'judo inset run ' + draft.callable }), signal: AbortSignal.timeout(315000) });
         if (!response.ok) throw new Error('Command failed (' + response.status + ').');
         $('runOutput').textContent = (await response.text()) || 'Operation completed: ' + draft.callable;
     } catch (error) { $('runOutput').textContent = error.message + ' The host may still be running the operation; it has not been retried.'; }
@@ -205,17 +306,24 @@ $('runDialog').addEventListener('close', async () => {
 });
 $('newForm').onsubmit = event => {
     event.preventDefault(); const data = new FormData(event.currentTarget), id = data.get('id').trim();
-    if (!safeId.test(id) || groups.has(id) || groups.has('*' + id) || snapshot.events.some(event => event.id === id)) { $('newError').hidden = false; $('newError').textContent = 'Choose an unused instruction identifier.'; return; }
-    draft = { id, callable: id, create: true, header: data.get('header'), category: data.get('category'), blocks: [newBlock('text')] };
-    selected = 0; saved = ''; history = []; future = []; view = 'builder'; $('newDialog').close(); render(); status('New instruction draft.');
+    if (!safeId.test(id) || groups.has(id) || groups.has('*' + id) || snapshot.events.some(event => event.id === id)) { $('newError').hidden = false; $('newError').textContent = 'Choose an unused routine identifier.'; return; }
+    const kind = data.get('kind');
+    draft = { kind, id, callable: id, create: true, header: data.get('header'), category: data.get('category'), blocks: kind === 'event' ? [] : [newBlock('text')] };
+    selected = draft.blocks.length ? 0 : -1; saved = ''; history = []; future = []; view = 'builder'; $('newDialog').close(); render(); status('New routine draft.');
 };
-$('new').onclick = () => { if (discard()) { $('newForm').reset(); $('newError').hidden = true; $('newDialog').showModal(); } };
+function newKindFields() { const event = $('newForm').elements.kind.value === 'event'; $('newForm').elements.header.disabled = event; $('newForm').elements.category.disabled = event; }
+$('newForm').elements.kind.onchange = newKindFields;
+$('new').onclick = () => { if (discard()) { $('newForm').reset(); $('newForm').elements.kind.value = libraryKind; newKindFields(); $('newError').hidden = true; $('newDialog').showModal(); } };
 $('closeNew').onclick = () => $('newDialog').close();
-$('instructions').onchange = event => { const id = event.target.value; if (discard()) openInstruction(id); else event.target.value = draft.callable; };
-$('instructionSearch').oninput = renderChoices; $('blockSearch').oninput = renderPalette;
+$('instructions').onchange = event => { const id = event.target.value; if (discard()) { view = 'builder'; openDocument(id, libraryKind); } else event.target.value = draft.kind === libraryKind ? draft.callable : ''; };
+$('libraryInstructions').onclick = () => { libraryKind = 'instruction'; renderChoices(); };
+$('libraryEvents').onclick = () => { libraryKind = 'event'; renderChoices(); };
+$('instructionSearch').oninput = renderChoices; $('blockSearch').oninput = () => renderPalette();
 $('refresh').onclick = () => load(draft?.id); $('save').onclick = save; $('run').onclick = run;
 $('retryLoad').onclick = () => load(draft?.id);
-$('addRaw').onclick = () => addBlock('raw');
+$('addRaw').onclick = () => { if (!busy && draft) { $('actionSearch').value = ''; renderPalette($('actionChoices'), '', true); $('actionDialog').showModal(); $('actionSearch').focus(); } };
+$('closeAction').onclick = () => $('actionDialog').close();
+$('actionSearch').oninput = () => renderPalette($('actionChoices'), $('actionSearch').value.toLowerCase(), true);
 function undo(redo = false) {
     const from = redo ? future : history, to = redo ? history : future;
     if (busy || !from.length) return;

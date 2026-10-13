@@ -278,17 +278,32 @@ export function wireVoice(onTranscript, notify) {
         byId('speechVoice').disabled = !['auto', 'windows', 'espeak'].includes(engine); byId('piperModel').disabled = engine !== 'piper';
     }
 
+    let settingsReady = false;
+    let settingsGeneration = 0;
+    const settingsControls = [...byId('voiceForm').querySelectorAll('input,select,button')].filter(control => !('close' in control.dataset));
+    byId('voiceSettings').addEventListener('close', () => {
+        if (!byId('voiceSettings').open) { settingsGeneration++; settingsReady = false; }
+    });
+
     async function loadSettings() {
+        const generation = ++settingsGeneration;
+        settingsReady = false; settingsControls.forEach(control => { control.disabled = true; });
+        byId('voiceSetupStatus').textContent = 'Loading saved voice settings...';
         byId('voicePlayback').value = prefs.playback; byId('voiceRate').value = prefs.rate;
         byId('voiceRateValue').value = Number(prefs.rate).toFixed(1); byId('voiceReplies').checked = prefs.replies; byId('voiceEvents').checked = prefs.events; voices();
         try {
             const config = await (await request('')).json();
             const map = { speechEngine: 'engine', speechExecutable: 'executable', speechVoice: 'voice', piperModel: 'piperModel', recognitionModel: 'recognitionModel' };
+            if (generation !== settingsGeneration) return;
+            if (Object.values(map).some(key => typeof config.settings?.[key] !== 'string')) throw new Error('Incomplete voice settings response.');
             Object.entries(map).forEach(([id, key]) => { byId(id).value = config.settings[key]; });
+            settingsControls.forEach(control => { control.disabled = false; }); settingsReady = true;
             byId('voiceSetupStatus').textContent = (config.recognitionReady ? 'Recognition model ready.' : 'No recognition model installed.') + ' ' +
                 (config.synthesisReady ? 'Server speech engine ready.' : 'Server engine not installed/configured.');
-        } catch (error) { byId('voiceSetupStatus').textContent = error.message; }
-        fields();
+            fields();
+        } catch (error) {
+            if (generation === settingsGeneration) byId('voiceSetupStatus').textContent = 'Saved voice settings could not be loaded. Close and reopen to retry. ' + error.message;
+        }
     }
 
     async function saveServer() {
@@ -298,6 +313,7 @@ export function wireVoice(onTranscript, notify) {
 
     byId('voiceForm').addEventListener('submit', async event => {
         event.preventDefault();
+        if (!settingsReady) return;
         try {
             await saveServer(); prefs = { playback: byId('voicePlayback').value, voice: byId('browserVoice').value, rate: Number(byId('voiceRate').value), replies: byId('voiceReplies').checked, events: byId('voiceEvents').checked };
             if (!prefs.events) pendingEvents.length = 0;
@@ -318,6 +334,7 @@ export function wireVoice(onTranscript, notify) {
         finally { button.disabled = false; }
     });
     byId('testVoice').addEventListener('click', async () => {
+        if (!settingsReady) return;
         try { if (byId('voicePlayback').value === 'server') await saveServer(); await say('Hello. Jubito is ready.', true); }
         catch (error) { byId('voiceSetupStatus').textContent = error.message; }
     });
