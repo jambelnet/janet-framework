@@ -74,6 +74,19 @@ public class WebUiSourceTests
     }
 
     [Fact]
+    public void StudioBackLinkReturnsHomeAndKeepsTheUnsavedChangesGuard() {
+        string www = WwwFolder();
+        Assert.NotNull(www);
+        string html = File.ReadAllText(Path.Combine(www, "studio.html"), Encoding.UTF8);
+        string script = File.ReadAllText(Path.Combine(www, "js", "studio.js"), Encoding.UTF8);
+
+        Assert.Contains("href=\"./#page0\" title=\"Back to Home\" aria-label=\"Back to Home\" data-icon=\"arrow-left\"", html);
+        Assert.DoesNotContain("href=\"./#page3\"", html);
+        Assert.Contains("document.querySelectorAll('a[href=\"./#page0\"]')", script);
+        Assert.Contains("if (!discard()) event.preventDefault();", script);
+    }
+
+    [Fact]
     public void TheQuickActionsStayInOneRow() {
         string css = Path.Combine(WwwFolder() ?? string.Empty, "css", "app.css");
         if (!File.Exists(css)) return;

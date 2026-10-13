@@ -340,7 +340,7 @@ $('zoomInMap').onclick = () => currentMap()?.zoom(1 / 1.2); $('zoomOutMap').oncl
 $('animateMap').onclick = () => { const active = $('animateMap').getAttribute('aria-pressed') !== 'true'; previewState(active); currentMap()?.animate(active); };
 $('theme').onclick = () => { const dark = getComputedStyle(document.documentElement).colorScheme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('jubito-theme', document.documentElement.dataset.theme); } catch {} graphView?.theme(); };
 window.addEventListener('beforeunload', event => { if (dirty()) { event.preventDefault(); event.returnValue = ''; } });
-document.querySelectorAll('a[href="./#page0"], a[href="./#page3"]').forEach(link => link.onclick = event => { if (!discard()) event.preventDefault(); });
+document.querySelectorAll('a[href="./#page0"]').forEach(link => link.onclick = event => { if (!discard()) event.preventDefault(); });
 if (matchMedia('(max-width: 700px)').matches) { $('libraryPanel').open = false; $('blocksPanel').open = false; }
 if (window.Sortable) {
     new window.Sortable($('palette'), { group: { name: 'studio', pull: 'clone', put: false }, sort: false, draggable: '.palette-item', animation: 150, delayOnTouchOnly: true, delay: 180 });
