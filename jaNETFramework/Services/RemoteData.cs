@@ -22,6 +22,7 @@ using jaNET.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using System.Xml.XPath;
 
 namespace jaNET.Services;
 
@@ -37,15 +38,12 @@ internal sealed class RemoteData
     /// <summary>The value at a '/' separated path of property names and array indexes, e.g. "main/temp" or "list/0/name".</summary>
     public string JsonValue(string endpoint, string path) => JsonCompat.SelectValue(_http.Get(endpoint), path);
 
-    /// <summary>The text of one node, or null if the document or the node cannot be read. A <paramref name="nodeIndex"/> of 0 or less selects the first match.</summary>
-    public string? XmlNode(string endpoint, string xpath, int nodeIndex = 0) {
-        try {
-            XmlNodeList nodes = Load(endpoint).SelectNodes(xpath)!;
-            return nodes.Item(nodeIndex <= 0 ? 0 : nodeIndex)!.InnerText;
-        }
-        catch (Exception) {
-            return null;
-        }
+    /// <summary>The text of one node. A <paramref name="nodeIndex"/> of 0 or less selects the first match; errors are reported to the command runner.</summary>
+    public string XmlNode(string endpoint, string xpath, int nodeIndex = 0) {
+        XmlNodeList nodes = Select(Load(endpoint), xpath);
+        int index = Math.Max(0, nodeIndex);
+        if (index >= nodes.Count) throw new ArgumentOutOfRangeException(nameof(nodeIndex), "XML web service: the selected node index is out of range.");
+        return nodes[index]!.InnerText;
     }
 
     /// <summary>
@@ -53,26 +51,49 @@ internal sealed class RemoteData
     /// or of one attribute of those nodes when <paramref name="nodeAndAttribute"/> is "node/attribute".
     /// </summary>
     public List<string> XmlNodes(string endpoint, string namespaceDeclaration, string nodeAndAttribute) {
-        string[] declaration = namespaceDeclaration.Split('=');
-        string prefix = declaration[0].Substring(declaration[0].LastIndexOf(':') + 1);
-        string uri = declaration[1].Trim();
-
-        string node = nodeAndAttribute.Substring(0, nodeAndAttribute.LastIndexOf('/'));
-        string attribute = nodeAndAttribute.Substring(nodeAndAttribute.LastIndexOf('/') + 1);
-
+        int equals = namespaceDeclaration.IndexOf('=');
+        if (equals <= 0 || equals == namespaceDeclaration.Length - 1) throw new ArgumentException("XML web service: enter a namespace such as s=urn:sensors.");
+        string prefix = namespaceDeclaration.Substring(0, equals);
+        prefix = prefix.Substring(prefix.LastIndexOf(':') + 1);
+        string uri = namespaceDeclaration.Substring(equals + 1).Trim();
         XmlDocument document = Load(endpoint);
         var namespaces = new XmlNamespaceManager(document.NameTable);
         namespaces.AddNamespace(prefix, uri);
-
+        string xpath = nodeAndAttribute.EndsWith('/') ? nodeAndAttribute.Substring(0, nodeAndAttribute.Length - 1) : nodeAndAttribute;
+        // Keep the legacy "node/attribute" form, while also accepting ordinary namespace-qualified XPath.
+        int slash = xpath.LastIndexOf('/');
+        if (!nodeAndAttribute.EndsWith('/') && slash > 1 && IsXmlName(xpath.Substring(slash + 1))) {
+            string attribute = xpath.Substring(slash + 1);
+            XmlNodeList parents = Select(document, xpath.Substring(0, slash), namespaces, allowEmpty: true);
+            if (parents.Count > 0 && parents[0]!.Attributes?[attribute] != null) {
+                var attributes = new List<string>();
+                foreach (XmlNode parent in parents) attributes.Add(parent.Attributes?[attribute]?.InnerText ?? throw new InvalidOperationException("XML web service: the selected attribute was not found on every node."));
+                return attributes;
+            }
+        }
         var values = new List<string>();
-        foreach (XmlNode n in document.SelectNodes(node, namespaces)!)
-            values.Add(!string.IsNullOrEmpty(attribute) ? n.Attributes![attribute]!.InnerText : n.InnerText);
+        foreach (XmlNode n in Select(document, xpath, namespaces)) values.Add(n.InnerText);
         return values;
     }
 
+    static bool IsXmlName(string value) {
+        try { XmlConvert.VerifyName(value); return true; }
+        catch (XmlException) { return false; }
+    }
+
+    static XmlNodeList Select(XmlDocument document, string xpath, XmlNamespaceManager? namespaces = null, bool allowEmpty = false) {
+        XmlNodeList nodes;
+        try { nodes = (namespaces == null ? document.SelectNodes(xpath) : document.SelectNodes(xpath, namespaces))!; }
+        catch (XPathException error) { throw new ArgumentException("XML web service: invalid XPath or an undeclared namespace prefix.", error); }
+        if (!allowEmpty && nodes.Count == 0) throw new InvalidOperationException("XML web service: no nodes match the selected path.");
+        return nodes;
+    }
+
     XmlDocument Load(string endpoint) {
-        var document = new XmlDocument();
-        document.LoadXml(_http.Get(endpoint));
+        var document = new XmlDocument { XmlResolver = null };
+        string response = _http.Get(endpoint);
+        try { document.LoadXml(response); }
+        catch (XmlException error) { throw new InvalidOperationException("XML web service: the response is not valid XML.", error); }
         return document;
     }
 }

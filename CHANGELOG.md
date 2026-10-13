@@ -5,6 +5,12 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Fixed
+
+* JSON web-service saves ignore inactive XML namespace/index fields; failed saves keep the form open, and resetting it restores the correct format controls.
+* XML web-service failures report malformed XML, unmatched nodes and invalid XPath instead of silently returning an empty result. Valid empty values remain supported.
+* Saved web services preserve quoted predicates, wildcard selectors, keys with spaces and percent-encoded endpoint query values. Namespace-qualified XPath accepts standard node/attribute paths alongside the legacy syntax.
+
 ## [1.0.0-rc.1] - 2026-10-06
 
 First release of the modernized framework, after 0.3.1.94. It is a release candidate: it passes 480+ automated tests and a replay of the original

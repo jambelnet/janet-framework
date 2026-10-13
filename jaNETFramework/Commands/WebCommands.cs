@@ -23,6 +23,7 @@ using jaNET.Scripting;
 using jaNET.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace jaNET.Commands;
 
@@ -31,11 +32,11 @@ internal sealed class JsonCommand : JudoCommand
 {
     public JsonCommand(AppConfigStore config, RemoteData remote) {
         On(i => config.AddInstructionSets(new[] {
-            new InstructionSetEntry("*" + i.Args[3], "judo json get " + UriCodec.Encode(i.Args[4]) + " " + i.Args[5]),
+            new InstructionSetEntry("*" + i.Args[3], "judo json get " + WebServiceArguments.StoreEndpoint(i.Args[4]) + " " + WebServiceArguments.Preserve(i.Args[5])),
             new InstructionSetEntry(i.Args[3], "*" + i.Args[3])
         }), "add", "new", "set", "setup");
 
-        On(i => remote.JsonValue(UriCodec.Decode(i.Args[3]), i.Args[4]), "get", "response", "consume", "extract");
+        On(i => remote.JsonValue(WebServiceArguments.DecodeEndpoint(i.Args[3]), i.Args[4]), "get", "response", "consume", "extract");
     }
 
     public override IReadOnlyList<string> Names { get; } = new[] { "json" };
@@ -62,9 +63,9 @@ internal sealed class XmlCommand : JudoCommand
 
         // endpoint, then [namespace] node [attribute]: 3 to 5 arguments after the name
         string? action = i.Count switch {
-            6 => "judo xml get " + UriCodec.Encode(a[4]) + " " + a[5],
-            7 => "judo xml get " + UriCodec.Encode(a[4]) + " " + a[5] + " " + a[6],
-            8 => "judo xml get " + UriCodec.Encode(a[4]) + " " + a[5] + " " + a[6] + " " + a[7],
+            6 => "judo xml get " + WebServiceArguments.StoreEndpoint(a[4]) + " " + WebServiceArguments.Preserve(a[5]),
+            7 => "judo xml get " + WebServiceArguments.StoreEndpoint(a[4]) + " " + WebServiceArguments.Preserve(a[5]) + " " + WebServiceArguments.Preserve(a[6]),
+            8 => "judo xml get " + WebServiceArguments.StoreEndpoint(a[4]) + " " + WebServiceArguments.Preserve(a[5]) + " " + WebServiceArguments.Preserve(a[6]) + " " + a[7],
             _ => null
         };
         if (action == null) return string.Empty;
@@ -77,17 +78,29 @@ internal sealed class XmlCommand : JudoCommand
 
         switch (i.Count) {
             case 5:
-                return _remote.XmlNode(UriCodec.Decode(a[3]), a[4]) ?? string.Empty;
+                return _remote.XmlNode(WebServiceArguments.DecodeEndpoint(a[3]), a[4]);
             case 6:
                 return a[4].Contains('=')
-                    ? _remote.XmlNodes(UriCodec.Decode(a[3]), a[4], a[5])[0]
-                    : _remote.XmlNode(UriCodec.Decode(a[3]), a[4], Convert.ToInt32(a[5])) ?? string.Empty;
+                    ? _remote.XmlNodes(WebServiceArguments.DecodeEndpoint(a[3]), a[4], a[5])[0]
+                    : _remote.XmlNode(WebServiceArguments.DecodeEndpoint(a[3]), a[4], Convert.ToInt32(a[5]));
             case 7:
-                return _remote.XmlNodes(UriCodec.Decode(a[3]), a[4], a[5])[Convert.ToInt32(a[6])];
+                return _remote.XmlNodes(WebServiceArguments.DecodeEndpoint(a[3]), a[4], a[5])[Convert.ToInt32(a[6])];
             default:
                 return string.Empty;
         }
     }
+}
+
+internal static class WebServiceArguments
+{
+    internal static string StoreEndpoint(string endpoint) => endpoint.Contains('%') ? "<lock>" + endpoint + "</lock>" : UriCodec.Encode(endpoint);
+
+    internal static string DecodeEndpoint(string endpoint) => Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? uri) &&
+        (uri.Scheme == "http" || uri.Scheme == "https") ? endpoint : UriCodec.Decode(endpoint);
+
+    // Quoted predicates, wildcards and keys with spaces must survive the second parse when a saved service runs.
+    internal static string Preserve(string value) => value.Any(char.IsWhiteSpace) || value.IndexOfAny(new[] { '\'', '"', '`' }) >= 0 ||
+        value.Contains("/*", StringComparison.Ordinal) || value.Contains("*/", StringComparison.Ordinal) ? "<lock>" + value + "</lock>" : value;
 }
 
 /// <summary>judo http get [url]</summary>

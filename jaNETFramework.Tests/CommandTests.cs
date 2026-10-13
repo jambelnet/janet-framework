@@ -248,6 +248,77 @@ public class JudoCommandTests
     }
 
     [Fact]
+    public void SavedWebServicesPreserveQuotedPathsAndWildcardSelectors() {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/data?kind=a&value=b"] = "{\"display name\":\"John\"}";
+        t.Http.Pages["http://x/feed"] = "<root><room label=\"Living Room\"><value>22.4</value></room></root>";
+        Assert.Equal("Element added.", t.Run("judo json add json_name <lock>http://x/data?kind=a&value=b</lock> <lock>display name</lock>"));
+        Assert.Equal("John", t.Run("json_name"));
+        Assert.Equal("Element added.", t.Run("judo xml add xml_room <lock>http://x/feed</lock> <lock>/root/room[@label='Living Room']/value</lock>"));
+        Assert.Equal("22.4", t.Run("xml_room"));
+        Assert.Equal("Element added.", t.Run("judo xml add xml_wildcard <lock>http://x/feed</lock> <lock>/root/*/value</lock>"));
+        Assert.Equal("22.4", t.Run("xml_wildcard"));
+    }
+
+    [Fact]
+    public void NamespaceQualifiedXPathWorksWithLegacyAndStandardAttributeSyntax() {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/feed"] = "<root xmlns:s=\"urn:sensors?key=value\"><s:temperature unit=\"C\">21.5</s:temperature></root>";
+        foreach (string path in new[] { "//s:temperature", "//s:temperature/", "/root/s:temperature" })
+            Assert.Equal("21.5", t.Run("judo xml get http://x/feed s=urn:sensors?key=value " + path));
+        foreach (string path in new[] { "//s:temperature/unit", "//s:temperature/@unit" })
+            Assert.Equal("C", t.Run("judo xml get http://x/feed s=urn:sensors?key=value " + path));
+        Assert.Equal("Element added.", t.Run("judo xml add xml_namespace <lock>http://x/feed</lock> s=urn:sensors?key=value //s:temperature"));
+        Assert.Equal("21.5", t.Run("xml_namespace"));
+    }
+
+    [Fact]
+    public void NamespaceQualifiedPredicatesKeepSlashesInsideStringLiterals() {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/feed"] = "<root xmlns:s=\"urn:sensors\"><s:room label=\"Living/Room\">22.4</s:room></root>";
+        Assert.Equal("22.4", t.Run("judo xml get http://x/feed s=urn:sensors <lock>//s:room[@label='Living/Room']</lock>"));
+    }
+
+    [Theory]
+    [InlineData("//missing", "no nodes match")]
+    [InlineData("[", "invalid XPath")]
+    [InlineData("//p:missing", "undeclared namespace")]
+    [InlineData("//room 5", "node index is out of range")]
+    public void XmlWebServiceErrorsAreNotSilent(string path, string expected) {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/feed"] = "<root><room>Kitchen</room></root>";
+        string output = t.Run("judo xml get http://x/feed " + path);
+        Assert.StartsWith("XML web service:", output);
+        Assert.Contains(expected, output);
+    }
+
+    [Fact]
+    public void MalformedXmlProducesAnExplicitError() {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/feed"] = "<broken>";
+        Assert.Equal("XML web service: the response is not valid XML.", t.Run("judo xml get http://x/feed //room"));
+    }
+
+    [Fact]
+    public void SavedWebServicesDoNotDecodePercentEncodedQueryValuesTwice() {
+        using var t = new TestHost();
+        const string endpoint = "http://x/data?room=Living%20Room&value=A%26B%2BC";
+        t.Http.Pages[endpoint] = "{\"name\":\"John\"}";
+        Assert.Equal("Element added.", t.Run("judo json add encoded_json <lock>" + endpoint + "</lock> name"));
+        Assert.Equal("John", t.Run("encoded_json"));
+        t.Http.Pages[endpoint] = "<root><name>John</name></root>";
+        Assert.Equal("Element added.", t.Run("judo xml add encoded_xml <lock>" + endpoint + "</lock> /root/name"));
+        Assert.Equal("John", t.Run("encoded_xml"));
+    }
+
+    [Fact]
+    public void ValidEmptyXmlValuesRemainEmpty() {
+        using var t = new TestHost();
+        t.Http.Pages["http://x/feed"] = "<root><room /></root>";
+        Assert.Equal("", t.Run("judo xml get http://x/feed //room"));
+    }
+
+    [Fact]
     public void HttpGetReturnsThePage() {
         using var t = new TestHost();
         t.Http.Pages["http://x/p"] = "page";

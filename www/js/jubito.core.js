@@ -13,6 +13,7 @@ import { httpPageUrl } from './transport.js';
 import { launcherAction, wireLauncherEditor } from './launchers.js';
 import { parseEventIds, removalItems, wireRemovalEditor } from './elements.js';
 import { instructionChoices } from './instruction-choices.js';
+import { webServiceCommand, webServiceFields } from './web-services.js';
 
 const byId = id => document.getElementById(id);
 const val = id => byId(id).value;
@@ -659,12 +660,15 @@ const actions = {
         await loadXml();
     },
     async saveWebService() {
-        const id = underscored(val('wsName'));
-        const judo = byId('radio-json').checked ? 'judo json add' : 'judo xml add';
-        const withNamespace = val('wsNamespace') !== '' ? ' `' + val('wsNamespace') + '`' : '';
-        const data = await send(judo + ' ' + id + ' <lock>' + enc(val('wsEndpoint')) + '</lock>' + withNamespace + ' `' + val('wsNode') + '` `' + val('wsIndex') + '`');
+        let command;
+        try {
+            command = webServiceCommand({ name: val('wsName'), endpoint: val('wsEndpoint'), node: val('wsNode'),
+                format: byId('radio-json').checked ? 'JSON' : 'XML', namespace: val('wsNamespace'), index: val('wsIndex') });
+        } catch (error) { toast(error.message); return false; }
+        const data = await runRawText(command).catch(error => { toast(error.message); return null; });
         if (data === null) return false;
-        if (data.includes('Element added.')) clearWsFields();
+        if (!data.includes('Element added.')) { showResult(data); return false; }
+        clearWsFields();
         showResult(data);
         await loadXml();
     },
@@ -850,6 +854,7 @@ function wire() {
         else if ('schedule' in el.dataset) scheduleAction(el.dataset.schedule);
         else if ('open' in el.dataset) {
             const id = el.dataset.open;
+            if (id === 'addWebService') webServiceFields(document);
             if (id === 'removeElement') { openDialog(id); await removal.load(); return; }
             if (settingsEditor.has(id)) {
                 if (id === 'httpsSettings') { byId('httpsResult').textContent = ''; byId('httpsLink').hidden = true; }
@@ -880,6 +885,7 @@ function wire() {
         } catch (error) { toast(error.message || 'Settings could not be saved.'); return; }
         if (result === false) return;                                     // validation message was shown
         if (form.dataset.submit !== 'trustedSettings') form.reset();
+        if (form.dataset.submit === 'saveWebService') webServiceFields(document);
         closeDialog(form);
     });
 
@@ -914,8 +920,8 @@ function wire() {
     });
     byId('dateClear').addEventListener('click', () => { dateIsToday = false; setVal('scheduleDate', ''); });
 
-    byId('radio-json').addEventListener('change', () => { byId('wsHiddenInputs').hidden = true; });
-    byId('radio-xml').addEventListener('change', () => { byId('wsHiddenInputs').hidden = false; });
+    byId('radio-json').addEventListener('change', () => webServiceFields(document));
+    byId('radio-xml').addEventListener('change', () => webServiceFields(document));
     byId('clearWsBtn').addEventListener('click', clearWsFields);
 
     byId('addEvalBtn').addEventListener('click', addEval);
