@@ -2,7 +2,11 @@
 // Jubito web UI - the application layer that sits on top of the jaNET Framework judo API.
 // Plain ES modules, no libraries. See css/app.css for the layout and index.html for the markup.
 
-import { runText, runRawText, runJson, loadInstructionSets, loadSettings, saveSettings, onConnection } from './api.js';
+import { runText, runRawText, runJson, loadInstructionSets, loadSettings, saveSettings, calendarRequest, onConnection } from './api.js';
+import { wireCalendar } from './calendar.js';
+import { wireCalendarWidget } from './calendar-widget.js';
+import { wireCameras, cameraRequest } from './cameras.js';
+import { wireIconPicker, loadIconCatalog, instructionThumbnail } from './icon-library.js';
 import { wireSettings } from './settings.js';
 import { createGauge } from './gauge.js';
 import { renderResponse, commandResponse, responseAppearance } from './help.js';
@@ -29,12 +33,16 @@ let currentView = 'page0';
 let currentSettingsSection = 'settings-group';
 let gauges = {};
 let instructionSets = [];     // from /api/instructions
+let defaultIcons = null;
+let defaultIconsLoading = null;
 let selectedCategory = null;
 let terminal;
 let assistantBusy = false;
 let voice;
 let removal;
 let settingsEditor;
+let calendarWidget;
+let cameras;
 const activity = [];
 let lastGmailCount = null;
 let homePins = [];
@@ -191,6 +199,7 @@ function route() {
 /* ------------------------------------------------------------------ polling */
 
 function refresh() {
+    cameras?.refresh();
     if (document.hidden) return;
     voice?.refreshMute();
     if (currentView === 'page0') refreshHome();
@@ -199,6 +208,7 @@ function refresh() {
 }
 
 async function refreshHome() {
+    calendarWidget?.refresh();
     runJson('%day%&%date%&%calendaryear%&%time24%').then(data => {
         byId('header').hidden = false;
         byId('time').textContent = data.time24.Value;
@@ -372,6 +382,16 @@ async function loadXml() {
 
     renderCards();
     renderHomePins();
+    if (!defaultIcons && !defaultIconsLoading) {
+        defaultIconsLoading = loadIconCatalog().then(catalog => {
+            defaultIcons = catalog;
+            const items = new Map(instructionSets.map(item => [item.id, item]));
+            for (const image of document.querySelectorAll('[data-instruction-icon]')) {
+                const item = items.get(image.dataset.instructionIcon);
+                if (item) image.src = instructionThumbnail(item, defaultIcons);
+            }
+        }).catch(() => {}).finally(() => { defaultIconsLoading = null; });
+    }
     refreshReferences();
 }
 
@@ -393,16 +413,12 @@ function instructionCard(s) {
         button.className = 'card';
         button.addEventListener('click', () => runCommand(s.id));
 
-        if (s.img) {
-            const img = document.createElement('img');
-            img.src = s.img;
-            img.alt = '';
-            img.loading = 'lazy';
-            button.append(img);
-        } else {
-            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); icon.classList.add('noimg'); icon.setAttribute('aria-hidden', 'true');
-            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); use.setAttribute('href', '#i-dashboard'); icon.append(use); button.append(icon);
-        }
+        const img = document.createElement('img');
+        img.src = instructionThumbnail(s, defaultIcons);
+        img.dataset.instructionIcon = s.id;
+        img.alt = '';
+        img.loading = 'lazy';
+        button.append(img);
 
         const body = document.createElement('span');
         const h = document.createElement('h3');
@@ -827,6 +843,10 @@ function clearInsetFields() {
 /* ------------------------------------------------------------------ wiring */
 
 function wire() {
+    cameras = wireCameras(document, cameraRequest, toast, () => currentView === 'page0' && !document.hidden);
+    wireIconPicker(document);
+    calendarWidget = wireCalendarWidget(document, calendarRequest, () => currentView === 'page0' && !document.hidden);
+    const calendar = wireCalendar(document, calendarRequest, toast, undefined, undefined, () => calendarWidget.invalidate());
     settingsEditor = wireSettings(document, loadSettings, saveSettings, id => {
         if (id === 'weatherSettings') weatherFields();
     });
@@ -854,6 +874,8 @@ function wire() {
         else if ('schedule' in el.dataset) scheduleAction(el.dataset.schedule);
         else if ('open' in el.dataset) {
             const id = el.dataset.open;
+            if (id === 'googleCalendarSettings') { await calendar.open(); return; }
+            if (id === 'cameraSettings') { await cameras.open(); return; }
             if (id === 'addWebService') webServiceFields(document);
             if (id === 'removeElement') { openDialog(id); await removal.load(); return; }
             if (settingsEditor.has(id)) {
@@ -935,12 +957,13 @@ function wire() {
         conn.dataset.state = online ? 'online' : 'offline';
         conn.textContent = online ? 'Connected' : 'Offline';
     });
+    return calendar;
 }
 
 function init() {
     applyTheme(currentTheme());
     createGauges();
-    wire();
+    const calendar = wire();
     voice = wireVoice(text => { setVal('askInput', text); byId('askInput').focus(); addActivity('Voice command transcribed'); }, toast);
     terminal = wireTerminal(runRawText, () => voice.refreshMute());
     addActivity('Interface connected');
@@ -953,6 +976,12 @@ function init() {
     loadXml();
 
     route();
+    const calendarReturn = new URL(window.location.href);
+    if (calendarReturn.searchParams.get('calendar') === 'connected') {
+        calendarReturn.searchParams.delete('calendar');
+        window.history.replaceState(null, '', calendarReturn.href);
+        calendar.open();
+    }
     refreshWeather();
     refreshGmail();
     startPolling();

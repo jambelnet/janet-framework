@@ -82,3 +82,9 @@ export async function saveSettings(area, values) {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values)
     }, 'json', 15000);
 }
+
+export async function calendarRequest(action, values) {
+    return request('../api/calendar/' + action, values === undefined ? {} : {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values)
+    }, 'json', 60000);
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!-- (c) J@mBeL.net 2010-2026. Part of jaNET Framework, GNU GPL version 3 or later; see LICENSE. -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Default Icons - Jubito</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try { var t = localStorage.getItem('jubito-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { }</script>
+    <script type="module" src="js/icon-gallery.js"></script>
+</head>
+<body class="icon-library-page">
+    <header class="appbar"><a class="brand" href="./#page0"><img src="images/logo.png" alt="" width="30" height="30">Jubito</a><span class="framework-name">Default Icons</span></header>
+    <main>
+        <div class="icon-library-heading"><h1>Default Icons</h1><a class="btn" href="icons/jubito-default-icons.zip" download>Download set</a></div>
+        <div class="icon-library-filters">
+            <label>Search<input id="librarySearch" type="search" autocomplete="off"></label>
+            <label>Category<select id="libraryCategory" disabled><option>All categories</option></select></label>
+        </div>
+        <p id="libraryStatus" role="status">Loading icons...</p>
+        <button class="btn" id="libraryRetry" type="button" hidden>Retry</button>
+        <div class="default-icon-grid" id="libraryIcons" aria-label="Default icons"></div>
+        <section id="librarySelection" class="icon-library-selection" aria-labelledby="selectedIconName" hidden>
+            <img id="selectedIconPreview" alt="" width="64" height="64">
+            <div><h2 id="selectedIconName"></h2><label for="selectedIconPath">Thumbnail URL</label><input id="selectedIconPath" type="text" readonly></div>
+            <div class="btn-row"><button class="btn" id="copyIconPath" type="button">Copy path</button><a class="btn" id="downloadIcon" download>Download SVG</a></div>
+            <p id="copyIconStatus" role="status"></p>
+        </section>
+    </main>
+</body>
+</html>

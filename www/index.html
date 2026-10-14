@@ -15,6 +15,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <script>try { var t = localStorage.getItem('jubito-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { }</script>
     <link rel="stylesheet" href="css/app.css">
+    <script src="vendor/lucide/lucide.min.js" defer></script>
     <script type="module" src="js/jubito.core.js"></script>
 </head>
 <body>
@@ -90,12 +91,27 @@
             </div>
 
             <div class="actions">
-                <button type="button" class="action" data-run="%checkin%"><img src="images/checkin.png" alt="">Check in</button>
-                <button type="button" class="action" data-run="%checkout%"><img src="images/checkout.png" alt="">Check out</button>
-                <button type="button" class="action" data-open="popupGmailReader"><img src="images/gmail.png" alt="">Gmail<span class="badge" id="gmail-badge" aria-label="Checking unread messages" title="Checking unread messages">...</span></button>
-                <a class="action" href="#page3" data-section="settings-group"><img src="images/settings.png" alt="">Settings</a>
+                <button type="button" class="action" data-run="%checkin%"><img src="icons/default/check-in.svg" alt="">Check in</button>
+                <button type="button" class="action" data-run="%checkout%"><img src="icons/default/check-out.svg" alt="">Check out</button>
+                <button type="button" class="action" data-open="popupGmailReader"><img src="icons/default/gmail.svg" alt="">Gmail<span class="badge" id="gmail-badge" aria-label="Checking unread messages" title="Checking unread messages">...</span></button>
+                <a class="action" href="#page3" data-section="settings-group"><img src="icons/default/settings.svg" alt="">Settings</a>
             </div>
             <ul class="cards home-pins" id="homePins" aria-label="Pinned instructions" hidden></ul>
+            <section id="homeCameras" class="home-cameras" aria-labelledby="homeCamerasTitle" hidden>
+                <div class="section-head"><h2 id="homeCamerasTitle">IP Cameras</h2><button type="button" class="icon-btn" data-open="cameraSettings" title="Camera settings" aria-label="Camera settings"><svg class="icon"><use href="#i-settings"/></svg></button></div>
+                <p id="homeCamerasStatus" role="status" hidden></p><div id="cameraWidgets" class="camera-widgets"></div>
+            </section>
+            <section class="home-calendar" id="homeCalendar" aria-labelledby="homeCalendarTitle" aria-busy="false">
+                <div class="section-head">
+                    <div><h2 id="homeCalendarTitle">Google Calendar</h2><p id="homeCalendarRange">Next 7 days</p></div>
+                    <div class="home-calendar-tools">
+                        <button type="button" class="icon-btn" id="homeCalendarRefresh" title="Refresh Calendar" aria-label="Refresh Calendar"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
+                        <button type="button" class="icon-btn" data-open="googleCalendarSettings" title="Calendar settings" aria-label="Calendar settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg></button>
+                    </div>
+                </div>
+                <p id="homeCalendarStatus" role="status">Loading upcoming events...</p>
+                <ul id="homeCalendarEvents" aria-label="Upcoming Calendar events" hidden></ul>
+            </section>
             <div class="home-bottom">
                 <section class="assistant" aria-labelledby="assistantTitle">
                     <div class="section-head"><h2 id="assistantTitle">Ask Jubito</h2><button class="icon-btn" type="button" data-open="voiceSettings" title="Voice settings" aria-label="Voice settings"><svg class="icon"><use href="#i-settings"/></svg></button></div>
@@ -146,6 +162,7 @@
                 <summary>INSTRUCTIONS</summary>
                 <ul class="menu-list">
                     <li><a class="menu-item" href="studio.html"><strong>Instruction Studio</strong><small>Create, edit and inspect instruction sets</small></a></li>
+                    <li><a class="menu-item" href="icons.html"><strong>Default Icons</strong></a></li>
                     <li><button type="button" class="menu-item" data-open="addLauncher"><strong>Add New Launcher</strong><small>Run a program, make a judo API call, call a system function, make an evaluation or create a simple sentence to use the reflective value</small></button></li>
                     <li><button type="button" class="menu-item" data-open="addEvent"><strong>Add New Event Handler</strong><small>Create one or a sequence of actions</small></button></li>
                     <li><button type="button" class="menu-item" data-open="addEvaluator"><strong>Add New Evaluator</strong><small>Create one or a sequence of evaluations</small></button></li>
@@ -194,6 +211,10 @@
                     <li><button type="button" class="menu-item" data-open="smtpSettings">Setup SMTP</button></li>
                     <li><button type="button" class="menu-item" data-open="pop3Settings">Setup POP3</button></li>
                     <li><button type="button" class="menu-item" data-open="mailheaderSettings">Setup Mail Headers</button></li>
+                    <li class="divider">GOOGLE CALENDAR</li>
+                    <li><button type="button" class="menu-item" data-open="googleCalendarSettings">Connection &amp; upcoming events</button></li>
+                    <li class="divider">IP CAMERAS</li>
+                    <li><button type="button" class="menu-item" data-open="cameraSettings">Cameras &amp; Home widgets</button></li>
                     <li class="divider">SMS</li>
                     <li><button type="button" class="menu-item" data-open="sendSMS">Send</button></li>
                     <li><button type="button" class="menu-item" data-settings="sms">View Settings</button></li>
@@ -240,6 +261,56 @@
                 <input name="serverPassword" id="serverPassword" type="password" autocomplete="new-password" required>
                 <div class="btn-row"><button type="submit" class="btn primary">Save</button></div>
             </div>
+        </form>
+    </dialog>
+
+    <dialog id="cameraSettings" class="camera-settings" aria-labelledby="cameraSettingsTitle">
+        <form id="cameraForm" autocomplete="off">
+            <div class="dialog-head"><h2 id="cameraSettingsTitle">IP Cameras</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+            <div class="dialog-body">
+                <p id="cameraSettingsStatus" role="status"></p><button type="button" class="btn" id="cameraRetry" hidden>Retry</button>
+                <div class="camera-manager">
+                    <section class="camera-library" aria-label="Saved cameras"><div class="section-head"><h3>Cameras</h3><button type="button" class="icon-btn" id="cameraNew" title="New camera" aria-label="New camera"><i data-lucide="plus" aria-hidden="true"></i></button></div><div id="cameraProfiles"></div><p id="cameraProfilesEmpty" class="muted">No cameras saved.</p></section>
+                    <div class="camera-editor">
+                        <label for="cameraName">Name</label><input id="cameraName" type="text" maxlength="128" required>
+                        <label for="cameraUrl">Feed URL</label><input id="cameraUrl" type="url" maxlength="2048" placeholder="http://192.168.1.50/snapshot.jpg" autocapitalize="off" spellcheck="false" required>
+                        <label for="cameraMode">Format</label><select id="cameraMode"><option value="auto">Automatic</option><option value="snapshot">JPEG / PNG snapshots</option><option value="mjpeg">MJPEG stream</option></select>
+                        <label for="cameraRefresh">Snapshot refresh (seconds)</label><input id="cameraRefresh" type="number" min="2" max="60" step="1" value="5" required>
+                        <label class="check"><input id="cameraHome" type="checkbox" checked>Show on Home</label>
+                        <label for="cameraUsername">Username</label><input id="cameraUsername" type="text" maxlength="256" autocapitalize="off" spellcheck="false" autocomplete="off">
+                        <label for="cameraPassword">Password</label><input id="cameraPassword" type="password" maxlength="1024" autocomplete="new-password">
+                        <label class="check"><input id="cameraClearPassword" type="checkbox">Clear saved password</label>
+                    </div>
+                </div>
+            </div>
+            <div class="camera-footer"><button type="submit" class="btn primary" id="cameraSave">Save</button><button type="button" class="btn" id="cameraTest">Test connection</button><button type="button" class="icon-btn danger" id="cameraRemove" title="Remove camera" aria-label="Remove camera"><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
+        </form>
+    </dialog>
+    <dialog id="googleCalendarSettings" aria-labelledby="t-googleCalendarSettings">
+        <form id="calendarForm" autocomplete="off">
+            <div class="dialog-head"><h2 id="t-googleCalendarSettings">Google Calendar</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+            <div class="dialog-body">
+                <p id="calendarStatus" role="status">Not connected</p>
+                <label for="calendarClientId">OAuth web client ID</label>
+                <input id="calendarClientId" type="text" autocapitalize="off" spellcheck="false" required>
+                <label for="calendarClientSecret">Client secret</label>
+                <input id="calendarClientSecret" type="password" autocomplete="new-password" required>
+                <label for="calendarRedirectUri">Authorized redirect URI</label>
+                <input id="calendarRedirectUri" type="url" autocapitalize="off" spellcheck="false" required>
+                <label for="calendarId">Calendar ID</label>
+                <input id="calendarId" type="text" value="primary" autocapitalize="off" spellcheck="false" required>
+                <label for="calendarTimeZone">Time zone</label>
+                <input id="calendarTimeZone" type="text" placeholder="Europe/Paris" autocapitalize="off" spellcheck="false" required>
+                <p class="calendar-cloud-link"><a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener noreferrer">Google Cloud Console</a></p>
+                <div class="calendar-controls">
+                    <button type="button" id="calendarConnect" class="btn primary">Connect to Google</button>
+                    <button type="button" id="calendarPreview" class="btn" disabled>Upcoming events</button>
+                    <button type="button" id="calendarDisconnect" class="btn danger" disabled>Disconnect</button>
+                    <button type="button" id="calendarRetry" class="btn" hidden>Retry</button>
+                </div>
+                <pre id="calendarAgenda" class="calendar-agenda" aria-live="polite" hidden></pre>
+            </div>
+            <div class="calendar-footer"><button type="submit" class="btn primary">Save</button><button type="button" class="btn" data-close>Close</button></div>
         </form>
     </dialog>
 
@@ -613,7 +684,7 @@
 
     <dialog id="homeSettings" aria-labelledby="t-homeSettings">
         <div class="dialog-head"><h2 id="t-homeSettings">Customize Home</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
-        <div class="dialog-body"><label for="homeFilter">Instructions</label><input id="homeFilter" type="search" placeholder="Search instructions..."><div id="homePinOptions" class="home-pin-options"></div><p id="homePinEmpty" class="muted" hidden>No matching instructions.</p><div class="btn-row"><button type="button" class="btn" id="newHomeInstruction">New instruction</button><button type="button" class="btn primary" data-close>Done</button></div></div>
+        <div class="dialog-body"><label for="homeFilter">Instructions</label><input id="homeFilter" type="search" placeholder="Search instructions..."><div id="homePinOptions" class="home-pin-options"></div><p id="homePinEmpty" class="muted" hidden>No matching instructions.</p><div class="btn-row"><button type="button" class="btn" id="newHomeInstruction">New instruction</button><button type="button" class="btn" data-open="cameraSettings">IP cameras</button><button type="button" class="btn primary" data-close>Done</button></div></div>
     </dialog>
 
     <dialog id="addInset" aria-labelledby="t-addInset">
@@ -644,7 +715,7 @@
                     <label for="insetDescr">Description</label>
                     <input id="insetDescr" type="text" autocomplete="off">
                     <label for="insetThumbnail">Thumbnail URL</label>
-                    <input id="insetThumbnail" type="text" autocomplete="off" autocapitalize="off">
+                    <div class="thumbnail-entry"><input id="insetThumbnail" type="text" placeholder="Automatic" autocomplete="off" autocapitalize="off"><button type="button" class="icon-btn" data-iconpick="insetThumbnail" title="Choose default icon" aria-label="Choose default icon"><i data-lucide="images" aria-hidden="true"></i></button></div>
                     <label for="insetlistReference">Reference</label>
                     <select id="insetlistReference"></select>
                 </details>
@@ -653,6 +724,15 @@
         </form>
     </dialog>
 
+    <dialog id="iconPicker" class="icon-picker" aria-labelledby="iconPickerTitle">
+        <div class="dialog-head"><h2 id="iconPickerTitle">Default Icons</h2><button type="button" class="icon-btn" id="closeIconPicker" aria-label="Close" title="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+        <div class="dialog-body">
+            <div class="icon-library-filters"><label>Search<input id="iconSearch" type="search" autocomplete="off"></label><label>Category<select id="iconCategory"></select></label></div>
+            <p id="iconPickerStatus" role="status"></p>
+            <button type="button" class="btn" id="iconPickerRetry" hidden>Retry</button>
+            <div id="iconChoices" class="default-icon-grid" aria-label="Default icon choices"></div>
+        </div>
+    </dialog>
     <dialog id="removeElement" aria-labelledby="t-removeElement">
         <form data-submit="removeElement">
             <div class="dialog-head"><h2 id="t-removeElement">Remove Elements</h2><button type="button" class="icon-btn" data-close aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>

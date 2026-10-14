@@ -39,8 +39,10 @@ function deviceRow(index, device) {
     button.disabled = !switchClass;
     button.addEventListener('click', () => runCommand(base + (isOn ? '0' : '255') + ')').then(refresh));
 
-    const spacer = document.createElement('span');
-    spacer.className = 'noimg';
+    const icon = document.createElement('img');
+    icon.src = 'icons/default/' + (switchClass ? 'outlet' : sensorClass ? 'sensor' : 'controller') + '.svg';
+    icon.alt = '';
+    icon.loading = 'lazy';
 
     const body = document.createElement('span');
     const h = document.createElement('h3');
@@ -60,7 +62,7 @@ function deviceRow(index, device) {
     value.textContent = switchClass ? (isOn ? 'On' : 'Off') : '';
     value.style.color = isOn ? 'var(--ok)' : 'var(--danger)';
 
-    button.append(spacer, body, value);
+    button.append(icon, body, value);
     li.append(button);
     return li;
 }

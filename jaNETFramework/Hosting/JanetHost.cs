@@ -85,6 +85,7 @@ public sealed class JanetHost : IDisposable
     readonly SchedulerService _scheduler;
     readonly UserPresence _presence;
     readonly SpeechService _speech;
+    readonly GoogleCalendarService _calendar;
     readonly bool _usesSystemSpeaker;
     readonly SystemSpeaker? _systemSpeaker;
     bool _started;
@@ -109,6 +110,7 @@ public sealed class JanetHost : IDisposable
         var internet = new InternetConnection(http);
         _info = new AppInfo(http, clock);
         _speech = new SpeechService(_settings, _paths);
+        _calendar = parts.Calendar ?? new GoogleCalendarService(_settings);
         ISpeaker speaker = parts.Speaker ?? options.Speaker ?? new SystemSpeaker(_speech, log);
         _usesSystemSpeaker = speaker is SystemSpeaker;
         _systemSpeaker = speaker as SystemSpeaker;
@@ -136,7 +138,7 @@ public sealed class JanetHost : IDisposable
         evaluator = new ConditionEvaluator(() => resolver, executor);
         runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log, _speech.Publish);
 
-        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted, functionNames: () => functions.Names);
+        _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted, functionNames: () => functions.Names, calendar: _calendar);
         _socket = parts.Socket ?? new TcpSocketServer(_config, executor, log);
         _serial = parts.Serial ?? new SerialPortService(_config, executor, log);
         _mqtt = parts.Mqtt ?? new MqttService(_config, _settings, executor, log);
@@ -154,6 +156,7 @@ public sealed class JanetHost : IDisposable
             new SmtpCommand(_settings, mail),
             new Pop3Command(_settings, mail),
             new GmailCommand(_settings, mail),
+            new CalendarCommand(_calendar),
             new MailCommand(mail),
             new MailHeadersCommand(_config),
             new SmsCommand(_settings, new SmsClient(_settings)),
@@ -330,7 +333,7 @@ public sealed class JanetHost : IDisposable
     public void Stop() => _lifetime.RequestStop();
 
     /// <summary>Stops the web server, socket server, serial port and scheduler (the process keeps running).</summary>
-    public void Dispose() { StopServices(); _speech.Dispose(); }
+    public void Dispose() { StopServices(); _speech.Dispose(); _calendar.Dispose(); }
 
     void StopServices() {
         if (_systemSpeaker != null) _systemSpeaker.Muted = true;
@@ -354,6 +357,7 @@ internal sealed class HostParts
     public IHttpFetcher? Http { get; init; }
     public ISpeaker? Speaker { get; init; }
     public IWeatherSource? Weather { get; init; }
+    public GoogleCalendarService? Calendar { get; init; }
     public IConsoleControl? Console { get; init; }
     public IServer? Web { get; init; }
     public IServer? Socket { get; init; }

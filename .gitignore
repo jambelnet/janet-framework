@@ -169,3 +169,10 @@ artifacts/
 
 # Local connection and browser verification artifacts
 .verification/
+
+# Private Google Calendar OAuth configuration and credentials
+.googlecalendar
+.googlecalendar.tmp
+.ipcameras
+.ipcameras.tmp
+client_secret*.json

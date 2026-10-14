@@ -72,7 +72,7 @@ function renderChoices() {
 function renderPalette(palette = $('palette'), query = $('blockSearch').value.toLowerCase(), chooser = false) {
     palette.replaceChildren();
     const add = (kind, value, title) => {
-        if (!title.toLowerCase().includes(query)) return;
+        if (!(title + ' ' + value).toLowerCase().includes(query)) return;
         const item = element('div', null, 'palette-item'); item.dataset.kind = kind; item.dataset.value = value;
         const name = element('button', null, 'palette-name'); name.type = 'button'; name.dataset.kind = kind;
         const icon = element('span'); icon.dataset.icon = icons[kind]; name.append(icon, element('span', title));
@@ -92,6 +92,10 @@ function renderPalette(palette = $('palette'), query = $('blockSearch').value.to
     };
     palette.append(element('div', 'Actions', 'palette-group'));
     for (const kind of ['text', 'template', 'delay', 'condition', 'command', 'program', 'raw']) add(kind, '', labels[kind]);
+    palette.append(element('div', 'Google Calendar', 'palette-group'));
+    add('command', 'judo calendar today', "Today's agenda");
+    add('command', 'judo calendar next', 'Next calendar event');
+    add('command', 'judo calendar upcoming 7 10', 'Upcoming calendar events');
     palette.append(element('div', 'Functions', 'palette-group'));
     for (const name of snapshot?.functions ?? []) add('function', name, name);
     palette.append(element('div', 'Instructions', 'palette-group'));

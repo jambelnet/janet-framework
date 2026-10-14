@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,6 +43,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using BadHttpRequestException = Microsoft.AspNetCore.Http.BadHttpRequestException;
 
 namespace jaNET.Servers;
 
@@ -67,6 +69,10 @@ internal sealed class WebServer : IServer, IDisposable
     readonly bool _ownsSpeech;
     readonly Func<bool> _isMuted;
     readonly Func<IReadOnlyList<string>> _functionNames;
+    readonly GoogleCalendarService _calendar;
+    readonly bool _ownsCalendar;
+    readonly IpCameraService _cameras;
+    readonly bool _ownsCameras;
     readonly object _gate = new();
     readonly AsyncLocal<HttpResponse?> _commandResponse = new();
 
@@ -76,7 +82,7 @@ internal sealed class WebServer : IServer, IDisposable
 
     public WebServer(AppConfigStore config, ISettingsStore settings, AppPaths paths, Func<IInstructionExecutor> executor, ILog log,
                      CertificateProvider? certificates = null, SpeechService? speech = null, Func<bool>? isMuted = null,
-                     Func<IReadOnlyList<string>>? functionNames = null) {
+                     Func<IReadOnlyList<string>>? functionNames = null, GoogleCalendarService? calendar = null, IpCameraService? cameras = null) {
         _config = config;
         _settings = settings;
         _paths = paths;
@@ -87,6 +93,10 @@ internal sealed class WebServer : IServer, IDisposable
         _ownsSpeech = speech == null;
         _isMuted = isMuted ?? (() => false);
         _functionNames = functionNames ?? (() => Array.Empty<string>());
+        _calendar = calendar ?? new GoogleCalendarService(settings);
+        _ownsCalendar = calendar == null;
+        _cameras = cameras ?? new IpCameraService(settings);
+        _ownsCameras = cameras == null;
     }
 
     public bool IsRunning => _app != null;
@@ -159,6 +169,8 @@ internal sealed class WebServer : IServer, IDisposable
     public void Dispose() {
         Stop();
         if (_ownsSpeech) _speech.Dispose();
+        if (_ownsCalendar) _calendar.Dispose();
+        if (_ownsCameras) _cameras.Dispose();
     }
 
     // A settings command must finish its HTTP response before its own listener is stopped.
@@ -269,6 +281,13 @@ internal sealed class WebServer : IServer, IDisposable
             else if (path == "/api/studio") {
                 body = await StudioResponse(context).ConfigureAwait(false);
             }
+            else if (path.StartsWith("/api/calendar/", StringComparison.Ordinal)) {
+                body = await CalendarResponse(context, path.Substring("/api/calendar/".Length)).ConfigureAwait(false);
+            }
+            else if (path == "/api/cameras" || path.StartsWith("/api/cameras/", StringComparison.Ordinal)) {
+                await CameraResponse(context, path == "/api/cameras" ? "settings" : path.Substring("/api/cameras/".Length)).ConfigureAwait(false);
+                return;
+            }
             else if (path.StartsWith("/api/settings/", StringComparison.Ordinal)) {
                 body = await SettingsResponse(context, path.Substring("/api/settings/".Length)).ConfigureAwait(false);
             }
@@ -338,6 +357,118 @@ internal sealed class WebServer : IServer, IDisposable
 
     static bool IsThisComputer(IPAddress? address) =>
         address == null || IPAddress.IsLoopback(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address);
+
+    async Task CameraResponse(HttpContext context, string action) {
+        var request = context.Request; var response = context.Response;
+        response.Headers.CacheControl = "no-store"; response.Headers["Referrer-Policy"] = "no-referrer";
+        response.Headers["X-Content-Type-Options"] = "nosniff"; response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
+        async Task Json(object value, int code = 200) {
+            response.StatusCode = code; response.ContentType = "application/json; charset=utf-8";
+            await response.Body.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(value, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), context.RequestAborted).ConfigureAwait(false);
+        }
+        if (!request.IsHttps && !IsThisComputer(context.Connection.RemoteIpAddress)) { await Json(new { error = "IP cameras require HTTPS for remote access. Open jaNET locally or enable HTTPS." }, 403).ConfigureAwait(false); return; }
+        string origin = request.Scheme + "://" + request.Host, supplied = request.Headers.Origin.ToString();
+        if ((supplied.Length > 0 && supplied != origin) || request.Headers["Sec-Fetch-Site"] == "cross-site") { await Json(new { error = "Camera requests must come from this jaNET page." }, 403).ConfigureAwait(false); return; }
+        try {
+            if (HttpMethods.IsGet(request.Method)) {
+                if (action == "settings") { await Json(await _cameras.View(context.RequestAborted).ConfigureAwait(false)).ConfigureAwait(false); return; }
+                if (action == "widgets") { await Json(new { cameras = await _cameras.Widgets(context.RequestAborted).ConfigureAwait(false) }).ConfigureAwait(false); return; }
+                var parts = action.Split('/');
+                if (parts.Length != 2 || !IpCameraService.ValidId(parts[0]) || parts[1] is not ("probe" or "feed")) { await Json(new { error = "Unknown camera endpoint." }, 404).ConfigureAwait(false); return; }
+                using var feed = await _cameras.Open(parts[0], context.RequestAborted).ConfigureAwait(false);
+                if (parts[1] == "probe") {
+                    if (feed.Kind == "snapshot") await feed.Snapshot().ConfigureAwait(false);
+                    await Json(new { mode = feed.Kind, message = feed.Kind == "snapshot" ? "Snapshot feed available." : "MJPEG feed available." }).ConfigureAwait(false); return;
+                }
+                response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; sandbox";
+                response.ContentType = feed.ContentType;
+                if (feed.Kind == "snapshot") { var bytes = await feed.Snapshot().ConfigureAwait(false); response.ContentLength = bytes.Length; await response.Body.WriteAsync(bytes, context.RequestAborted).ConfigureAwait(false); }
+                else await feed.CopyStream(response.Body, context.RequestAborted).ConfigureAwait(false);
+                return;
+            }
+            if (!HttpMethods.IsPost(request.Method)) { await Json(new { error = "Use GET for feeds and POST for camera settings." }, 405).ConfigureAwait(false); return; }
+            if (!(request.ContentType ?? "").StartsWith("application/json", StringComparison.OrdinalIgnoreCase)) { await Json(new { error = "Send an application/json body." }, 415).ConfigureAwait(false); return; }
+            if (request.ContentLength > 16384) { await Json(new { error = "Camera settings body is too large." }, 413).ConfigureAwait(false); return; }
+            var sizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+            if (sizeFeature != null && !sizeFeature.IsReadOnly) sizeFeature.MaxRequestBodySize = 16384;
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            if (action == "save") {
+                var setup = await JsonSerializer.DeserializeAsync<CameraSetup>(request.Body, options, context.RequestAborted).ConfigureAwait(false) ?? throw new ArgumentException("Enter camera settings.");
+                var id = await _cameras.Save(setup, context.RequestAborted).ConfigureAwait(false);
+                await Json(new { id, message = "Camera saved.", settings = await _cameras.View(context.RequestAborted).ConfigureAwait(false) }).ConfigureAwait(false);
+            } else if (action == "remove") {
+                var removal = await JsonSerializer.DeserializeAsync<CameraRemoval>(request.Body, options, context.RequestAborted).ConfigureAwait(false) ?? throw new ArgumentException("Choose a camera.");
+                await _cameras.Remove(removal, context.RequestAborted).ConfigureAwait(false);
+                await Json(new { message = "Camera removed from Jubito.", settings = await _cameras.View(context.RequestAborted).ConfigureAwait(false) }).ConfigureAwait(false);
+            } else await Json(new { error = "Unknown camera endpoint." }, 404).ConfigureAwait(false);
+        } catch (Exception e) when (e is ArgumentException || e is InvalidOperationException || e is KeyNotFoundException || e is HttpRequestException || e is IOException || e is JsonException || e is OperationCanceledException || e is BadHttpRequestException) {
+            if (response.HasStarted) { context.Abort(); return; }
+            if (context.RequestAborted.IsCancellationRequested) return;
+            string message = e is BadHttpRequestException ? "Camera settings body is too large or invalid." : e is HttpRequestException or IOException ? "Camera cannot be reached. Check its address, network and TLS certificate." :
+                e is OperationCanceledException ? "Camera request timed out or its settings changed. Retry the feed." : e is JsonException ? "Invalid camera settings body." : e.Message;
+            await Json(new { error = message }, e is BadHttpRequestException ? 413 : e is ArgumentException or JsonException ? 400 : e is KeyNotFoundException ? 404 : 503).ConfigureAwait(false);
+        }
+    }
+
+    async Task<byte[]> CalendarResponse(HttpContext context, string action) {
+        var request = context.Request; var response = context.Response;
+        response.Headers.CacheControl = "no-store";
+        response.Headers["Referrer-Policy"] = "no-referrer";
+        response.ContentType = "application/json; charset=utf-8";
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        byte[] Json(object value) => JsonSerializer.SerializeToUtf8Bytes(value, options);
+        const string cookie = "janet-calendar-signin";
+        if (!request.IsHttps && !IsThisComputer(context.Connection.RemoteIpAddress)) {
+            response.StatusCode = 403; return Json(new { error = "Google Calendar requires HTTPS for remote access. Open jaNET locally or enable HTTPS." });
+        }
+        var cookieOptions = new CookieOptions { HttpOnly = true, Secure = request.IsHttps, SameSite = SameSiteMode.Lax, Path = "/api/calendar/callback", MaxAge = TimeSpan.FromMinutes(10) };
+        try {
+            // Google returns by top-level GET; this one route uses single-use state, PKCE and a browser-bound cookie instead of Origin.
+            if (action == "callback" && HttpMethods.IsGet(request.Method)) {
+                await _calendar.Complete(request.Query["state"].ToString(), request.Cookies[cookie] ?? "", request.Query["code"].ToString(), request.Query["error"].ToString(), context.RequestAborted).ConfigureAwait(false);
+                response.Cookies.Delete(cookie, cookieOptions);
+                response.StatusCode = 303; response.Headers.Location = "/www/?calendar=connected#page3";
+                return Array.Empty<byte>();
+            }
+            string origin = request.Scheme + "://" + request.Host;
+            string supplied = request.Headers.Origin.ToString();
+            if ((supplied.Length > 0 && supplied != origin) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
+                response.StatusCode = 403; return Json(new { error = "Calendar requests must come from this jaNET page." });
+            }
+            if (action == "settings" && HttpMethods.IsGet(request.Method)) return Json(await _calendar.View(context.RequestAborted).ConfigureAwait(false));
+            if (action == "events" && HttpMethods.IsGet(request.Method)) return Json(await _calendar.Events(token: context.RequestAborted).ConfigureAwait(false));
+            if (!HttpMethods.IsPost(request.Method)) { response.StatusCode = 405; return Json(new { error = "Use POST to change the Calendar connection." }); }
+            if (!(request.ContentType ?? "").StartsWith("application/json", StringComparison.OrdinalIgnoreCase)) {
+                response.StatusCode = 415; return Json(new { error = "Send an application/json body." });
+            }
+            switch (action) {
+                case "settings":
+                    var setup = await JsonSerializer.DeserializeAsync<CalendarSetup>(request.Body, options, context.RequestAborted).ConfigureAwait(false) ?? throw new ArgumentException("Enter the Calendar settings.");
+                    await _calendar.Save(setup, context.RequestAborted).ConfigureAwait(false);
+                    return Json(new { message = "Google Calendar settings saved.", settings = await _calendar.View(context.RequestAborted).ConfigureAwait(false) });
+                case "connect":
+                    var connection = await _calendar.Connect(origin, context.RequestAborted).ConfigureAwait(false);
+                    response.Cookies.Append(cookie, connection.Browser, cookieOptions);
+                    return Json(new { url = connection.Url });
+                case "disconnect":
+                    response.Cookies.Delete(cookie, cookieOptions);
+                    return Json(new { message = await _calendar.Disconnect(context.RequestAborted).ConfigureAwait(false) });
+                default: response.StatusCode = 404; return Json(new { error = "Unknown Calendar action." });
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception error) when (error is ArgumentException || error is InvalidOperationException || error is JsonException || error is Microsoft.AspNetCore.Http.BadHttpRequestException) {
+            response.StatusCode = error is ArgumentException || error is JsonException || error is Microsoft.AspNetCore.Http.BadHttpRequestException ? 400 : 503;
+            if (action == "callback") {
+                response.Cookies.Delete(cookie, cookieOptions);
+                response.ContentType = "text/html; charset=utf-8";
+                response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'";
+                return Encoding.UTF8.GetBytes("<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><title>Google Calendar</title><h1>Google Calendar</h1><p>" +
+                    WebUtility.HtmlEncode(error.Message) + "</p><a href=\"/www/#page3\">Return to Jubito Settings</a></html>");
+            }
+            return Json(new { error = error.Message });
+        }
+    }
 
     async Task<byte[]> SettingsResponse(HttpContext context, string area) {
         HttpRequest request = context.Request;

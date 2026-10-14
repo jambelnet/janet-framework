@@ -255,6 +255,123 @@ judo mqtt publish home/livingroom/light/set ON            (also `judo mqtt publi
   `insecure` (`judo mqtt set broker 8883 insecure`) uses tls without checking the broker's certificate, for a broker with its own certificate.
 * An ESP32 (or anything else) can also still talk to jaNET directly: the socket server (`judo socket`) and the web API (`/?cmd=...`) need no broker.
 
+## IP Cameras
+
+Open **Settings > IP Cameras > Cameras & Home widgets**, or **Customize Home > IP cameras**.
+Add a name and the camera's HTTP/HTTPS JPEG/PNG snapshot or MJPEG URL, leave Format **Automatic**, and enter its username/password separately if required.
+Select **Show on Home**, save, then use **Test connection**. The image endpoint is normally documented in the camera's manual or its local web interface;
+the camera's ordinary login page is not a feed. A snapshot address might look like `http://192.168.1.50/snapshot.jpg`, but the path is model-specific.
+There is no network scanning or automatic discovery, and a guessed URL is not installed for you.
+
+To try a public camera without owning one, the National Park Service's
+[Yellowstone North Entrance - Electric Peak webcam](https://www.nps.gov/media/webcam/view.htm?id=81B468AB-1DD8-B71B-0BE84D8E8E0F1112)
+provides `https://www.nps.gov/webcams-yell/mammoth_electric.jpg`.
+Use **Automatic**, a **60-second** snapshot interval, empty username/password fields, and **Show on Home**.
+Save, then test the connection. This public JPEG feed was verified through the jaNET proxy and Home widget on 2026-10-14;
+it is a periodically updated snapshot, not continuous live video. Its availability depends on NPS, and it is not installed automatically for every user.
+
+For continuous live video, Heidelberg University publishes its
+[Foucault pendulum webcam](https://kip.uni-heidelberg.de/oeffwiss/pendelcam/) at
+`https://kip.uni-heidelberg.de/mjpg/video.mjpg`.
+Choose **Automatic** or **MJPEG**, leave credentials empty, and enable **Show on Home**.
+This public stream was verified through jaNET on 2026-10-14: multiple changing JPEG frames arrived over a single HTTP connection,
+and the Home widget displayed **Live** without periodic snapshot requests. The snapshot interval does not control MJPEG playback.
+The university controls its availability; this example is not an automatic default for every installation.
+
+Up to eight cameras can be saved. Home widgets show uncropped frames, refresh snapshots every 2-60 seconds (default five),
+and display MJPEG through the browser's native image decoder. Each widget has refresh, pause/resume, fullscreen and camera-settings controls.
+Leaving Home or hiding the tab stops feeds and pending probes; returning resumes them except cameras paused explicitly in this browser session.
+Editing, removing or hiding cameras refreshes the widgets. Stream connections are renewed periodically, and failures retry while the widget is visible.
+This first integration is view-only: no recording, audio, PTZ/ONVIF control or native RTSP/H.264 transcoding.
+RTSP-only cameras need a gateway on another network device exposing an HTTP MJPEG or snapshot endpoint; an RTSP URL cannot be entered as a browser feed.
+
+Camera profiles and credentials are encrypted in `.ipcameras` with the installation's settings key. Blank password fields retain saved passwords;
+changing host or username requires re-entering the password or explicitly clearing it. Home receives only camera IDs and display metadata, never the source URL or credentials.
+Feeds go through jaNET endpoints using the installation's configured authentication, so an HTTP LAN camera can appear on an HTTPS Home page without mixed-content requests.
+Normal HTTPS camera certificate validation remains enabled; use a trusted certificate or the camera's HTTP endpoint on a trusted LAN.
+Basic/Digest HTTP authentication is supported; vendor login forms and proprietary cloud sessions are not.
+Protect jaNET with HTTPS and authentication, use a camera read-only account, and do not expose an unauthenticated installation to the internet.
+An HTTP camera connection is still unencrypted on the LAN. "Show on Home" controls display, not access permissions for trusted jaNET users.
+
+The proxy accepts only stored camera IDs, blocks redirects and loopback/link-local/special-purpose destinations,
+checks resolved addresses against the jaNET machine before connecting, and limits snapshots to 5 MB and concurrent connections to eight.
+Camera errors do not execute instructions, speak responses or send email. See [.NET ConnectCallback](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.socketshttphandler.connectcallback?view=net-10.0)
+and [HTMLImageElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement) for the underlying transport and browser image APIs.
+Adding camera support requires rebuilding and restarting jaNET, not just refreshing the web files.
+
+## Google Calendar (read-only)
+
+Jubito can read upcoming events from your primary calendar or another calendar shared with your Google account.
+It does not create, change or delete Google events, and connecting does not install schedules or send mail.
+
+### Connect Your Account
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or choose a project and enable the **Google Calendar API**.
+2. Configure **Google Auth Platform** branding/audience. For a personal external app in Testing, add your Google account as a test user.
+3. Create an OAuth client with application type **Web application**, not Desktop app. Register the exact authorized redirect URI:
+   `http://localhost:8080/api/calendar/callback` for a local default installation. Substitute your actual local port.
+   For remote hosting, use your HTTPS domain, such as `https://janet.example.org:8443/api/calendar/callback`, with a trusted certificate.
+   Google rejects raw IP-address redirect hosts, including HTTPS LAN addresses; only loopback IPs are exempt.
+   Plain HTTP on a LAN address is not supported. For setup on the jaNET computer, open `http://localhost:8080/www/` and use the localhost callback above.
+   Open Jubito at the same origin as the registered URI when connecting. The public Branding homepage is separate from this callback.
+4. Open **Settings > Google Calendar > Connection & upcoming events**. Enter the web client ID, client secret and the same redirect URI.
+   Keep Calendar ID `primary` for your main calendar, or copy another calendar's ID from Google Calendar **Settings > Integrate calendar**.
+   Set the time zone, for example `Europe/Paris`. This controls agenda times and the day boundaries of `today`.
+5. Click **Connect to Google**, choose your account and approve read-only event access. After returning to Jubito, click **Upcoming events** to check the connection.
+
+For a LAN installation, perform this sign-in in a browser **on the computer running jaNET**, using `http://localhost:8080/www/`.
+`localhost` on a phone or another computer points to that device, not your jaNET server.
+After connecting, return to your normal HTTPS LAN address, for example `https://192.168.178.23:8443/www/`.
+The Calendar connection is stored on the server and works there too; keep the registered localhost callback unchanged.
+You do not need to expose jaNET to the internet or disable HTTPS. For a later reconnect, open the localhost page again.
+
+Google sign-in requests only `https://www.googleapis.com/auth/calendar.events.readonly`. Your Google password is never entered in Jubito.
+The client secret, refresh token and access token are encrypted in `.googlecalendar` in the data folder with the installation's existing settings key.
+Do not put OAuth JSON files or tokens in `www`, source control, instruction text or release archives. Blank client-secret fields retain the saved secret.
+Changing the OAuth client, secret or redirect URI requires reconnecting; changing calendar ID or time zone retains the connection.
+Protect remotely accessible Jubito with HTTPS and authentication; this connection, like the rest of jaNET's commands, is available to users allowed to access your installation.
+
+For external OAuth apps left in **Testing**, Google normally expires refresh tokens after seven days for Calendar access. Reconnect when prompted,
+or review Google's production/verification requirements for your intended distribution. jaNET refreshes normal short-lived access tokens automatically;
+revoked access, expired refresh tokens, disabled APIs and network failures report an error, not a misleading empty agenda.
+**Disconnect** clears local tokens and attempts to revoke access at Google; if Google cannot be reached, revoke the application manually in your Google Account.
+
+### Home Widget
+
+Home shows **Google Calendar** with up to ten events in the next seven days, including events already in progress.
+The compact agenda pairs each event with a weekday, large day number and month, followed by its title, time and location, without horizontal divider lines.
+Times use the saved Calendar time zone, not the browser's zone. All-day events show dates; multi-day ranges exclude Google's exclusive end date.
+Use the refresh icon for an immediate update or the settings icon to open the existing connection dialog.
+The widget checks for updates once a minute while Home is visible, and refreshes after saved Calendar settings change or disconnect.
+Disconnected, empty and unavailable agendas have distinct states. Event content is displayed as plain text and is not stored in browser storage.
+These background reads do not execute instructions, speak responses or send mail.
+
+### Use Events In Instructions
+
+```text
+judo calendar upcoming           # next 7 days, at most 10 events
+judo calendar upcoming 14 20     # next 14 days, at most 20 events
+judo calendar today             # today's events in the saved time zone
+judo calendar next              # next event, looking up to one year ahead
+judo calendar json 7 10         # structured agenda, with original event fields
+judo calendar status
+judo help calendar
+```
+
+The `#` comments above are documentation, not part of the command. Days must be 1-365 and limits 1-100.
+Upcoming includes events already in progress. Recurring events expand to individual occurrences; all-day dates stay calendar dates,
+and the structured `end` date of an all-day event is exclusive, as in Google Calendar. Today also includes earlier events from today.
+Human-readable titles neutralize jaNET control markers; JSON preserves the original text using standard escapes. Calendar data is not run as code.
+
+In **Instruction Studio**, the **Google Calendar** palette offers Today's agenda, Next calendar event and Upcoming calendar events as Judo-command blocks.
+For a check-in briefing, create an instruction named `my-agenda` with `judo calendar today` as its action, then add a call to `my-agenda`
+to your existing `oncheckin` event. Keep the event's existing steps. You can also pin the instruction to Home or run `my-agenda` in Terminal.
+No new actions are installed automatically.
+
+API details: [Google Calendar events.list](https://developers.google.com/workspace/calendar/api/v3/reference/events/list),
+[OAuth web-server setup](https://developers.google.com/identity/protocols/oauth2/web-server),
+[token expiration](https://developers.google.com/identity/protocols/oauth2#expiration).
+
 ## HTTPS
 
 The web server speaks plain http on its port (default 8080). To add https:
@@ -363,6 +480,16 @@ Recognition languages and spoken voices are independent. To add a browser playba
 
 **Create a new Home item:** in Customize Home, select New instruction, enter a unique Name and its Action, then Save. The newly created instruction is automatically pinned. The optional Add to Dashboard section accepts Category, Header, descriptions, thumbnail URL and a live Reference. Category and Header are both required to also display it on the Dashboard tab. Existing Settings > Instructions > Add New Instruction Set still works; pin that instruction afterward through Customize Home. Arbitrary HTML widgets still require editing the web UI rather than the instruction picker.
 
+**Default icons:** Home shortcuts automatically use the new default set. Dashboard and pinned Home cards translate recognized local legacy PNG paths to matching defaults at display time. Leave Thumbnail URL blank for automatic selection by instruction ID/header, then category; unknown or ambiguous routines get a generic Instruction icon. Custom URLs and explicitly selected icons are preserved. This does not rewrite `AppConfig.xml`, run instructions or change saved actions. The old standalone Check in, Check out, Gmail and Settings PNGs are removed; branding and weather artwork remain.
+
+The optional RaZberry device list uses Outlet, Sensor or Controller icons according to the reported command classes, without changing device commands or enabled states.
+
+Settings > Instructions > Default Icons opens a searchable library of 77 consistent SVG tile icons for automation, messages/voice, networks/services, calendar/weather, system tools and common home-device routines, including IP cameras. In Add New Instruction Set > Add to Dashboard, click the image button beside Thumbnail URL to override the automatic choice. The picker fills a local path such as `icons/default/calendar.svg`. The gallery can copy paths, download individual SVGs or download the complete `www/icons/jubito-default-icons.zip` pack with its catalog and license. Existing instruction XML can use the same paths in its `img` attribute. Studio preserves those attributes when editing actions.
+
+Icons work offline without a CDN or web font. Device symbols are for user-defined MQTT/serial/HTTP routines, not additional built-in device drivers. The generic Gmail symbol is not Google's logo. Lucide artwork is ISC-licensed; keep `www/icons/LICENSE-lucide.txt` when redistributing. Edit `www/icons/catalog.json` and run `node tools/build-icons.mjs` to regenerate SVGs, or `node tools/build-icons.mjs --check` to verify them. Generated icons are committed and included by the normal build/publish web-content glob; Node is not required at runtime.
+
+On Windows, `./tools/build-icon-pack.ps1` regenerates both the SVGs and downloadable ZIP (use `-NodePath` if Node is not on PATH). On other systems, run the Node generator, then archive `default/`, `catalog.json`, `README.txt`, `LICENSE-lucide.txt` and `LICENSE-jaNET.txt` from `www/icons/`, keeping their relative paths.
+
 **Remove an element:** open Settings > Instructions > Remove. Search the current list by name, header or category, select one item, and review the removal targets before choosing Remove. An instruction and its `*launcher` are grouped together and removed together. Include matching event handler is available only when a handler with that exact name exists; event-only entries remove only the handler. A failed removal keeps the dialog and selection open and shows the actual error. Removing an instruction does not rewrite other instructions, events or schedules that refer to it; update those references as needed.
 
 **Natural command matching:** Ask Jubito accepts instruction IDs and friendly Headers, ignoring spaces, underscores, hyphens, case and punctuation. Thus `who am I?` matches an existing `whoami` instruction. Give custom instructions clear Headers such as `Kitchen light on`; the Header becomes an exact spoken/typed name. Built-in phrases include `who am I`, `what is my name`, `where am I`, `what is my status`, `what time is it`, `weather`, `check in` and `check out`. Existing `judo ...` commands and `%function%` expressions remain available.
@@ -468,7 +595,7 @@ The **Source** view keeps each XML action separate. Existing complex expressions
 
 Use **Save** to persist changes, then the separate **Run** button and confirmation to execute on the jaNET host. There is no automatic execution on load, preview or save. Instruction-reference blocks use `judo inset run name`, while event steps retain their existing bare instruction identifiers. Running a saved event explicitly invokes `%~>name%`. Recursive calls are bounded at 32 levels. Existing pointer syntax and execution behavior are preserved. Event dependency maps are rooted at the active event, with current draft actions included.
 
-Studio uses the server's configured authentication and HTTPS settings. `/api/studio` exposes instruction source to authorized same-origin clients and accepts revision-checked JSON saves; the original `/api/instructions` endpoint remains metadata-only. Protect your server with authentication and do not publish it to an untrusted network. Three.js, SortableJS and Lucide are vendored locally and loaded only by Studio. No Node.js, Python, npm, CDN or internet connection is required to use it. Browsers without WebGL retain editing and a dependency-list fallback.
+Studio uses the server's configured authentication and HTTPS settings. `/api/studio` exposes instruction source to authorized same-origin clients and accepts revision-checked JSON saves; the original `/api/instructions` endpoint remains metadata-only. Protect your server with authentication and do not publish it to an untrusted network. Three.js and SortableJS are vendored locally and loaded only by Studio; the locally vendored Lucide library also supplies Home and icon-picker tool controls. No Node.js, Python, npm, CDN or internet connection is required to use it. Browsers without WebGL retain editing and a dependency-list fallback.
 
 ## Versions and releasing
 

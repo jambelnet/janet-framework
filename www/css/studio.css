@@ -143,7 +143,8 @@ body.studio { padding: 0; }
     .studio-library:has(#blocksPanel:not([open])) #libraryPanel[open] { flex: 1 1 0; }
     .studio-workspace { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
     .studio-toolbar, .studio-tabs, .studio-load-error, .studio-status { flex-shrink: 0; }
-    #builderView, #sourceView, #mapView { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    #builderView, #sourceView, #mapView { flex: 1 1 0; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+    #builderView, #sourceView { scrollbar-gutter: stable; }
     #mapView:not([hidden]) { display: flex; flex-direction: column; }
     #mapView .map-toolbar, #mapView .map-legend, #mapView .dependency-list { flex-shrink: 0; }
     #mapView .map-canvas { height: auto; min-height: 180px; flex: 1 0 180px; }

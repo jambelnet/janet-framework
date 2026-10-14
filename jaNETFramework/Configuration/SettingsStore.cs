@@ -185,8 +185,10 @@ internal static class SettingsFiles
     public const string Speech = ".speechsettings";
     public const string Tls = ".tlssettings";
     public const string Mqtt = ".mqttsettings";
+    public const string GoogleCalendar = ".googlecalendar";
+    public const string IpCameras = ".ipcameras";
 
-    public static readonly string[] All = { Smtp, Pop3, Gmail, Sms, DynDns, WebLogin, Scheduler, Weather, Speech, Tls, Mqtt };
+    public static readonly string[] All = { Smtp, Pop3, Gmail, Sms, DynDns, WebLogin, Scheduler, Weather, Speech, Tls, Mqtt, GoogleCalendar, IpCameras };
 
     /// <summary>User name and password for the MQTT broker, or null when none are set.</summary>
     public static (string User, string Password)? LoadMqttLogin(this ISettingsStore store) {

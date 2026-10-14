@@ -318,14 +318,15 @@ public class OptionsTests
 public class HelpFormatterTests
 {
     [Fact]
-    public void TheWholeHelpBecomesFourteenChaptersAndNothingIsLost() {
+    public void TheWholeHelpIncludesCalendarAndNothingIsLost() {
         using var t = new TestHost();
         string text = t.Run("judo help");
 
         HelpData data = HelpFormatter.TryParse("judo help", text);
 
         Assert.NotNull(data);
-        Assert.Equal(14, data.Sections.Count);
+        Assert.Equal(15, data.Sections.Count);
+        Assert.Contains(data.Sections, section => section.Title.Contains("Google Calendar"));
         Assert.Equal(3, data.Notes.Count);
         int written = text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Count(l => l.TrimStart().StartsWith("+ ", StringComparison.Ordinal));
         int shown = data.Sections.SelectMany(s => s.Topics).SelectMany(tp => tp.Commands).Sum(c => 1 + c.Aliases.Count);

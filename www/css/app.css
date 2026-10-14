@@ -407,8 +407,6 @@ main {
 
 .card:active { transform: scale(.985); }
 .card img { width: 64px; height: 64px; object-fit: contain; }
-.card .noimg { width: 64px; height: 64px; }
-.card svg.noimg { fill: var(--primary); padding: 12px; }
 .card h3 { font-size: 1.05rem; }
 .card > span { min-width: 0; overflow-wrap: anywhere; }
 .card p { font-size: .85rem; color: var(--muted); }
@@ -729,6 +727,78 @@ dialog::backdrop { background: rgba(8, 14, 20, .55); }
 
 #date, #userstat { white-space: pre-line; }
 
+.calendar-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.calendar-controls .btn { flex: 1 1 160px; padding-inline: 12px; font-size: .9rem; }
+.calendar-cloud-link { margin: 12px 0; }
+.calendar-footer { display: flex; gap: 8px; flex: none; padding: 14px 16px; border-top: 1px solid var(--border); }
+.calendar-footer .btn { flex: 1; }
+.calendar-agenda { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; max-height: 240px; overflow-y: auto; }
+.home-calendar { min-width: 0; padding: 12px 16px 16px; background: var(--surface); border-radius: var(--radius); }
+.home-calendar h2 { color: light-dark(#a4490c, #ffb36b); }
+.home-calendar .section-head > div:first-child { min-width: 0; }
+.home-calendar-tools { display: flex; flex: none; gap: 4px; }
+.home-calendar-tools svg { width: 22px; height: 22px; }
+#homeCalendarRange, #homeCalendarStatus, .calendar-event-time, .calendar-event-location { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+#homeCalendarStatus { margin-top: 12px; }
+#homeCalendarEvents { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin-top: 16px; padding: 0; max-height: 320px; overflow-y: auto; }
+#homeCalendarEvents li { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 12px; min-width: 0; padding-block: 4px; }
+.calendar-event-date { display: flex; flex-direction: column; align-items: center; line-height: 1.2; gap: 2px; }
+.calendar-event-date span { color: var(--muted); font-size: .7rem; text-transform: uppercase; }
+.calendar-event-date strong { font-size: 1.6rem; font-weight: 650; }
+.calendar-event-details { min-width: 0; padding: 2px 4px 2px 12px; border-inline-start: 3px solid light-dark(#c46a24, #ffb36b); }
+.calendar-event-title { margin: 0 0 4px; font-weight: 600; overflow-wrap: anywhere; }
+.calendar-event-location { margin-top: 4px; }
+
+
+/* ---------- default icons ---------- */
+
+.camera-settings { width: min(860px, calc(100% - 24px)); }
+.camera-settings button:disabled { cursor: default; }
+.camera-footer { display: flex; flex: none; gap: 8px; margin: 0; padding: 14px 16px; border-top: 1px solid var(--border); }
+.camera-footer .btn { flex: 1; padding-inline: 12px; }
+.camera-footer .icon-btn { flex: none; }
+.camera-manager { display: grid; grid-template-columns: minmax(160px, .7fr) minmax(0, 1.5fr); gap: 24px; }
+.camera-library, .camera-editor { min-width: 0; }
+.camera-library h3 { font-size: 1rem; }
+.camera-profile { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 12px; margin-block: 4px; text-align: left; color: var(--text); font: inherit; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; overflow-wrap: anywhere; }
+.camera-profile span { color: var(--muted); font-size: .8rem; }
+.camera-profile[aria-pressed="true"] { background: var(--surface-2); border-color: var(--primary); }
+.camera-widgets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.camera-widget { min-width: 0; overflow: hidden; border-radius: 8px; background: var(--surface); }
+.camera-widget-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; }
+.camera-widget-head h3 { min-width: 0; font-size: .95rem; overflow-wrap: anywhere; }
+.camera-widget-controls { display: flex; flex: none; gap: 2px; }
+.camera-widget-controls .icon-btn { width: 44px; height: 44px; }
+.camera-widget-controls svg { width: 18px; height: 18px; }
+.camera-media { aspect-ratio: 16 / 9; position: relative; background: var(--surface-2); }
+.camera-media > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.camera-placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+.camera-placeholder svg { width: 40px; height: 40px; }
+.camera-widget-status { min-height: 36px; padding: 8px 12px; font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.camera-widget:fullscreen { display: flex; flex-direction: column; background: var(--bg); border-radius: 0; }
+.camera-widget:fullscreen .camera-media { flex: 1; min-height: 0; aspect-ratio: auto; }
+.camera-widget:fullscreen .camera-media > img { position: absolute; inset: 0; }
+
+.thumbnail-entry { display: flex; align-items: center; gap: 8px; }
+.thumbnail-entry input { min-width: 0; flex: 1; }
+.thumbnail-entry .icon-btn { flex: none; }
+.thumbnail-entry svg { width: 24px; height: 24px; }
+.icon-picker { width: min(720px, calc(100% - 24px)); }
+.icon-library-filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.icon-library-filters label { min-width: 0; }
+.default-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 16px; }
+.default-icon-option { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; min-height: 116px; padding: 12px 6px; background: transparent; color: var(--text); border: 1px solid transparent; border-radius: 8px; font: inherit; cursor: pointer; }
+.default-icon-option img { display: block; width: 48px; height: 48px; flex: none; }
+.default-icon-option span { font-size: .8rem; overflow-wrap: anywhere; }
+.default-icon-option:hover { background: var(--surface-2); }
+.default-icon-option[aria-pressed="true"] { border-color: var(--primary); background: var(--surface-2); }
+.icon-library-page main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+.icon-library-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.icon-library-heading h1 { font-size: 1.6rem; }
+.icon-library-selection { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px; margin-top: 24px; padding-block: 16px; }
+.icon-library-selection h2 { font-size: 1rem; }
+.icon-library-selection > .btn-row, .icon-library-selection > p { grid-column: 2; }
+.icon-library-selection input { min-width: 0; }
 
 /* ---------- theme button ---------- */
 
@@ -751,12 +821,27 @@ dialog::backdrop { background: rgba(8, 14, 20, .55); }
     main { max-width: none; margin-left: 196px; margin-right: 0; padding: 28px 32px; }
     .home-heading h1 { font-size: 1.6rem; }
     .tile { min-height: 116px; }
+    #page0 > .actions .action { display: flex; flex-direction: row; justify-content: center; min-height: 64px; gap: 10px; padding: 10px 28px; }
+    #page0 > .actions .action img { width: 36px; height: 36px; flex: none; }
+    .camera-widgets { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+    .camera-widget-controls .icon-btn { width: 32px; height: 32px; }
+}
+
+@media (min-width: 1280px) {
+    #page0 { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+    #page0 > * { grid-column: 1 / -1; min-width: 0; }
+    #page0 > .home-cameras { grid-column: span 8; }
+    #page0:has(#homeCameras:not([hidden])) > .home-calendar { grid-column: span 4; margin-top: 44px; }
+    #page0:has(#homeCameras:not([hidden])) #homeCalendarEvents { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 719px) {
+    .camera-manager { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .icon-library-filters { grid-template-columns: minmax(0, 1fr); }
     .framework-name, .home-label { display: none; }
     .home-heading h1 { font-size: 1.2rem; }
     .home-bottom { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    #homeCalendarEvents { grid-template-columns: minmax(0, 1fr); }
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .tile { min-width: 0; min-height: 100px; padding: 12px 8px; }
     .tile .big { font-size: 1.625rem; }

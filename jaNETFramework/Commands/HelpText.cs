@@ -23,7 +23,7 @@ namespace jaNET.Commands;
 /// <summary>The text of "judo help" and "judo help [topic]".</summary>
 internal static class HelpText
 {
-    /// <param name="topic">inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, help - anything else gives everything</param>
+    /// <param name="topic">inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, calendar, help - anything else gives everything</param>
     public static string For(string topic) {
             if (topic == "process") return "15. External Programs\r\n" +
                 "     15.1 Capture Output (30 seconds by default)\r\n" +
@@ -354,6 +354,17 @@ internal static class HelpText
                                 "     13.6 Status\r\n" +
                                 "         + judo mqtt status\r\n" +
                                 "         + judo mqtt state";
+            const string _calendar = "16. Google Calendar (read-only)\r\n" +
+                "     16.1 Upcoming Events (days 1-365, limit 1-100; includes events in progress)\r\n" +
+                "         + judo calendar upcoming [Days, default 7] [Limit, default 10]\r\n" +
+                "     16.2 Today's Events (saved time zone, including earlier events today)\r\n" +
+                "         + judo calendar today [Limit, default 10]\r\n" +
+                "     16.3 Next Event (searches the coming year)\r\n" +
+                "         + judo calendar next\r\n" +
+                "     16.4 Structured Agenda (event data, not executable instructions)\r\n" +
+                "         + judo calendar json [Days, default 7] [Limit, default 10]\r\n" +
+                "     16.5 Connection (connect in Jubito Settings > Google Calendar)\r\n" +
+                "         + judo calendar status";
             const
             string _help = "14. Help\r\n" +
                                 "     14.1 Preview All\r\n" +
@@ -364,7 +375,7 @@ internal static class HelpText
                                 "         + judo ? [help keyword]\r\n\r\n" +
                                 "(*) Brackets are mandatory when place a sentence as one argument.\r\n" +
                                 "(**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.\r\n" +
-                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, help";
+                                "(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, calendar, help";
             const
             string _all = _inset + "\r\n" +
                           _mail + "\r\n" +
@@ -379,6 +390,7 @@ internal static class HelpText
                           _weather + "\r\n" +
                           _ping + "\r\n" +
                           _mqtt + "\r\n" +
+                          _calendar + "\r\n" +
                           _help + "\r\n";
 
             switch (topic) {
@@ -409,6 +421,8 @@ internal static class HelpText
                     return _ping;
                 case "mqtt":
                     return _mqtt;
+                case "calendar":
+                    return _calendar;
                 case "help":
                     return _help;
                 default:

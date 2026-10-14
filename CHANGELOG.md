@@ -5,8 +5,22 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added
+
+* Read-only Google Calendar integration: encrypted OAuth credentials, browser-bound sign-in with PKCE, automatic token refresh and disconnect/revocation. Settings loads saved values without exposing secrets and previews upcoming events.
+* Home Google Calendar widget with calendar-style date columns, upcoming events, saved-zone times, all-day ranges, refresh/settings controls and separate disconnected, empty and error states. Documented localhost sign-in followed by normal HTTPS LAN access.
+* Default icon library: 77 locally bundled, consistently styled SVG tiles, searchable gallery, thumbnail picker and downloadable pack with catalog/license. Existing custom images and instruction behavior remain unchanged.
+* Automatically apply default icons to Home shortcuts and dashboard/pinned cards, resolving known legacy image paths without rewriting saved XML. Removed the four legacy shortcut PNGs; custom thumbnails, logos and weather artwork are preserved.
+* IP camera profiles with encrypted credentials, Basic/Digest HTTP support, automatic JPEG/PNG snapshot or MJPEG detection and Home widgets. Added pause/resume, fullscreen, connection testing, visibility-aware streaming and a camera icon; RTSP requires a browser-compatible gateway.
+* Stored-ID camera proxy with same-origin/HTTPS guards, credential redaction, DNS destination checks, redirect blocking, bounded snapshots/streams/connections and cancellation when profiles change. Camera reads never execute instructions or trigger mail/speech.
+* `judo calendar upcoming`, `today`, `next`, `json` and `status`, with explicit time-zone handling, recurring-event expansion, all-day dates, bounded event limits and actionable errors. Instruction Studio includes Calendar command blocks; no events or schedules are installed automatically.
+
 ### Fixed
 
+* Pin System.Security.Cryptography.Pkcs to 10.0.13 to include the security fixes for CVE-2026-70162 and CVE-2026-84008 and keep audited Release restores passing.
+* Desktop Home places cameras beside Calendar, expands camera tiles into the available space and uses compact shortcut/camera controls. Mobile keeps its stacked layout and touch-sized camera buttons.
+* Instruction Studio's Dependency Map toolbar no longer leaves an empty scrollbar gutter beside the Properties pane. Builder and Source retain stable scrollbar spacing.
+* Google Calendar sign-in rejects non-loopback IP redirect hosts before saving or navigating to Google, including previously saved HTTPS LAN callbacks. The UI no longer suggests unsupported IP redirects and catches page/callback origin mismatches before changing credentials.
 * JSON web-service saves ignore inactive XML namespace/index fields; failed saves keep the form open, and resetting it restores the correct format controls.
 * XML web-service failures report malformed XML, unmatched nodes and invalid XPath instead of silently returning an empty result. Valid empty values remain supported.
 * Saved web services preserve quoted predicates, wildcard selectors, keys with spaces and percent-encoded endpoint query values. Namespace-qualified XPath accepts standard node/attribute paths alongside the legacy syntax.
