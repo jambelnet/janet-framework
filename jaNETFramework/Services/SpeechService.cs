@@ -30,6 +30,7 @@ internal sealed class SpeechService : IDisposable
 {
     readonly ISettingsStore _settings;
     readonly AppPaths _paths;
+    readonly Func<ProcessStartInfo, Process?> _startSynthesis;
     readonly SemaphoreSlim _recognitionGate = new(1);
     readonly SemaphoreSlim _synthesisGate = new(1);
     Vosk.Model? _model;
@@ -76,7 +77,9 @@ internal sealed class SpeechService : IDisposable
         }
     }
 
-    public SpeechService(ISettingsStore settings, AppPaths paths) { _settings = settings; _paths = paths; }
+    public SpeechService(ISettingsStore settings, AppPaths paths, Func<ProcessStartInfo, Process?>? startSynthesis = null) {
+        _settings = settings; _paths = paths; _startSynthesis = startSynthesis ?? Process.Start;
+    }
 
     public SpeechSettings Settings {
         get {
@@ -135,6 +138,7 @@ internal sealed class SpeechService : IDisposable
     const string WindowsSynthesis = """
         $ErrorActionPreference = 'Stop'
         [Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $text = [Console]::In.ReadToEnd()
         Add-Type -AssemblyName System.Runtime.WindowsRuntime
         $null = [Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType=WindowsRuntime]
         $null = [Windows.Media.SpeechSynthesis.SpeechSynthesisStream, Windows.Media.SpeechSynthesis, ContentType=WindowsRuntime]
@@ -152,7 +156,7 @@ internal sealed class SpeechService : IDisposable
             $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetGenericArguments().Count -eq 1 -and
             $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
         } | Select-Object -First 1
-        $task = $method.MakeGenericMethod([Windows.Media.SpeechSynthesis.SpeechSynthesisStream]).Invoke($null, @($synth.SynthesizeTextToStreamAsync([Console]::In.ReadToEnd())))
+        $task = $method.MakeGenericMethod([Windows.Media.SpeechSynthesis.SpeechSynthesisStream]).Invoke($null, @($synth.SynthesizeTextToStreamAsync($text)))
         $stream = $task.GetAwaiter().GetResult()
         $inputStream = [System.IO.WindowsRuntimeStreamExtensions]::AsStreamForRead($stream.GetInputStreamAt(0))
         $file = [System.IO.File]::Create($env:JANET_AUDIO)
@@ -177,9 +181,20 @@ internal sealed class SpeechService : IDisposable
             })
             ConvertTo-Json -InputObject $voices -Compress
             """);
+        return await ReadWindowsVoices(start, cancellationToken).ConfigureAwait(false);
+    }
+
+    // PowerShell/WinRT's first load can be slow on a fresh machine. Keep the
+    // operation bounded without treating cold startup as a failed voice list.
+    internal static readonly TimeSpan VoiceDiscoveryTimeout = TimeSpan.FromSeconds(30);
+
+    internal static async Task<InstalledSpeechVoice[]> ReadWindowsVoices(ProcessStartInfo start, CancellationToken cancellationToken, TimeSpan? deadline = null) {
+        cancellationToken.ThrowIfCancellationRequested();
+        TimeSpan limit = deadline ?? VoiceDiscoveryTimeout;
+        if (limit <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(deadline));
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Windows voice discovery could not start.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+        timeout.CancelAfter(limit);
         Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
         Task<string> errors = process.StandardError.ReadToEndAsync(timeout.Token);
         try {
@@ -189,12 +204,15 @@ internal sealed class SpeechService : IDisposable
             if (process.ExitCode != 0) throw new InvalidOperationException("Installed Windows voices could not be read.");
             InstalledSpeechVoice[] voices = JsonSerializer.Deserialize<InstalledSpeechVoice[]>(json)
                 ?? throw new InvalidOperationException("Windows returned an invalid voice list.");
-            if (voices.Length > 256 || voices.Any(voice => string.IsNullOrWhiteSpace(voice.Id) || string.IsNullOrWhiteSpace(voice.Name) || string.IsNullOrWhiteSpace(voice.Language)))
+            if (voices.Length > 256 || voices.Any(voice => voice == null || string.IsNullOrWhiteSpace(voice.Id) || string.IsNullOrWhiteSpace(voice.Name) || string.IsNullOrWhiteSpace(voice.Language)))
                 throw new InvalidOperationException("Windows returned an invalid voice list.");
             return voices;
-        } catch {
+        } catch (Exception error) {
+            timeout.Cancel();
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             try { await Task.WhenAll(output, errors).ConfigureAwait(false); } catch (Exception) { }
+            if (error is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                throw new InvalidOperationException($"Windows voice discovery timed out after {limit.TotalSeconds:0.###} seconds. Reopen Voice settings to try again.", error);
             throw;
         }
     }
@@ -239,11 +257,14 @@ internal sealed class SpeechService : IDisposable
                 start.ArgumentList.Add("--stdin"); start.ArgumentList.Add("-w"); start.ArgumentList.Add(file);
                 start.ArgumentList.Add("-v"); start.ArgumentList.Add(settings.Voice);
             }
-            using var process = Process.Start(start) ?? throw new InvalidOperationException("The speech engine could not be started.");
+            using var process = _startSynthesis(start) ?? throw new InvalidOperationException("The speech engine could not be started.");
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(TimeSpan.FromSeconds(settings.Engine == "piper" ? 90 : 30));
             Task output = process.StandardOutput.BaseStream.CopyToAsync(Stream.Null, timeout.Token);
             Task errors = process.StandardError.BaseStream.CopyToAsync(Stream.Null, timeout.Token);
+            string failure = engine == "windows"
+                ? "Windows speech failed. Install the selected Windows speech language or set Voice / language to default."
+                : "The speech engine failed. Check the executable, voice, and model in Voice settings.";
             try {
                 await process.StandardInput.WriteLineAsync(text.AsMemory(), timeout.Token).ConfigureAwait(false);
                 process.StandardInput.Close();
@@ -252,13 +273,13 @@ internal sealed class SpeechService : IDisposable
             } catch (Exception error) {
                 if (!process.HasExited) process.Kill(entireProcessTree: true);
                 try { await Task.WhenAll(output, errors).ConfigureAwait(false); } catch (Exception) { }
-                if (error is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                cancellationToken.ThrowIfCancellationRequested();
+                if (error is OperationCanceledException)
                     throw new InvalidOperationException("The speech engine timed out. Check the selected executable and voice model.", error);
+                if (error is IOException) throw new InvalidOperationException(failure, error);
                 throw;
             }
-            if (process.ExitCode != 0 || !File.Exists(file)) throw new InvalidOperationException(engine == "windows"
-                ? "Windows speech failed. Install the selected Windows speech language or set Voice / language to default."
-                : "The speech engine failed. Check the executable, voice, and model in Voice settings.");
+            if (process.ExitCode != 0 || !File.Exists(file)) throw new InvalidOperationException(failure);
             if (new FileInfo(file).Length > 8_000_000) throw new InvalidOperationException("The generated audio is too large.");
             byte[] audio = await File.ReadAllBytesAsync(file, cancellationToken).ConfigureAwait(false);
             if (audio.Length < 44 || Encoding.ASCII.GetString(audio, 0, 4) != "RIFF" || Encoding.ASCII.GetString(audio, 8, 4) != "WAVE")

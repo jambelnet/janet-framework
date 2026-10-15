@@ -5,6 +5,12 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Fixed
+
+* Windows voice discovery allows a bounded 30-second cold start instead of timing out after 10 seconds, and distinguishes discovery timeouts from caller cancellation. Added platform-independent delayed-process, failure and cancellation regression tests while retaining real Windows voice/synthesis checks.
+* Speech helpers consume input before validating Windows voices and report early engine exits as actionable speech errors instead of leaking a broken-pipe exception. Added a deterministic early-exit regression test.
+* Stable-release publishing avoids empty-array expansion under `set -u` on macOS's older system Bash. Script tests explicitly use that shell on macOS and report stderr/call details instead of an unrelated missing-argument error.
+
 ## [1.0.0-rc.3] - 2026-10-15
 
 ### Fixed

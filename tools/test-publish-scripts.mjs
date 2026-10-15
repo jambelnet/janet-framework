@@ -10,7 +10,7 @@ import test from 'node:test';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const windows = process.platform === 'win32';
-const bash = process.env.JANET_BASH || (windows ? 'C:/Program Files/Git/bin/bash.exe' : 'bash');
+const bash = process.env.JANET_BASH || (windows ? 'C:/Program Files/Git/bin/bash.exe' : process.platform === 'darwin' ? '/bin/bash' : 'bash');
 const powershell = windows ? 'powershell.exe' : 'pwsh';
 
 for (const kind of ['powershell', 'bash']) {
@@ -57,7 +57,7 @@ for (const kind of ['powershell', 'bash']) {
     });
 }
 
-const bashAvailable = spawnSync(bash, ['--version']);
+const bashAvailable = spawnSync(bash, ['--version'], { encoding: 'utf8' });
 const skipBash = bashAvailable.error || bashAvailable.status !== 0 ? `${bash} is unavailable` : false;
 
 function releaseFixture(run) {
@@ -137,8 +137,16 @@ test('GitHub release: existing and repeated runs replace assets without recreati
 }));
 
 test('GitHub release: stable versions do not acquire the pre-release flag', { skip: skipBash }, () => releaseFixture(({ call }) => {
-    const result = call({ version: '1.0.0' }); assert.equal(result.status, 0, result.stderr);
-    assert(!result.calls[1].args.includes('--prerelease'));
+    for (const version of ['1.0.0', '1.0.1+build.42', '1.0.1+build-42']) {
+        const result = call({ version });
+        const diagnostics = JSON.stringify({ bash: bashAvailable.stdout.split('\n')[0], stdout: result.stdout, stderr: result.stderr, calls: result.calls });
+        assert.equal(result.status, 0, diagnostics);
+        assert.equal(result.stderr, '', diagnostics);
+        assert.equal(result.calls.length, 2, diagnostics);
+        assert.deepEqual(result.calls[1].args.slice(0, 3), ['release', 'create', 'v' + version]);
+        assert(!result.calls[1].args.includes('--prerelease'));
+        assert(!result.calls[1].args.includes(''));
+    }
 }));
 
 test('GitHub release: API/auth failures do not trigger creation or uploads', { skip: skipBash }, () => releaseFixture(({ call }) => {

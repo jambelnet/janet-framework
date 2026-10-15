@@ -52,8 +52,9 @@ if [[ -n "$existing" ]]; then
     # Do not publish new checksums until all replacement files have uploaded.
     gh release upload "$tag" "$staging/SHA256SUMS.txt" --repo "$GITHUB_REPOSITORY" --clobber
 else
-    flags=()
-    [[ "$version" != *-* ]] || flags+=(--prerelease)
-    gh release create "$tag" "${flags[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag \
-        --title "jaNET Framework $version" --notes-file "$notes" "$staging/"*
+    # Keep the array nonempty: Bash before 4.4 treats an empty array as unset
+    # under nounset (including the system Bash shipped with macOS).
+    create_args=(--repo "$GITHUB_REPOSITORY" --verify-tag --title "jaNET Framework $version" --notes-file "$notes")
+    if [[ "${version%%+*}" == *-* ]]; then create_args+=(--prerelease); fi
+    gh release create "$tag" "${create_args[@]}" "$staging/"*
 fi

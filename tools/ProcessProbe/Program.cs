@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 switch (args[0]) {
     case "echo": Console.Write(args[1]); break;
+    case "delayed-output":
+        File.WriteAllText(args[3], Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+        await Task.Delay(int.Parse(args[1], CultureInfo.InvariantCulture));
+        Console.Write(args[2]); break;
     case "both":
         await Task.WhenAll(Console.Out.WriteAsync(new string('o', 131072)), Console.Error.WriteAsync(new string('e', 131072)));
         break;
