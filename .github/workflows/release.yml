@@ -4,6 +4,16 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and publish (for example v1.0.0-rc.2)
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -11,8 +21,20 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+
+      # A manual recovery uses the current workflow uploader but builds the
+      # original tag's code. No existing tag is moved to pick up workflow fixes.
+      - name: Preserve release uploader
+        run: cp tools/publish-github-release.sh "$RUNNER_TEMP/janet-publish-github-release.sh"
+
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -23,8 +45,8 @@ jobs:
         run: |
           version=$(dotnet msbuild jaNETFramework/jaNETFramework.csproj -getProperty:Version)
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "The tag is $GITHUB_REF_NAME but Directory.Build.props says $version." >&2
+          if [ "v$version" != "$RELEASE_TAG" ]; then
+            echo "The tag is $RELEASE_TAG but Directory.Build.props says $version." >&2
             exit 1
           fi
           if ! grep -q "^## \[$version\]" CHANGELOG.md; then
@@ -76,9 +98,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          flags=""
-          case "${{ steps.version.outputs.version }}" in *-*) flags="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" $flags --title "jaNET Framework ${{ steps.version.outputs.version }}" --notes-file notes.md \
+          bash "$RUNNER_TEMP/janet-publish-github-release.sh" "$RELEASE_TAG" "${{ steps.version.outputs.version }}" notes.md \
             packages/*.nupkg packages/*.snupkg janet-framework-${{ steps.version.outputs.version }}.zip artifacts/*.tar.gz artifacts/*.zip
 
       # needs the repository secret NUGET_API_KEY; without it the packages are only attached to the release

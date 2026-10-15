@@ -561,12 +561,14 @@ internal sealed class WebServer : IServer, IDisposable
             long? after = long.TryParse(request.Query["after"], out long cursor) ? cursor : null;
             return Json(_speech.Messages(request.Query["session"], after, _isMuted()));
         }
-        if (!HttpMethods.IsPost(request.Method)) { response.StatusCode = 405; return Json(new { error = "Use POST for this speech endpoint." }); }
+        bool voicesRequest = path == "/api/speech/voices" && HttpMethods.IsGet(request.Method);
+        if (!HttpMethods.IsPost(request.Method) && !voicesRequest) { response.StatusCode = 405; return Json(new { error = "Use POST for this speech endpoint." }); }
         string origin = request.Headers.Origin.ToString();
         if ((origin.Length > 0 && origin != request.Scheme + "://" + request.Host) || request.Headers["Sec-Fetch-Site"] == "cross-site") {
             response.StatusCode = 403; return Json(new { error = "Speech requests must come from this jaNET page." });
         }
         try {
+            if (voicesRequest) return Json(new { voices = await _speech.WindowsVoices(context.RequestAborted).ConfigureAwait(false) });
             if (path == "/api/speech/settings") {
                 SpeechSettings settings = await JsonSerializer.DeserializeAsync<SpeechSettings>(request.Body, options, context.RequestAborted).ConfigureAwait(false)
                     ?? throw new ArgumentException("Enter speech settings.");

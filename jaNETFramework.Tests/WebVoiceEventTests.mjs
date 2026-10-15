@@ -55,10 +55,10 @@ globalThis.fetch = async url => {
     const json = String(url).includes('/events')
         ? (() => {
             const query = new URL(String(url), 'http://localhost/www/').searchParams;
-            return { session: 'test', lastId: messages.length, muted,
+            return { session: 'test', lastId: messages.length, muted, output: 'browser',
                 events: query.get('session') === 'test' && !muted ? messages.filter(item => item.id > Number(query.get('after'))) : [] };
         })()
-        : { muted, settings: { engine: 'auto' }, recognitionReady: false, synthesisReady: true };
+        : { muted, settings: { engine: 'auto' }, recognitionReady: false, synthesisReady: true, instructionOutput: 'browser' };
     return { ok: true, async json() { return json; } };
 };
 const source = await readFile(new URL('../www/js/voice.js', import.meta.url), 'utf8');

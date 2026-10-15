@@ -136,7 +136,10 @@ public sealed class JanetHost : IDisposable
                                    WithMqttFunctions(options.Functions));
         resolver = new InstructionResolver(functions, _config, () => evaluator!, () => judo!, processes);
         evaluator = new ConditionEvaluator(() => resolver, executor);
-        runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log, _speech.Publish);
+        runner = new InstructionRunner(_config, resolver, () => judo!, speaker, notifier, log, text => {
+            bool boxPlayback = _speech.Publish(text);
+            return !_usesSystemSpeaker || boxPlayback;
+        });
 
         _web = parts.Web ?? new WebServer(_config, _settings, _paths, executor, log, speech: _speech, isMuted: () => speaker.Muted, functionNames: () => functions.Names, calendar: _calendar);
         _socket = parts.Socket ?? new TcpSocketServer(_config, executor, log);

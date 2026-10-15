@@ -44,13 +44,13 @@ internal sealed class InstructionRunner : IInstructionExecutor
     readonly ISpeaker _speaker;
     readonly MailNotifier _notifier;
     readonly ILog _log;
-    readonly Action<string>? _publishSpeech;
+    readonly Func<string, bool>? _publishSpeech;
     readonly object _speechGate = new();
     Task _speechTail = Task.CompletedTask;
     readonly AsyncLocal<int> _callDepth = new();
     readonly AsyncLocal<bool> _suppressNotifications = new();
 
-    public InstructionRunner(AppConfigStore config, InstructionResolver resolver, Func<Commands.JudoDispatcher> judo, ISpeaker speaker, MailNotifier notifier, ILog log, Action<string>? publishSpeech = null) {
+    public InstructionRunner(AppConfigStore config, InstructionResolver resolver, Func<Commands.JudoDispatcher> judo, ISpeaker speaker, MailNotifier notifier, ILog log, Func<string, bool>? publishSpeech = null) {
         _config = config;
         _resolver = resolver;
         _judo = judo;
@@ -136,7 +136,9 @@ internal sealed class InstructionRunner : IInstructionExecutor
 
         if (!string.IsNullOrWhiteSpace(output) && !_speaker.Muted && !silent) {
             lock (_speechGate) {
-                _publishSpeech?.Invoke(output);
+                // Freeze the destination with the event; a later settings change
+                // must not send a browser-owned response to the box's queue.
+                if (_publishSpeech?.Invoke(output) == false) return output.Trim();
                 Task previous = _speechTail;
                 _speechTail = Task.Run(async () => {
                     await previous.ConfigureAwait(false);

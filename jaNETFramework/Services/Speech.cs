@@ -47,7 +47,14 @@ internal sealed class SystemSpeaker : ISpeaker
     readonly object _stateGate = new();
     CancellationTokenSource? _playing;
 
-    public SystemSpeaker(SpeechService speech, ILog log) { _speech = speech; _log = log; }
+    public SystemSpeaker(SpeechService speech, ILog log) {
+        _speech = speech; _log = log;
+        _speech.SettingsChanged += CancelPlayback;
+    }
+
+    void CancelPlayback() {
+        lock (_stateGate) _playing?.Cancel();
+    }
 
     public bool Muted {
         get => _muted;
@@ -62,10 +69,10 @@ internal sealed class SystemSpeaker : ISpeaker
 
     public void Say(string text) {
         lock (Gate) {
-            if (Muted || _speech.Settings.Engine == "off") return;
+            if (Muted || _speech.Settings.Engine == "off" || _speech.InstructionOutput != "box") return;
             using var cancellation = new CancellationTokenSource();
             lock (_stateGate) {
-                if (Muted) return;
+                if (Muted || _speech.InstructionOutput != "box") return;
                 _playing = cancellation;
             }
             string file = Path.Combine(Path.GetTempPath(), "janet-playback-" + Guid.NewGuid().ToString("N") + ".wav");

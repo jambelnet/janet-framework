@@ -19,10 +19,11 @@ using System.Threading.Tasks;
 namespace jaNET.Services;
 
 internal sealed record SpeechSettings(string Engine = "auto", string Executable = "espeak-ng", string Voice = "en",
-    string PiperModel = "", string RecognitionModel = "");
+    string PiperModel = "", string RecognitionModel = "", string InstructionOutput = "auto");
 
-internal sealed record SpeechMessage(long Id, string Text, DateTimeOffset Created);
-internal sealed record SpeechMessages(string Session, long LastId, bool Muted, SpeechMessage[] Events);
+internal sealed record SpeechMessage(long Id, string Text, DateTimeOffset Created, string Output);
+internal sealed record SpeechMessages(string Session, long LastId, bool Muted, SpeechMessage[] Events, string Output);
+internal sealed record InstalledSpeechVoice(string Id, string Name, string Language);
 
 /// <summary>Optional local speech engines. Models are loaded only when recognition is requested.</summary>
 internal sealed class SpeechService : IDisposable
@@ -38,17 +39,20 @@ internal sealed class SpeechService : IDisposable
     readonly Queue<SpeechMessage> _messages = new();
     readonly string _session = Guid.NewGuid().ToString("N");
     long _messageId;
+    internal event Action? SettingsChanged;
 
-    internal void Publish(string text) {
-        if (string.IsNullOrWhiteSpace(text)) return;
+    internal bool Publish(string text) {
+        if (string.IsNullOrWhiteSpace(text)) return false;
         text = text.Replace('_', ' ').Trim();
-        if (text.Length == 0) return;
+        if (text.Length == 0) return false;
+        string output = InstructionOutput;
         lock (_messagesGate) {
             foreach (string chunk in Chunks(text)) {
-                _messages.Enqueue(new SpeechMessage(++_messageId, chunk, DateTimeOffset.UtcNow));
+                _messages.Enqueue(new SpeechMessage(++_messageId, chunk, DateTimeOffset.UtcNow, output));
                 while (_messages.Count > 32) _messages.Dequeue();
             }
         }
+        return output == "box";
     }
 
     internal static IEnumerable<string> Chunks(string text) {
@@ -67,8 +71,8 @@ internal sealed class SpeechService : IDisposable
             while (_messages.TryPeek(out SpeechMessage? first) && first.Created < DateTimeOffset.UtcNow.AddSeconds(-60)) _messages.Dequeue();
             // A new page or restarted server starts at the live cursor, never replaying old greetings.
             SpeechMessage[] events = !muted && session == _session && after.HasValue && after >= 0 && after <= _messageId
-                ? _messages.Where(message => message.Id > after).ToArray() : Array.Empty<SpeechMessage>();
-            return new SpeechMessages(_session, _messageId, muted, events);
+                ? _messages.Where(message => message.Id > after && message.Output == "browser").ToArray() : Array.Empty<SpeechMessage>();
+            return new SpeechMessages(_session, _messageId, muted, events, InstructionOutput);
         }
     }
 
@@ -85,20 +89,33 @@ internal sealed class SpeechService : IDisposable
     }
 
     public string Save(SpeechSettings settings) {
+        if (settings.InstructionOutput is not ("auto" or "box" or "browser")) throw new ArgumentException("Choose browser/device or jaNET computer for instruction speech.");
         if (settings.Engine is not ("auto" or "windows" or "espeak" or "piper" or "off")) throw new ArgumentException("Choose automatic, Windows voices, eSpeak NG, Piper, or off.");
         if (settings.Engine == "windows" && !OperatingSystem.IsWindows()) throw new ArgumentException("Windows voices require Windows. Choose eSpeak NG or Piper on this system.");
         if (settings.Engine is "espeak" or "piper" && string.IsNullOrWhiteSpace(settings.Executable)) throw new ArgumentException("Enter the speech executable path.");
         if (settings.Engine == "piper" && string.IsNullOrWhiteSpace(settings.PiperModel)) throw new ArgumentException("Enter the Piper .onnx model path.");
         if (new[] { settings.Executable, settings.Voice, settings.PiperModel, settings.RecognitionModel }.Any(v => v == null || v.Length > 2048 || v.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0))
             throw new ArgumentException("Speech settings contain an invalid value.");
-        return _settings.Save(SettingsFiles.Speech, JsonSerializer.Serialize(settings));
+        SpeechSettings previous = Settings;
+        string result = _settings.Save(SettingsFiles.Speech, JsonSerializer.Serialize(settings));
+        if (result == "Settings saved." && settings != previous) SettingsChanged?.Invoke();
+        return result;
+    }
+
+    // Old configurations keep box playback when an engine is installed. An
+    // explicit browser selection never starts the box speaker as a fallback.
+    internal string InstructionOutput {
+        get {
+            SpeechSettings settings = Settings;
+            return settings.InstructionOutput is "box" or "browser" ? settings.InstructionOutput : SynthesisReady ? "box" : "browser";
+        }
     }
 
     public object Status(bool muted = false) {
         SpeechSettings s = Settings;
         return new { settings = s, effectiveEngine = EffectiveEngine(s), recognitionReady = File.Exists(Path.Combine(s.RecognitionModel, "am", "final.mdl")),
             synthesisReady = SynthesisReady,
-            modelLoaded = _model != null, muted };
+            modelLoaded = _model != null, muted, instructionOutput = InstructionOutput };
     }
 
     internal bool SynthesisReady {
@@ -129,6 +146,7 @@ internal sealed class SpeechService : IDisposable
             } | Select-Object -First 1
             if (!$voice) { throw 'The Windows voice/language is not installed. Install it in Windows Speech settings, or use default.' }
             $synth.Voice = $voice
+            if ($synth.Voice.Id -ne $voice.Id) { throw 'Windows did not select the requested voice.' }
         }
         $method = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
             $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetGenericArguments().Count -eq 1 -and
@@ -140,6 +158,46 @@ internal sealed class SpeechService : IDisposable
         $file = [System.IO.File]::Create($env:JANET_AUDIO)
         try { $inputStream.CopyTo($file) } finally { $file.Dispose(); $inputStream.Dispose(); $synth.Dispose() }
         """;
+
+    internal async Task<InstalledSpeechVoice[]> WindowsVoices(CancellationToken cancellationToken) {
+        if (!OperatingSystem.IsWindows()) return Array.Empty<InstalledSpeechVoice>();
+        string executable = FindExecutable("powershell") ?? throw new InvalidOperationException("Windows PowerShell is required to list installed voices.");
+        var start = new ProcessStartInfo(executable) {
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8
+        };
+        start.ArgumentList.Add("-NoProfile"); start.ArgumentList.Add("-NonInteractive"); start.ArgumentList.Add("-Command");
+        start.ArgumentList.Add("""
+            $ErrorActionPreference = 'Stop'
+            [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+            Add-Type -AssemblyName System.Runtime.WindowsRuntime
+            $null = [Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType=WindowsRuntime]
+            $voices = @([Windows.Media.SpeechSynthesis.SpeechSynthesizer]::AllVoices | ForEach-Object {
+                [PSCustomObject]@{ Id = $_.Id; Name = $_.DisplayName; Language = $_.Language }
+            })
+            ConvertTo-Json -InputObject $voices -Compress
+            """);
+        using var process = Process.Start(start) ?? throw new InvalidOperationException("Windows voice discovery could not start.");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+        Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        Task<string> errors = process.StandardError.ReadToEndAsync(timeout.Token);
+        try {
+            await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
+            string json = await output.ConfigureAwait(false);
+            await errors.ConfigureAwait(false);
+            if (process.ExitCode != 0) throw new InvalidOperationException("Installed Windows voices could not be read.");
+            InstalledSpeechVoice[] voices = JsonSerializer.Deserialize<InstalledSpeechVoice[]>(json)
+                ?? throw new InvalidOperationException("Windows returned an invalid voice list.");
+            if (voices.Length > 256 || voices.Any(voice => string.IsNullOrWhiteSpace(voice.Id) || string.IsNullOrWhiteSpace(voice.Name) || string.IsNullOrWhiteSpace(voice.Language)))
+                throw new InvalidOperationException("Windows returned an invalid voice list.");
+            return voices;
+        } catch {
+            if (!process.HasExited) process.Kill(entireProcessTree: true);
+            try { await Task.WhenAll(output, errors).ConfigureAwait(false); } catch (Exception) { }
+            throw;
+        }
+    }
 
     internal static string? FindExecutable(string name) {
         if (string.IsNullOrWhiteSpace(name)) return null;

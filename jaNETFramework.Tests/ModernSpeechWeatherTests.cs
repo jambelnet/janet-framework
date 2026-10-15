@@ -138,7 +138,31 @@ public class ModernSpeechTests
         Assert.Throws<ArgumentException>(() => speech.Save(saved with { Engine = "cloud" }));
         Assert.Throws<ArgumentException>(() => speech.Save(saved with { Executable = "piper\ncommand" }));
         Assert.Throws<ArgumentException>(() => speech.Save(saved with { PiperModel = "" }));
+        Assert.Throws<ArgumentException>(() => speech.Save(saved with { InstructionOutput = "both" }));
         Assert.Equal(saved, speech.Settings);
+    }
+
+    [Fact]
+    public void BrowserOutputNeverStartsTheBoxSpeakerAndOnlyChangedSettingsStopPlayback() {
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        var settings = new SpeechSettings(Engine: "espeak", Executable: "does-not-exist-janet-test", InstructionOutput: "browser");
+        speech.Save(settings);
+        var speaker = new SystemSpeaker(speech, app.Log);
+        int changes = 0;
+        speech.SettingsChanged += () => changes++;
+        speaker.Say("Must only reach the browser, never start an engine.");
+        Assert.Empty(app.Log.Entries);
+        Assert.Equal("browser", speech.InstructionOutput);
+        speech.Save(settings);
+        Assert.Equal(0, changes);
+        speech.Save(settings with { Voice = "Microsoft Zira" });
+        Assert.Equal(1, changes);
+        Assert.False(speaker.Muted);
+        speech.Save(settings with { InstructionOutput = "box" });
+        speaker.Say("The explicitly selected box should attempt its configured engine.");
+        Assert.Contains(app.Log.Entries, entry => entry.Contains("Speech engine not found"));
+        Assert.Equal(2, changes);
     }
 
     [Fact]
@@ -175,6 +199,38 @@ public class ModernSpeechTests
 public class SpeechEventTests
 {
     [Fact]
+    public async Task InstalledWindowsVoicesCanBeSelectedByTheirActualIds() {
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        InstalledSpeechVoice[] voices = await speech.WindowsVoices(CancellationToken.None);
+        if (!OperatingSystem.IsWindows()) { Assert.Empty(voices); return; }
+        Assert.NotEmpty(voices);
+        Assert.All(voices, voice => { Assert.False(string.IsNullOrWhiteSpace(voice.Id)); Assert.False(string.IsNullOrWhiteSpace(voice.Name)); });
+        InstalledSpeechVoice chosen = voices.FirstOrDefault(voice => voice.Name == "Microsoft Zira") ?? voices[0];
+        speech.Save(new SpeechSettings(Engine: "windows", Voice: chosen.Id, InstructionOutput: "box"));
+        byte[] audio = await speech.Synthesize("The installed Windows voice is selected by its actual identifier.", CancellationToken.None);
+        Assert.True(audio.Length > 44);
+        Assert.Equal(chosen.Id, speech.Settings.Voice);
+    }
+
+    [Fact]
+    public void SwitchingDestinationsDoesNotReplayMessagesAlreadySentToTheBox() {
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        speech.Save(new SpeechSettings(Engine: "off", InstructionOutput: "box"));
+        SpeechMessages baseline = speech.Messages(null, null, false);
+        speech.Publish("Old box message.");
+        Assert.Empty(speech.Messages(baseline.Session, baseline.LastId, false).Events);
+        speech.Save(speech.Settings with { InstructionOutput = "browser" });
+        speech.Publish("New browser message.");
+        SpeechMessages browser = speech.Messages(baseline.Session, baseline.LastId, false);
+        Assert.Equal("browser", browser.Output);
+        Assert.Equal("New browser message.", Assert.Single(browser.Events).Text);
+        speech.Save(speech.Settings with { InstructionOutput = "box" });
+        Assert.Equal("box", speech.Messages(null, null, false).Output);
+    }
+
+    [Fact]
     public async Task BuiltInWindowsVoicesGenerateRealAudioWithoutAnExternalEngine() {
         if (!OperatingSystem.IsWindows()) return;
         using var app = new TempApp();
@@ -184,6 +240,16 @@ public class SpeechEventTests
         Assert.True(audio.Length > 44);
         Assert.Equal("RIFF", Encoding.ASCII.GetString(audio, 0, 4));
         Assert.Equal("WAVE", Encoding.ASCII.GetString(audio, 8, 4));
+    }
+
+    [Fact]
+    public async Task AnUnknownExplicitWindowsVoiceDoesNotFallBackToTheDefault() {
+        if (!OperatingSystem.IsWindows()) return;
+        using var app = new TempApp();
+        using var speech = new SpeechService(new MemorySettingsStore(), app.Paths);
+        speech.Save(new SpeechSettings(Engine: "windows", Voice: "janet-test-voice-that-is-not-installed", InstructionOutput: "box"));
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => speech.Synthesize("Never use a different voice.", CancellationToken.None));
+        Assert.Contains("selected Windows speech language", error.Message);
     }
 
     [Fact]
@@ -324,6 +390,37 @@ public class SpeechApiTests : IDisposable
         var audio = await _client.PostAsync("/api/speech/recognize", new ByteArrayContent(ModernSpeechTests.Wave()));
         Assert.Equal(HttpStatusCode.ServiceUnavailable, audio.StatusCode);
         Assert.Contains("No recognition model", await audio.Content.ReadAsStringAsync());
+        Assert.Empty(_executor.Calls);
+    }
+
+    [Fact]
+    public async Task InstructionSpeechDestinationAndSelectedVoiceRoundTripThroughTheApi() {
+        _server.Start();
+        var save = await _client.PostAsJsonAsync("/api/speech/settings", new { engine = "off", voice = "Microsoft Zira", instructionOutput = "browser" });
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        using var status = JsonDocument.Parse(await _client.GetStringAsync("/api/speech"));
+        Assert.Equal("Microsoft Zira", status.RootElement.GetProperty("settings").GetProperty("voice").GetString());
+        Assert.Equal("browser", status.RootElement.GetProperty("instructionOutput").GetString());
+        using var events = JsonDocument.Parse(await _client.GetStringAsync("/api/speech/events"));
+        Assert.Equal("browser", events.RootElement.GetProperty("output").GetString());
+        var invalid = await _client.PostAsJsonAsync("/api/speech/settings", new { engine = "off", instructionOutput = "both" });
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+        Assert.Empty(_executor.Calls);
+    }
+
+    [Fact]
+    public async Task InstalledVoiceEndpointIsReadOnlyAndUsesTheExistingOriginAndAuthenticationChecks() {
+        _settings.Save(SettingsFiles.WebLogin, "voice-test\r\npw");
+        _config.Update(new CommUpdate { Authentication = "basic" });
+        _server.Start();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync("/api/speech/voices")).StatusCode);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes("voice-test:pw")));
+        using var crossOrigin = new HttpRequestMessage(HttpMethod.Get, "/api/speech/voices");
+        crossOrigin.Headers.Add("Origin", "https://other.example");
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.SendAsync(crossOrigin)).StatusCode);
+        string json = await _client.GetStringAsync("/api/speech/voices");
+        InstalledSpeechVoice[] voices = JsonDocument.Parse(json).RootElement.GetProperty("voices").Deserialize<InstalledSpeechVoice[]>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (OperatingSystem.IsWindows()) Assert.NotEmpty(voices); else Assert.Empty(voices);
         Assert.Empty(_executor.Calls);
     }
 

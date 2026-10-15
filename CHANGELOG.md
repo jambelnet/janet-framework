@@ -5,6 +5,15 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-10-15
+
+### Fixed
+
+* Speech uses one configured destination for instruction/event output instead of speaking through both the box and browser. Saved device voices survive delayed enumeration and dialog reopening; missing named voices report an error instead of falling back. Saving changed settings stops old playback and clears queued browser speech. Test voice previews the configured box engine when box output is selected.
+* Windows box voices now use an installed-voice dropdown instead of an ambiguous language field alongside unrelated browser voices. Only controls for the active speech destination are shown; box mode no longer reads assistant replies with a different browser voice. Added real installed-voice synthesis and authenticated voice-discovery tests.
+
+* GitHub release publishing refreshes assets on existing releases without recreating the release or changing its notes/state. Added matching SHA-256 checksums, serialized publishing per tag, manual recovery against an existing tag, and regression tests for repeat runs and publication failures.
+
 ## [1.0.0-rc.2] - 2026-10-15
 
 ### Added
@@ -78,6 +87,7 @@ program's behavior, but it has not yet been run against real serial devices, mai
 
 * jQuery, jQuery Mobile, Raphael, JustGage, d3 and the datebox copies of the web UI (plain HTML, CSS and ES modules now).
 
-[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.2...HEAD
+[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.3...HEAD
+[1.0.0-rc.3]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.2...v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/jambelnet/janet-framework/releases/tag/v1.0.0-rc.1

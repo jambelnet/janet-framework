@@ -536,7 +536,7 @@ async function executeAssistant(command) {
             if (val('askInput') === submitted) setVal('askInput', '');
             addActivity('Completed: ' + command);
         }
-        const spokenByServer = !command.startsWith('%') && !command.startsWith('judo') && !command.startsWith('./');
+        const spokenByServer = /%(?:checkin|checkout|~>[^%]+)%/i.test(command) || !command.startsWith('%') && !command.startsWith('judo') && !command.startsWith('./');
         await voice.response(output, spokenByServer);
         if (command.includes('checkin') || command.includes('checkout')) refreshHome();
     } catch (error) { const message = error?.code === 'JANET_REQUEST_TIMEOUT' ? error.message : 'jaNET could not complete the request.'; renderResponse(response, message, '', { state: 'error' }); toast(message); }
