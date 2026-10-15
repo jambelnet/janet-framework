@@ -4,6 +4,11 @@
 
 A free and open source IoT framework that provides a set of built-in [functions](https://github.com/jambelnet/janet-framework/wiki/Built-in-functions), a native API ([judo API](https://github.com/jambelnet/janet-framework/wiki/judo-API)), and multiple providers, such as scheduler, evaluator, notification manager and others, to allow a 3rd party software (e.g. [Jubito](http://www.jubito.org), see details below) to exploit, in order to interact with multiple services, software applications and vendor hardware (especially open hardware, such as Arduino, Raspberry Pi, Banana Pi, etc). It is designed for interoperability, therefore, to be absolutely vendor-neutral as well as hardware/protocol-agnostic. It can operate on any device that is capable of running .NET (Linux, Windows, Mac, including single-board computers, such Raspberry Pi and Banana Pi).
 
+## Branches
+
+* [`master`](https://github.com/jambelnet/janet-framework/tree/master) is the default branch for the current .NET 10 framework and Jubito web interface. Use it for new installations and contributions.
+* [`legacy`](https://github.com/jambelnet/janet-framework/tree/legacy) preserves the earlier .NET Framework / Mono edition and its historical code.
+
 ## Usage
 
 1. Clone the repository and build it with the [.NET SDK](https://dotnet.microsoft.com/download) (`dotnet build jaNETFramework.sln`).
@@ -611,7 +616,7 @@ git push origin v1.0.0
 
 The *Release* workflow checks that the tag is the version of the code, builds, tests, packs, and publishes a GitHub release with the notes from the changelog,
 the packages and the source archive (a version with a dash, such as `1.0.0-rc.1`, is a pre-release). Add the repository secret `NUGET_API_KEY` to have the
-packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS, including browser JavaScript and build/publish script tests, and replays the original program's behavior. It runs on pull requests and pushes to `master`, `main`, `next`, `modern` and `modernize-*` branches. Release tags run the .NET and JavaScript tests before publishing.
+packages pushed to nuget.org as well. The *CI* workflow builds and tests on Windows, Linux and macOS, including browser JavaScript and build/publish script tests, and replays the original program's behavior. It runs on pull requests and pushes to `master` and the development branches configured in [ci.yml](.github/workflows/ci.yml). Release tags run the .NET and JavaScript tests before publishing.
 
 Before tagging or publishing, wait for **CI on that exact commit to pass on all three systems**, including behavior replay. A successful local Windows run does not validate macOS's system Bash or a fresh hosted runner's startup time. Release-script tests use `/bin/bash` on macOS; voice discovery tests simulate slow startup, timeouts and cancellation in addition to the real Windows integration tests. Voice discovery allows up to 30 seconds for cold PowerShell/WinRT initialization and reports a clear timeout if it cannot finish.
 
