@@ -70,13 +70,32 @@ export function wireVoice(onTranscript, notify) {
         button.querySelector('use').setAttribute('href', active ? '#i-stop' : '#i-mic');
     }
 
+    function chooseDeviceVoice(available, voiceId = '') {
+        if (voiceId) return available.find(voice => voice.voiceURI === voiceId);
+        const locale = value => String(value ?? '').replace(/_/g, '-').toLowerCase();
+        const pageLocale = locale(document.documentElement?.lang || navigator.language || 'en');
+        const language = pageLocale.split('-')[0];
+        const matching = available.filter(voice => locale(voice.lang).split('-')[0] === language);
+        // A generic page language uses the browser's regional preference, not
+        // an unrelated phone default or whichever voice enumerated first.
+        const preferences = [pageLocale, ...(navigator.languages ?? []), navigator.language].map(locale)
+            .filter(value => value.startsWith(language + '-'));
+        for (const preference of preferences) {
+            const exact = matching.filter(voice => locale(voice.lang) === preference);
+            if (exact.length) return exact.find(voice => voice.default) ?? exact[0];
+        }
+        return matching.find(voice => locale(voice.lang) === pageLocale) ?? matching.find(voice => voice.default) ?? matching[0];
+    }
+
     function voices(preferred) {
         const select = byId('browserVoice');
         const selected = preferred ?? select.value;
         const available = (window.speechSynthesis?.getVoices() ?? []).filter(voice => voice.localService);
         select.replaceChildren();
         const defaultVoice = document.createElement('option');
-        defaultVoice.value = ''; defaultVoice.textContent = available.length ? 'Default local voice' : 'No local voice available';
+        const automatic = chooseDeviceVoice(available);
+        defaultVoice.value = ''; defaultVoice.textContent = automatic ? 'Automatic: ' + automatic.name + ' (' + automatic.lang + ')' :
+            available.length ? 'No matching local voice (' + (document.documentElement?.lang || navigator.language || 'en') + ')' : 'No local voice available';
         select.append(defaultVoice);
         available.forEach(voice => {
             const option = document.createElement('option');
@@ -175,7 +194,7 @@ export function wireVoice(onTranscript, notify) {
             let deviceVoices = (window.speechSynthesis?.getVoices() ?? []).filter(voice => voice.localService);
             // Browsers can enumerate installed voices after the first page paint.
             for (let attempt = 0; selectedPlayback === 'browser' && attempt < 15 &&
-                (!deviceVoices.length || voiceId && !deviceVoices.some(voice => voice.voiceURI === voiceId)); attempt++) {
+                !chooseDeviceVoice(deviceVoices, voiceId); attempt++) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 if (generation !== playbackGeneration) return;
                 deviceVoices = (window.speechSynthesis?.getVoices() ?? []).filter(voice => voice.localService);
@@ -203,8 +222,9 @@ export function wireVoice(onTranscript, notify) {
                 const available = deviceVoices;
                 if (!available.length) throw new Error('No local device voice is available. Install an OS voice, or select server audio.');
                 const utterance = new SpeechSynthesisUtterance(text.slice(0, 500));
-                utterance.voice = available.find(voice => voice.voiceURI === voiceId) ?? available.find(voice => voice.default) ?? available.find(voice => voice.lang.startsWith(navigator.language.split('-')[0])) ?? available[0];
-                utterance.lang = utterance.voice.lang; utterance.rate = rate;
+                utterance.voice = chooseDeviceVoice(available, voiceId);
+                if (!utterance.voice) throw new Error('No local voice matches the page language (' + (document.documentElement?.lang || navigator.language || 'en') + '). Choose an installed device voice in Voice settings, or select server audio.');
+                utterance.lang = utterance.voice.lang.replace(/_/g, '-'); utterance.rate = rate;
                 utterance.onend = () => { if (generation === playbackGeneration) stop(); };
                 utterance.onerror = event => {
                     if (generation !== playbackGeneration) return;

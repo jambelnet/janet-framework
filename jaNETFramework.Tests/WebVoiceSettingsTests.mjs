@@ -26,7 +26,7 @@ const defaultVoice = { name: 'Microsoft David', voiceURI: 'david', lang: 'en-US'
 const zira = { name: 'Microsoft Zira', voiceURI: 'zira', lang: 'en-US', localService: true };
 let fixtureId = 0;
 
-async function fixture({ saved = { playback: 'browser', voice: 'zira', rate: 1, replies: true, events: true }, output = 'browser', engine = 'auto', boxVoice = 'default', voicesFail = false } = {}) {
+async function fixture({ saved = { playback: 'browser', voice: 'zira', rate: 1, replies: true, events: true }, output = 'browser', engine = 'auto', boxVoice = 'default', voicesFail = false, pageLanguage = 'en', language = 'en-US', languages = [language] } = {}) {
     const elements = new Map();
     const el = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
     const handlers = new Map();
@@ -35,13 +35,13 @@ async function fixture({ saved = { playback: 'browser', voice: 'zira', rate: 1, 
     let storageFails = false, saveFails = false, muted = false;
     let settings = { engine, executable: '', voice: boxVoice, piperModel: '', recognitionModel: '', instructionOutput: output };
     globalThis.localStorage = { getItem() { return JSON.stringify(saved); }, setItem(key, value) { if (storageFails) throw new Error('Blocked'); remembered = JSON.parse(value); } };
-    globalThis.document = { hidden: false, getElementById: el, createElement() { return new Element(); }, addEventListener() {} };
+    globalThis.document = { hidden: false, documentElement: { lang: pageLanguage }, getElementById: el, createElement() { return new Element(); }, addEventListener() {} };
     globalThis.window = { speechSynthesis: {
         getVoices() { return available; }, cancel() { cancels++; }, speak(utterance) { spoken.push(utterance); },
         addEventListener(name, handler) { handlers.set(name, handler); }
     }, addEventListener() {} };
     globalThis.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
-    Object.defineProperty(globalThis, 'navigator', { value: { language: 'en-US', userActivation: { hasBeenActive: true } }, configurable: true });
+    Object.defineProperty(globalThis, 'navigator', { value: { language, languages, userActivation: { hasBeenActive: true } }, configurable: true });
     globalThis.setInterval = callback => { tick = callback; return 1; };
     globalThis.clearInterval = () => {};
     globalThis.Audio = class { async play() { audioPlayed++; } pause() {} };
@@ -97,7 +97,7 @@ test('saved Zira survives delayed enumeration, dialog reopen and an explicit Def
     assert.equal(f.el('browserVoice').value, '');
     await f.save();
     assert.equal(f.remembered.voice, '');
-    await f.voice.response('Use the actual OS default, not the first voice.');
+    await f.voice.response('Use the matching English default, not the first voice.');
     assert.equal(f.spoken.at(-1).voice.voiceURI, 'david');
     f.voice.stop();
 });
@@ -113,6 +113,69 @@ test('an unavailable selected voice never substitutes the default voice or serve
     await f.voice.response('Do not use server audio in place of Zira.');
     assert.equal(f.audioPlayed, 0);
     assert.equal(f.spoken.length, 0);
+    f.voice.stop();
+});
+
+const automatic = { playback: 'browser', voice: '', rate: 1, replies: true, events: true };
+const hindi = { name: 'Local Hindi', voiceURI: 'hi-in', lang: 'hi-IN', localService: true, default: true };
+const indianEnglish = { name: 'English India', voiceURI: 'en-in', lang: 'en-IN', localService: true, default: true };
+const americanEnglish = { ...defaultVoice, default: false };
+
+test('automatic mobile speech uses the page language instead of an unrelated phone default', async () => {
+    const f = await fixture({ saved: automatic, language: 'hi-IN', languages: ['hi-IN', 'en-US'] });
+    f.setVoices([hindi, americanEnglish]);
+    await f.voice.response('Read this in English.');
+    assert.equal(f.spoken.at(-1).voice.voiceURI, 'david');
+    assert.equal(f.spoken.at(-1).lang, 'en-US');
+    assert.match(f.el('browserVoice').options[0].textContent, /Automatic.*Microsoft David.*en-US/);
+    f.voice.stop();
+});
+
+test('automatic speech matches the browser English region before an English India default', async () => {
+    const british = { name: 'English UK', voiceURI: 'en-gb', lang: 'en-GB', localService: true };
+    for (const [language, expected] of [['en-US', 'david'], ['en-GB', 'en-gb']]) {
+        const f = await fixture({ saved: automatic, language });
+        f.setVoices([indianEnglish, british, americanEnglish]);
+        await f.voice.response('Use the requested English accent.');
+        assert.equal(f.spoken.at(-1).voice.voiceURI, expected);
+        f.voice.stop();
+    }
+});
+
+test('automatic speech honors an explicit page locale and normalized mobile voice tags', async () => {
+    const f = await fixture({ saved: automatic, pageLanguage: 'en-GB' });
+    f.setVoices([hindi, americanEnglish, { name: 'English UK', voiceURI: 'en-gb', lang: 'en_GB', localService: true }]);
+    await f.voice.response('Use the page locale.');
+    assert.equal(f.spoken.at(-1).voice.voiceURI, 'en-gb');
+    assert.equal(f.spoken.at(-1).lang, 'en-GB');
+    f.voice.stop();
+});
+
+test('automatic speech waits for a matching voice even if another language is already loaded', async () => {
+    const f = await fixture({ saved: automatic });
+    f.setVoices([hindi]);
+    const speaking = f.voice.response('Wait for the English voice.');
+    setTimeout(() => f.setVoices([hindi, americanEnglish]), 30);
+    await speaking;
+    assert.equal(f.spoken.at(-1).voice.voiceURI, 'david');
+    f.voice.stop();
+});
+
+test('automatic speech reports a missing matching language rather than using an unrelated voice', async () => {
+    const f = await fixture({ saved: automatic });
+    f.setVoices([hindi]);
+    await f.voice.response('Do not switch to Hindi.');
+    assert.equal(f.spoken.length, 0);
+    assert.equal(f.audioPlayed, 0);
+    assert.match(f.notices.at(-1), /No local voice matches.*en/);
+    f.voice.stop();
+});
+
+test('a deliberately selected device voice overrides automatic language matching', async () => {
+    const f = await fixture({ saved: { ...automatic, voice: 'hi-in' } });
+    f.setVoices([americanEnglish, hindi]);
+    await f.voice.response('Honor the selected voice.');
+    assert.equal(f.spoken.at(-1).voice.voiceURI, 'hi-in');
     f.voice.stop();
 });
 

@@ -5,8 +5,11 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-10-15
+
 ### Fixed
 
+* Automatic browser/device speech selects a local voice matching the page language and browser region instead of prioritizing an unrelated phone default. Voice settings display the automatically selected voice; delayed matching voices are awaited and missing languages report an error. Explicit saved voice selections remain unchanged.
 * Process-termination test helpers tolerate Linux processes disappearing while `/proc` status is opened or read, confirming actual exit through the process API rather than treating any read failure as termination. Shared this check between speech and process-runner tests and added deterministic live/exited-process regressions.
 * Windows voice discovery allows a bounded 30-second cold start instead of timing out after 10 seconds, and distinguishes discovery timeouts from caller cancellation. Added platform-independent delayed-process, failure and cancellation regression tests while retaining real Windows voice/synthesis checks.
 * Speech helpers consume input before validating Windows voices and report early engine exits as actionable speech errors instead of leaking a broken-pipe exception. Added a deterministic early-exit regression test.
@@ -94,7 +97,8 @@ program's behavior, but it has not yet been run against real serial devices, mai
 
 * jQuery, jQuery Mobile, Raphael, JustGage, d3 and the datebox copies of the web UI (plain HTML, CSS and ES modules now).
 
-[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.3...HEAD
+[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.4...HEAD
+[1.0.0-rc.4]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.3...v1.0.0-rc.4
 [1.0.0-rc.3]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.2...v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/jambelnet/janet-framework/releases/tag/v1.0.0-rc.1
