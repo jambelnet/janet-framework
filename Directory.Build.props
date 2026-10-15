@@ -13,7 +13,7 @@
   <!-- The version of everything: the packages, the program and what the banner and %copyright% say (AppInfo reads it from the assembly).
        Releasing: change it here, add the entry to CHANGELOG.md, tag the commit v<version> (see README, "Releasing"). -->
   <PropertyGroup>
-    <Version>1.0.0-rc.1</Version>
+    <Version>1.0.0-rc.2</Version>
   </PropertyGroup>
 
   <!-- NuGet packages (jaNETFramework, jaNETFramework.Hosting); the program and the tests are not packed -->

@@ -5,6 +5,8 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-10-15
+
 ### Added
 
 * Read-only Google Calendar integration: encrypted OAuth credentials, browser-bound sign-in with PKCE, automatic token refresh and disconnect/revocation. Settings loads saved values without exposing secrets and previews upcoming events.
@@ -76,5 +78,6 @@ program's behavior, but it has not yet been run against real serial devices, mai
 
 * jQuery, jQuery Mobile, Raphael, JustGage, d3 and the datebox copies of the web UI (plain HTML, CSS and ES modules now).
 
-[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/jambelnet/janet-framework/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/jambelnet/janet-framework/releases/tag/v1.0.0-rc.1
