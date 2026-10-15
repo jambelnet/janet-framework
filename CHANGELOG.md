@@ -7,6 +7,7 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ### Fixed
 
+* Process-termination test helpers tolerate Linux processes disappearing while `/proc` status is opened or read, confirming actual exit through the process API rather than treating any read failure as termination. Shared this check between speech and process-runner tests and added deterministic live/exited-process regressions.
 * Windows voice discovery allows a bounded 30-second cold start instead of timing out after 10 seconds, and distinguishes discovery timeouts from caller cancellation. Added platform-independent delayed-process, failure and cancellation regression tests while retaining real Windows voice/synthesis checks.
 * Speech helpers consume input before validating Windows voices and report early engine exits as actionable speech errors instead of leaking a broken-pipe exception. Added a deterministic early-exit regression test.
 * Stable-release publishing avoids empty-array expansion under `set -u` on macOS's older system Bash. Script tests explicitly use that shell on macOS and report stderr/call details instead of an unrelated missing-argument error.

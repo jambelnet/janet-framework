@@ -4,11 +4,11 @@ using jaNET.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using static jaNETFramework.Tests.ProcessTestState;
 
 namespace jaNETFramework.Tests;
 
@@ -102,19 +102,5 @@ public sealed class WindowsVoiceDiscoveryTests
     static int? ReadPid(string path) {
         try { return int.TryParse(File.ReadAllText(path), out int pid) ? pid : null; }
         catch (IOException) { return null; }
-    }
-
-    static bool IsRunning(int pid) {
-        try {
-            if (OperatingSystem.IsLinux()) {
-                string state = File.ReadLines($"/proc/{pid}/status").First(line => line.StartsWith("State:", StringComparison.Ordinal));
-                if (state.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1) is "Z" or "X") return false;
-            }
-            using Process process = Process.GetProcessById(pid);
-            return !process.HasExited;
-        }
-        catch (ArgumentException) { return false; }
-        catch (FileNotFoundException) { return false; }
-        catch (DirectoryNotFoundException) { return false; }
     }
 }

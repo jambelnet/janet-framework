@@ -1,11 +1,13 @@
 // (c) J@mBeL.net 2010-2026. This file is part of jaNET Framework, GNU GPL version 3 or later.
 using jaNET.Infrastructure;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Xunit;
+using static jaNETFramework.Tests.ProcessTestState;
 
 namespace jaNETFramework.Tests;
 
@@ -64,21 +66,6 @@ public sealed class ProcessRunnerTests
         }
     }
 
-    static bool IsRunning(int pid) {
-        try {
-            // An orphan can remain in Linux's process table as a zombie after it has been killed.
-            if (OperatingSystem.IsLinux() && LinuxStateHasExited(File.ReadLines($"/proc/{pid}/status").First(line => line.StartsWith("State:", StringComparison.Ordinal))))
-                return false;
-            using Process process = Process.GetProcessById(pid);
-            return !process.HasExited;
-        }
-        catch (ArgumentException) { return false; }
-        catch (FileNotFoundException) { return false; }
-        catch (DirectoryNotFoundException) { return false; }
-    }
-
-    static bool LinuxStateHasExited(string line) => line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1) is "Z" or "X";
-
     [Theory]
     [InlineData("State:\tZ (zombie)", true)]
     [InlineData("State:\tX (dead)", true)]
@@ -87,6 +74,26 @@ public sealed class ProcessRunnerTests
     [InlineData("State:\tT (stopped)", false)]
     public void LinuxProcessStateDistinguishesTerminatedChildrenFromLiveOnes(string line, bool exited) =>
         Assert.Equal(exited, LinuxStateHasExited(line));
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AProcessDisappearingDuringStatusReadsIsConfirmedWithoutHidingLiveProcesses(bool duringRead) {
+        int failures = 0;
+        IEnumerable<string> DisappearingStatus() {
+            yield return "Name:\tProcessProbe";
+            failures++;
+            throw new IOException("No such process : '/proc/test/status'");
+        }
+        IEnumerable<string> ReadStatus() {
+            if (duringRead) return DisappearingStatus();
+            failures++;
+            throw new IOException("No such process : '/proc/test/status'");
+        }
+        Assert.True(IsRunning(Environment.ProcessId, ReadStatus));
+        Assert.False(IsRunning(int.MaxValue, ReadStatus));
+        Assert.Equal(2, failures);
+    }
 
     [Fact]
     public void LaunchModeIsVisibleDetachedAndNeverCapturesStreams() {
