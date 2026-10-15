@@ -487,6 +487,34 @@ public class MqttBrokerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ItIsNotReadyUntilItsSubscriptionsHaveBeenAcknowledged() {
+        await StartBroker();
+        var subscribing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var acknowledge = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _broker.InterceptingSubscriptionAsync += async e => {
+            if (e.ClientId != "janet-test") return;
+            subscribing.TrySetResult(true);
+            await acknowledge.Task.WaitAsync(e.CancellationToken);
+        };
+        var (service, capture, config) = NewService();
+        config.AddMqttSubscription("ready/topic", "act");
+        service.Start();
+
+        try {
+            await subscribing.Task.WaitAsync(TimeSpan.FromSeconds(8));
+            Assert.False(service.IsConnected);
+            Assert.StartsWith("MQTT is not connected.", service.Publish("out/topic", "too early", false));
+        } finally {
+            acknowledge.TrySetResult(true);
+        }
+
+        Assert.True(await Until(() => service.IsConnected));
+        await (await Peer()).PublishStringAsync("ready/topic", "ready");
+        Assert.True(await Until(() => { lock (capture.Runs) return capture.Runs.Count == 1; }));
+        lock (capture.Runs) Assert.Equal(("act", "ready/topic", "ready", ""), Assert.Single(capture.Runs));
+    }
+
+    [Fact]
     public async Task AMessageOnASubscribedTopicRunsTheActionWithTheMessage() {
         await StartBroker();
         var (service, capture, config) = NewService();
@@ -670,7 +698,9 @@ public class MqttBrokerTests : IAsyncDisposable
 
         for (int i = 0; i < 500; i++) await peer.PublishStringAsync("flood/x", i.ToString());
 
-        Assert.True(await Until(() => { lock (capture.Runs) return capture.Runs.Count >= 100; }));
-        Assert.True(await Until(() => { lock (capture.Runs) return capture.Runs.Last().Payload == "499"; }));   // the newest are not lost to the oldest
+        bool progressed = await Until(() => { lock (capture.Runs) return capture.Runs.Count >= 100; });
+        lock (capture.Runs) Assert.True(progressed, $"Only {capture.Runs.Count} of 500 messages were handled; connected: {service.IsConnected}.");
+        bool caughtUp = await Until(() => { lock (capture.Runs) return capture.Runs.LastOrDefault().Payload == "499"; });
+        lock (capture.Runs) Assert.True(caughtUp, $"Newest handled payload: '{capture.Runs.LastOrDefault().Payload}'; expected '499'.");
     }
 }

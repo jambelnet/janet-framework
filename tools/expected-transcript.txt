@@ -305,6 +305,17 @@
  13.6 Status
  + judo mqtt status
  + judo mqtt state
+16. Google Calendar (read-only)
+ 16.1 Upcoming Events (days 1-365, limit 1-100; includes events in progress)
+ + judo calendar upcoming [Days, default 7] [Limit, default 10]
+ 16.2 Today's Events (saved time zone, including earlier events today)
+ + judo calendar today [Limit, default 10]
+ 16.3 Next Event (searches the coming year)
+ + judo calendar next
+ 16.4 Structured Agenda (event data, not executable instructions)
+ + judo calendar json [Days, default 7] [Limit, default 10]
+ 16.5 Connection (connect in Jubito Settings > Google Calendar)
+ + judo calendar status
 14. Help
  14.1 Preview All
  + judo help
@@ -315,7 +326,7 @@
 
 (*) Brackets are mandatory when place a sentence as one argument.
 (**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.
-(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, help
+(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, calendar, help
 
 
 <USER>@jaNET>
@@ -626,6 +637,17 @@
  13.6 Status
  + judo mqtt status
  + judo mqtt state
+16. Google Calendar (read-only)
+ 16.1 Upcoming Events (days 1-365, limit 1-100; includes events in progress)
+ + judo calendar upcoming [Days, default 7] [Limit, default 10]
+ 16.2 Today's Events (saved time zone, including earlier events today)
+ + judo calendar today [Limit, default 10]
+ 16.3 Next Event (searches the coming year)
+ + judo calendar next
+ 16.4 Structured Agenda (event data, not executable instructions)
+ + judo calendar json [Days, default 7] [Limit, default 10]
+ 16.5 Connection (connect in Jubito Settings > Google Calendar)
+ + judo calendar status
 14. Help
  14.1 Preview All
  + judo help
@@ -636,7 +658,7 @@
 
 (*) Brackets are mandatory when place a sentence as one argument.
 (**) <lock>parser protected action</lock> Lock tags used to bypass parsing an action.
-(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, help
+(***) Help Keywords: inset, event, mail, sms, schedule, socket, server, serial, cloud, http, ddns, weather, ping, mqtt, calendar, help
 
 
 <USER>@jaNET>

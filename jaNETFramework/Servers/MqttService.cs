@@ -197,11 +197,13 @@ internal sealed class MqttService : IMqttService, IDisposable
             try {
                 MqttClientConnectResult result = await client.ConnectAsync(Options(mqtt), stop).ConfigureAwait(false);
                 if (result.ResultCode != MqttClientConnectResultCode.Success) throw new MqttRefusedException(result.ResultCode, result.ReasonString);
+                await Synchronize(client, stop).ConfigureAwait(false);
+
+                // A usable connection must already be listening for its configured messages.
                 _client = client;
                 _problem = null;
                 attempt = 0;
 
-                await Synchronize(client, stop).ConfigureAwait(false);
                 await client.PublishAsync(Status(mqtt, "online"), stop).ConfigureAwait(false);
 
                 string why = await disconnected.Task.WaitAsync(stop).ConfigureAwait(false);

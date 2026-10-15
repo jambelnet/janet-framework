@@ -17,6 +17,8 @@ All notable changes to jaNET Framework. The format follows [Keep a Changelog](ht
 
 ### Fixed
 
+* MQTT reports a usable connection only after the broker acknowledges configured subscriptions, preventing messages sent immediately after connection from racing subscription setup. Added a delayed-acknowledgement regression test and clearer flood-test diagnostics.
+* Behavior replay includes the reviewed Google Calendar help additions in its expected transcript; other recorded behavior remains unchanged.
 * Pin System.Security.Cryptography.Pkcs to 10.0.13 to include the security fixes for CVE-2026-70162 and CVE-2026-84008 and keep audited Release restores passing.
 * Desktop Home places cameras beside Calendar, expands camera tiles into the available space and uses compact shortcut/camera controls. Mobile keeps its stacked layout and touch-sized camera buttons.
 * Instruction Studio's Dependency Map toolbar no longer leaves an empty scrollbar gutter beside the Properties pane. Builder and Source retain stable scrollbar spacing.
