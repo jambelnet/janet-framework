@@ -24,7 +24,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # A manual recovery uses the current workflow uploader but builds the
       # original tag's code. No existing tag is moved to pick up workflow fixes.
@@ -32,7 +32,7 @@ jobs:
         run: cp tools/publish-github-release.sh "$RUNNER_TEMP/janet-publish-github-release.sh"
 
       - name: Check out release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ inputs.tag || github.ref_name }}
 
