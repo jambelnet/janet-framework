@@ -59,7 +59,7 @@ jobs:
           dotnet build jaNETFramework.sln -c Release
           dotnet test jaNETFramework.sln -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
